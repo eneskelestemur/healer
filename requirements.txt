@@ -1,0 +1,4 @@
+rdkit
+tqdm
+ipywidgets==8.0.6
+nglview==3.0.6

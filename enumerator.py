@@ -416,7 +416,7 @@ class AutomatedEnumerator:
             counter += 1
             for b1, b2 in iter_product(*composition):
                 for reaction in reactions:
-                    products = reaction.run(b1, b2)
+                    products = reaction.run_syn(b1, b2)
                     if products:
                         for product in products:
                             for p in product:

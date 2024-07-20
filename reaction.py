@@ -1,9 +1,7 @@
 '''
     Reaction class to define chemical reacitons using rdkit.
 '''
-
-import os
-import json
+import inspect
 
 from rdkit import Chem
 from rdkit.Chem import AllChem, Descriptors
@@ -16,7 +14,17 @@ class ReactionTemplate21:
         2 reactants and 1 product. If the reaction has more than 2 reactants
         or more than 1 product, the functions may not work as expected.
     '''
-    def __init__(self, name=None, **kwargs):
+    def __init__(
+            self,
+            name: str,
+            reaction_smarts: str,
+            retro_smarts: str,
+            rhs_classes: list[int] = tuple(),
+            tags: list[str] = tuple(),
+            description: str = "",
+            long_name: str = None,
+            tier: int = None
+    ):
         '''
             Constructor for the Reaction class.
 
@@ -32,21 +40,45 @@ class ReactionTemplate21:
                     tags: list of str, tags for the reaction.
                     tier: int, tier of the reaction.
         '''
-        self._name = name
-        self.sanitized = False
+        self.name = name
+        self.reaction_smarts = reaction_smarts
+        self.retro_smarts = retro_smarts
+        self.rhs_classes = rhs_classes
+        self.tags = tags
+        self.description = description
+        self.long_name = long_name
+        self.tier = tier
 
-        # update properties if kwargs are provided
-        self.display_smarts = None
-        self.descriptions = None
-        self.long_name = None
-        self.retro_smarts = None
-        self.rhs_classes = []
-        self.tags = []
-        self.tier = None
-        for key, value in kwargs.items():
-            if key == 'syn_smarts' or key == 'reaction_smarts':
-                self.reaction_smarts = value
-            setattr(self, key, value)
+        self.sanitized_ = False
+        self._reaction = AllChem.ReactionFromSmarts(reaction_smarts)
+
+        # check if a reaction is valid
+        try:
+            _ = AllChem.SanitizeRxn(self._reaction)
+            self._reaction.RemoveUnmappedReactantTemplates(0.1)
+            self._reaction.RemoveUnmappedProductTemplates(0.1)
+            if len(self.get_reactants()) == 2 and len(self.get_products()) == 1:
+                self.sanitized_ = True
+        except:
+            self.sanitized_ = False
+
+    @classmethod
+    def from_reaction_json(cls, name: str, reaction_json: dict):
+        cls_parameters = [
+            p.name for p in inspect.signature(cls.__init__).parameters.values()
+            if p.name != "self"
+        ]
+
+        valid_params = {key: val for key, val in reaction_json.items() if key in cls_parameters}
+
+        # check for the fact that reaction_smarts could be called syn_smarts
+        if "syn_smarts" in reaction_json.keys():
+            valid_params["reaction_smarts"] = reaction_json["syn_smarts"]
+
+        # add in the name
+        valid_params["name"] = name
+
+        return ReactionTemplate21(**valid_params)
 
     def get_reaction_smarts(self):
         '''
@@ -69,77 +101,31 @@ class ReactionTemplate21:
         except:
             self.sanitized = False
 
-    def get_reaction(self):
-        '''
-            Returns the rdkit reaction object.
-        '''
+    def get_rdkit_reaction_object(self):
         return self._reaction
-    
-    def set_reaction(self, reaction):
-        '''
-            Can't set the reaction directly. Use set_reaction_smarts instead.
-        '''
-        raise ValueError("Can't set the reaction directly. Use set_reaction_smarts instead.")
-
-    # TODO: Update the setters to check if the reaction is valid.
-    def get_name(self): return self._name
-    def set_name(self, name): self._name = name
-    
-    def get_display_smarts(self): return self._display_smarts
-    def set_display_smarts(self, display_smarts): self._display_smarts = display_smarts
-
-    def get_descriptions(self): return self._descriptions
-    def set_descriptions(self, descriptions): self._descriptions = descriptions
-
-    def get_long_name(self): return self._long_name
-    def set_long_name(self, long_name): self._long_name = long_name
-
-    def get_retro_smarts(self): return self._retro_smarts
-    def set_retro_smarts(self, retro_smarts): self._retro_smarts = retro_smarts
-
-    def get_rhs_classes(self): return self._rhs_classes
-    def set_rhs_classes(self, rhs_classes): self._rhs_classes = rhs_classes
-
-    def get_tags(self): return self._tags
-    def set_tags(self, tags): self._tags = tags
-
-    def get_tier(self): return self._tier
-    def set_tier(self, tier): self._tier = tier
-
-    # Properties of the Reaction class:
-    reaction_smarts = property(get_reaction_smarts, set_reaction_smarts)
-    reaction = property(get_reaction, set_reaction)
-    name = property(get_name, set_name)
-    display_smarts = property(get_display_smarts, set_display_smarts)
-    descriptions = property(get_descriptions, set_descriptions)
-    long_name = property(get_long_name, set_long_name)
-    retro_smarts = property(get_retro_smarts, set_retro_smarts)
-    rhs_classes = property(get_rhs_classes, set_rhs_classes)
-    tags = property(get_tags, set_tags)
-    tier = property(get_tier, set_tier)
 
     def __str__(self):
         return self.name
     
     def __repr__(self):
-        return self.display_smarts
+        return self.name
     
     def __hash__(self):
-        return hash(AllChem.ReactionToSmiles(self.reaction, canonical=True))
+        return hash(AllChem.ReactionToSmiles(self._reaction, canonical=True))
     
     def get_reactants(self):
         '''
             Returns the reactants of the reaction sorted by molecular weight 
             in descending order.
         '''
-        return sorted(list(self.reaction.GetReactants()), key=lambda x: Descriptors.MolWt(x), reverse=True)
+        return sorted(list(self._reaction.GetReactants()), key=lambda x: Descriptors.MolWt(x), reverse=True)
     
     def get_products(self):
         '''
             Returns the products of the reaction sorted by molecular weight 
             in descending order.
         '''
-        return sorted(list(self.reaction.GetProducts()), key=lambda x: Descriptors.MolWt(x), reverse=True)
+        return sorted(list(self._reaction.GetProducts()), key=lambda x: Descriptors.MolWt(x), reverse=True)
 
     def get_reactants_smarts(self):
         '''
@@ -175,19 +161,19 @@ class ReactionTemplate21:
         '''
             Returns True if the molecule is a reactant in the reaction.
         '''
-        return self.reaction.IsMoleculeReactant(mol)
+        return self._reaction.IsMoleculeReactant(mol)
     
     def is_product(self, mol):
         '''
             Returns True if the molecule is a product in the reaction.
         '''
-        return self.reaction.IsMoleculeProduct(mol)
+        return self._reaction.IsMoleculeProduct(mol)
     
-    def run(self, *reactants):
+    def run_syn(self, *reactants):
         '''
             Runs the reaction on the reactants and returns the products.
         '''
-        return self.reaction.RunReactants(list(reactants), maxProducts=10)
+        return self._reaction.RunReactants(list(reactants), maxProducts=10)
 
     def run_retro(self, *products):
         '''
@@ -195,4 +181,3 @@ class ReactionTemplate21:
         '''
         retro_reaction = AllChem.ReactionFromSmarts(self.retro_smarts)
         return retro_reaction.RunReactants(list(products), maxProducts=10)
-

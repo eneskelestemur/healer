@@ -2,7 +2,6 @@
     This file contains helper functions for the project.
 '''
 
-import os
 import json
 
 from rdkit import RDLogger
@@ -29,7 +28,7 @@ def load_reactions_from_json(file_path):
 
     reactions = []
     for key, values in data.items():
-        reaction = ReactionTemplate21(name=key, **values)
+        reaction = ReactionTemplate21.from_reaction_json(name=key, reaction_json=values)
         reactions.append(reaction)
 
     return reactions

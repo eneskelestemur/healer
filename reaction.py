@@ -19,6 +19,7 @@ class ReactionTemplate21:
             name: str,
             reaction_smarts: str,
             retro_smarts: str,
+            display_smarts: str = None,
             rhs_classes: list[int] = tuple(),
             tags: list[str] = tuple(),
             description: str = "",
@@ -32,10 +33,10 @@ class ReactionTemplate21:
                 name: str, name of the reaction.
                 kwargs: additional properties of the reaction.
                     reaction_smarts: str, SMARTS string for the reaction. Same as syn_smarts.
-                    display_smarts: str, SMARTS string for the reaction.
-                    descriptions: str, description of the reaction.
-                    long_name: str, long name of the reaction.
                     retro_smarts: str, SMARTS string for the retro reaction.
+                    display_smarts: str, SMARTS string for the reaction.
+                    description: str, description of the reaction.
+                    long_name: str, long name of the reaction.
                     rhs_classes: list of int, reaction classes.
                     tags: list of str, tags for the reaction.
                     tier: int, tier of the reaction.
@@ -43,6 +44,7 @@ class ReactionTemplate21:
         self.name = name
         self.reaction_smarts = reaction_smarts
         self.retro_smarts = retro_smarts
+        self.display_smarts = display_smarts
         self.rhs_classes = rhs_classes
         self.tags = tags
         self.description = description
@@ -97,9 +99,9 @@ class ReactionTemplate21:
             self._reaction.RemoveUnmappedReactantTemplates(0.1)
             self._reaction.RemoveUnmappedProductTemplates(0.1)
             if len(self.get_reactants()) == 2 and len(self.get_products()) == 1:
-                self.sanitized = True
+                self.sanitized_ = True
         except:
-            self.sanitized = False
+            self.sanitized_ = False
 
     def get_rdkit_reaction_object(self):
         return self._reaction
@@ -155,7 +157,7 @@ class ReactionTemplate21:
         '''
             Returns True if the reaction template is valid.
         '''
-        return self.sanitized
+        return self.sanitized_
     
     def is_reactant(self, mol):
         '''

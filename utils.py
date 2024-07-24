@@ -93,7 +93,7 @@ def custom_enumerator(molecule, building_blocks, reaction_sites, reaction_tags, 
     enumerator.enumerate()
     return enumerator
 
-def custom_enumerator_download(res):
+def custom_enumerator_download_df(res):
     '''
         Wrapper function to download the results of CustomEnumerator. 
         Used in Dash app.

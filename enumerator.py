@@ -12,7 +12,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem, Descriptors, rdMolDescriptors, DataStructs
 from rdkit.Chem.FastSDMolSupplier import FastSDMolSupplier
 
-from itertools import product as iter_product
+from itertools import combinations, product as iter_product
 from tqdm import tqdm
 
 
@@ -210,6 +210,14 @@ class CustomEnumerator(_BaseEnumerator):
         '''
         self._filtered_bb = []
         for bb in tqdm(self.bb_supplier, desc='Processing building blocks', total=len(self.bb_supplier)):
+            if bb is None:
+                continue
+            try:
+                flag = Chem.SanitizeMol(bb)
+                assert flag == Chem.rdmolops.SanitizeFlags.SANITIZE_NONE
+            except AssertionError:
+                print('Sanitization failed!')
+                continue
             if self._check_rules(bb) and self._check_struct_rules(bb):
                 self._filtered_bb.append(bb)
     
@@ -362,6 +370,8 @@ class AutomatedEnumerator(_BaseEnumerator):
             Args:
                 path (str): path to the file.
         '''
+        if not self.enumerated_molecules:
+            print('No enumerated molecules found!')
         # save the enumerated molecules
         with open(path, 'w') as f:
             f.write('Product,BB1,BB2,Reaction_name,Reaction_ID\n')
@@ -373,13 +383,29 @@ class AutomatedEnumerator(_BaseEnumerator):
             Process the building blocks to filter out the ones that do not
             satisfy the rules.
         '''
-        self._filtered_bb = []
+        self._filtered_bb = [] # [[[bb1, bb2, ...], [bb1, bb2, ...]], ...]
         for composition in tqdm(self._compositions, desc='Processing building blocks', total=len(self._compositions)):
-            bb_list = []
+            composition_bbs = []
             for substruct in composition:
-                bb_list.append([bb for bb in self.bb_supplier if utils.get_tani_sim(bb, substruct) >= self.sim_threshold])
-            self._filtered_bb.append(bb_list)
-
+                bb_filtered = []
+                for bb in self.bb_supplier:
+                    if bb is None:
+                        continue
+                    try:
+                        flag = Chem.SanitizeMol(bb)
+                        assert flag == Chem.rdmolops.SanitizeFlags.SANITIZE_NONE
+                    except AssertionError:
+                        print('Sanitization failed!')
+                        continue
+                    if utils.get_tani_sim(bb, substruct) >= self.sim_threshold:
+                        bb_filtered.append(bb)
+                composition_bbs.append(bb_filtered)
+            if all(composition_bbs):
+                self._filtered_bb.append(composition_bbs)
+            else:
+                comp = [Chem.MolToSmiles(substruct) for substruct in composition]
+                print(f'No building blocks found for the composition: {comp}')
+                
     def _prepare_molecule(self):
         '''
             Prepare the molecule by finding possible substructure compositions with
@@ -410,4 +436,34 @@ class AutomatedEnumerator(_BaseEnumerator):
                                 print('Sanitization failed!')
                                 continue
                         self._compositions.append(product)
+            
+            # remove duplicate compositions
+            self._remove_duplicate_compositions()
+
+        self.print_compositions()
+        
+    def _remove_duplicate_compositions(self):
+        '''
+            Remove duplicate compositions.
+        '''
+        composition_idx_to_remove = []
+        for i, comp_i in enumerate(self._compositions):
+            for j, comp_j in enumerate(self._compositions):
+                if i < j:
+                    all_smiles = [Chem.MolToSmiles(substruct) for substruct in comp_i]
+                    all_smiles.extend([Chem.MolToSmiles(substruct) for substruct in comp_j])
+                    if len(set(all_smiles)) <= 2:
+                        composition_idx_to_remove.append(j)
+        
+        for idx in sorted(composition_idx_to_remove)[::-1]:
+            self._compositions.pop(idx)
+
+    def print_compositions(self):
+        if self._compositions:
+            for i, composition in enumerate(self._compositions):
+                smiles = [Chem.MolToSmiles(substruct) for substruct in composition]
+                print(f'Composition {i}: {smiles}')
+        else:
+            print('No compositions found!')
+
 

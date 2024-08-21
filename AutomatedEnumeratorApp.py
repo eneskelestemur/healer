@@ -113,7 +113,15 @@ app.layout = dbc.Container(
                                 dbc.Col(dbc.Button("Enumerate", id="enumerate-button", color="warning", className="mr-2",
                                                    style={'width': '100%', 'text-align': 'center'}), width=3),
                                 dbc.Col(dbc.Button("Save", id="save-button", color="success",
-                                                   style={'width': '100%', 'text-align': 'center'}), width=3)
+                                                   style={'width': '100%', 'text-align': 'center'}), width=3),
+                            ],
+                            className="mb-3",
+                            justify='end',
+                        ),
+                        dbc.Row(
+                            [
+                                dbc.Col(dbc.Button(id="Cancel Enumeration Job", color="danger", 
+                                                   style={'width': '100%', 'text-align': 'center'}), width=9),
                             ],
                             className="mb-3",
                             justify='end',

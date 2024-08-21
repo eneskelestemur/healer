@@ -39,7 +39,7 @@ class _BaseEnumerator(abc.ABC):
 
             Args:
                 molecule (str): SMILES string or rdkit mol object.
-                bb_supplier (str): "US_stocks", "EU_stocks", "Global_stocks",
+                bb_supplier (str): "US_stocks", "EU_stocks", "Global_stocks", "No_Rush_BBs",
                                     or the path to a file containing building blocks.
         '''
         # molecule
@@ -52,9 +52,11 @@ class _BaseEnumerator(abc.ABC):
         if bb_supplier == 'US_stocks':
             self.bb_supplier = FastSDMolSupplier('buildingblocks/Enamine_Rush-Delivery_Building_Blocks-US_195312cmpd_20240610.sdf')
         elif bb_supplier == 'EU_stocks':
-            return NotImplementedError
+            self.bb_supplier = FastSDMolSupplier('buildingblocks/Enamine_Rush-Delivery_Building_Blocks-EU_153230cmpd_20240806.sdf')
         elif bb_supplier == 'Global_stocks':
-            return NotImplementedError
+            self.bb_supplier = FastSDMolSupplier('buildingblocks/Enamine_Building_Blocks_Stock_290951cmpd_20240806.sdf')
+        elif bb_supplier == 'No_Rush_BBs':
+            self.bb_supplier = FastSDMolSupplier('buildingblocks/Enamine_building_blocks_sdf.zip')
         elif bb_supplier == 'test':
             self.bb_supplier = FastSDMolSupplier('buildingblocks/test_100_bb.sdf')
         else:
@@ -114,7 +116,7 @@ class CustomEnumerator(_BaseEnumerator):
                 reaction_sites (list): list of atom indices to consider for the enumeration.
                                       If no reaction site is provided, any possible reaction
                                       site will be considered.
-                building_blocks (str): "US_stocks", "EU_stocks", "Global_stocks",
+                building_blocks (str): "US_stocks", "EU_stocks", "Global_stocks", "No_Rush_BBs",
                                         or the path to a file containing building blocks.
                 reaction_tags (list): list of reaction tags to consider for the enumeration.
                 rules (dict): dictionary containing the rules if the method is rules.
@@ -144,6 +146,7 @@ class CustomEnumerator(_BaseEnumerator):
         self._reactions = [reaction for reaction in self._reactions if any(tag in reaction.tags for tag in self.reaction_tags)]
         
         # enumerate the molecule with building blocks at the reaction site(s)
+        query_fp = AllChem.GetMorganFingerprintAsBitVect(self.molecule, 3, nBits=2048)
         self.enumerated_molecules = []
         for bb in tqdm(self._filtered_bb, desc='Enumerating building blocks', total=len(self._filtered_bb)):
             if self.reaction_sites:
@@ -152,7 +155,10 @@ class CustomEnumerator(_BaseEnumerator):
                     if products:
                         for product in products:
                             for p in product:
+                                product_fp = AllChem.GetMorganFingerprintAsBitVect(p, 3, nBits=2048)
+                                tani_sim = utils.get_tani_sim_fp(query_fp, product_fp)
                                 self.enumerated_molecules.append((Chem.MolToSmiles(p),
+                                                                  tani_sim,
                                                                   Chem.MolToSmiles(bb),
                                                                   reaction.name,
                                                                   str(hash(reaction))))
@@ -162,7 +168,10 @@ class CustomEnumerator(_BaseEnumerator):
                     if products:
                         for product in products:
                             for p in product:
+                                product_fp = AllChem.GetMorganFingerprintAsBitVect(p, 3, nBits=2048)
+                                tani_sim = utils.get_tani_sim_fp(query_fp, product_fp)
                                 self.enumerated_molecules.append((Chem.MolToSmiles(p),
+                                                                  tani_sim,
                                                                   Chem.MolToSmiles(bb),
                                                                   reaction.name,
                                                                   str(hash(reaction))))
@@ -178,7 +187,7 @@ class CustomEnumerator(_BaseEnumerator):
         '''
         # save the enumerated molecules
         with open(path, 'w') as f:
-            f.write('Product,BB,Reaction_name,Reaction_ID\n')
+            f.write('Product,Similarity_to_query,BB,Reaction_name,Reaction_ID\n')
             for mol in self.enumerated_molecules:
                 f.write(','.join(mol) + '\n')  
 
@@ -317,7 +326,7 @@ class AutomatedEnumerator(_BaseEnumerator):
 
             Args:
                 molecule (str): SMILES string or rdkit mol object.
-                building_blocks (str): "US_stocks", "EU_stocks", "Global_stocks",
+                building_blocks (str): "US_stocks", "EU_stocks", "Global_stocks", "No_Rush_BBs",
                                         or the path to a file containing building blocks.
                 reaction_tags (list): list of reaction tags to consider for the enumeration.
                 custom_comp_sites (list(tuple)): list of tuples containing the atom indices for
@@ -343,6 +352,7 @@ class AutomatedEnumerator(_BaseEnumerator):
         reactions = [reaction for reaction in self._reactions if any(tag in reaction.tags for tag in self.reaction_tags)]
 
         # enumerate the molecule with building blocks
+        query_fp = AllChem.GetMorganFingerprintAsBitVect(self.molecule, 3, nBits=2048)
         self.enumerated_molecules = []
         counter = 0
         for composition in tqdm(self._filtered_bb, desc='Enumerating building blocks', total=len(self._filtered_bb)):
@@ -355,7 +365,10 @@ class AutomatedEnumerator(_BaseEnumerator):
                     if products:
                         for product in products:
                             for p in product:
+                                product_fp = AllChem.GetMorganFingerprintAsBitVect(p, 3, nBits=2048)
+                                tani_sim = utils.get_tani_sim_fp(query_fp, product_fp)
                                 self.enumerated_molecules.append((Chem.MolToSmiles(p),
+                                                                  tani_sim,
                                                                   Chem.MolToSmiles(b1),
                                                                   Chem.MolToSmiles(b2),
                                                                   reaction.name,
@@ -374,7 +387,7 @@ class AutomatedEnumerator(_BaseEnumerator):
             print('No enumerated molecules found!')
         # save the enumerated molecules
         with open(path, 'w') as f:
-            f.write('Product,BB1,BB2,Reaction_name,Reaction_ID\n')
+            f.write('Product,Similarity_to_query,BB1,BB2,Reaction_name,Reaction_ID\n')
             for mol in self.enumerated_molecules:
                 f.write(','.join(mol) + '\n')
 
@@ -453,7 +466,8 @@ class AutomatedEnumerator(_BaseEnumerator):
                     all_smiles = [Chem.MolToSmiles(substruct) for substruct in comp_i]
                     all_smiles.extend([Chem.MolToSmiles(substruct) for substruct in comp_j])
                     if len(set(all_smiles)) <= 2:
-                        composition_idx_to_remove.append(j)
+                        composition_idx_to_remove.append(i)
+                        break
         
         for idx in sorted(composition_idx_to_remove)[::-1]:
             self._compositions.pop(idx)

@@ -48,6 +48,7 @@ def load_reactions_from_json(file_path):
 
     return reactions
 
+# TODO: mol inputs is not useful when getting similarity against one molecule
 def get_tani_sim(mol1, mol2):
     '''
         Calculates the Tanimoto similarity between two molecules.
@@ -62,6 +63,19 @@ def get_tani_sim(mol1, mol2):
     # calculate similarity
     fp1 = AllChem.GetMorganFingerprintAsBitVect(mol1, 3, nBits=2048)
     fp2 = AllChem.GetMorganFingerprintAsBitVect(mol2, 3, nBits=2048)
+    return DataStructs.TanimotoSimilarity(fp1, fp2)
+
+def get_tani_sim_fp(fp1, fp2):
+    '''
+        Calculates the Tanimoto similarity between two fingerprints.
+
+        Args:
+            fp1: rdkit.Chem.rdchem.Mol, molecule 1.
+            fp2: rdkit.Chem.rdchem.Mol, molecule 2.
+
+        Returns:
+            float, Tanimoto similarity.
+    '''
     return DataStructs.TanimotoSimilarity(fp1, fp2)
 
 def split_molecule(mol: Chem.rdchem.Mol | str, split_site: tuple[int, int]):

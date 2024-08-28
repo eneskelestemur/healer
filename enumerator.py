@@ -7,27 +7,17 @@
 # libraries
 import abc
 import utils
+import pandas as pd
 
 from rdkit import Chem
-from rdkit.Chem import AllChem, Descriptors, rdMolDescriptors, DataStructs
+from rdkit.Chem import AllChem, Descriptors, rdMolDescriptors
 from rdkit.Chem.FastSDMolSupplier import FastSDMolSupplier
 
-from itertools import combinations, product as iter_product
+from itertools import product as iter_product
 from tqdm import tqdm
 
 
-## Reactions
-# generic reaction template for molecules with dummy atoms, R-* . R'-* >> R-R'
-generic_rxn = AllChem.ReactionFromSmarts('[*:1]-[*H5:2].[*:3]-[*H5:4]>>[*:1]-[*:3]')
-# amide coupling reaction
-amide_coupling_rxn = AllChem.ReactionFromSmarts('[C:1](=[O:2])O.[NH2:3]>>[C:1](=[O:2])[NH:3]')
-
-# SMART site dictionary -- key: functional group pattern, value: functional group with dummy atom [*H5]
-rxn_sites = {
-    'carboxylic_acid': '[C:1](=[O:2])[OH]>>[C:1](=[O:2])[*]', # carboxylic acid
-    'primary_amine': '[C:1][NH2:2]>>[C:1][NH:2][*]', # amine
-}
-
+# TODO: Speed up building block processing by using kd-trees or parallel processing
 
 class _BaseEnumerator(abc.ABC):
     '''
@@ -56,7 +46,7 @@ class _BaseEnumerator(abc.ABC):
         elif bb_supplier == 'Global_stocks':
             self.bb_supplier = FastSDMolSupplier('buildingblocks/Enamine_Building_Blocks_Stock_290951cmpd_20240806.sdf')
         elif bb_supplier == 'No_Rush_BBs':
-            self.bb_supplier = FastSDMolSupplier('buildingblocks/Enamine_building_blocks_sdf.zip')
+            self.bb_supplier = FastSDMolSupplier('buildingblocks/Enamine_Building_Blocks_1333124cmpd_20240806.sdf')
         elif bb_supplier == 'test':
             self.bb_supplier = FastSDMolSupplier('buildingblocks/test_100_bb.sdf')
         else:
@@ -149,32 +139,23 @@ class CustomEnumerator(_BaseEnumerator):
         query_fp = AllChem.GetMorganFingerprintAsBitVect(self.molecule, 3, nBits=2048)
         self.enumerated_molecules = []
         for bb in tqdm(self._filtered_bb, desc='Enumerating building blocks', total=len(self._filtered_bb)):
-            if self.reaction_sites:
-                for reaction in self._reactions:
-                    products = reaction.run_syn(self._prepared_mol, bb)
-                    if products:
-                        for product in products:
-                            for p in product:
+            for reaction in self._reactions:
+                products = reaction.run_syn(self._prepared_mol, bb)
+                if products:
+                    for product in products:
+                        for p in product:
+                            try:
+                                p = Chem.MolFromSmiles(Chem.MolToSmiles(p))
                                 product_fp = AllChem.GetMorganFingerprintAsBitVect(p, 3, nBits=2048)
                                 tani_sim = utils.get_tani_sim_fp(query_fp, product_fp)
-                                self.enumerated_molecules.append((Chem.MolToSmiles(p),
-                                                                  tani_sim,
-                                                                  Chem.MolToSmiles(bb),
-                                                                  reaction.name,
-                                                                  str(hash(reaction))))
-            else:
-                for reaction in self._reactions:
-                    products = reaction.run_syn(self._prepared_mol, bb)
-                    if products:
-                        for product in products:
-                            for p in product:
-                                product_fp = AllChem.GetMorganFingerprintAsBitVect(p, 3, nBits=2048)
-                                tani_sim = utils.get_tani_sim_fp(query_fp, product_fp)
-                                self.enumerated_molecules.append((Chem.MolToSmiles(p),
-                                                                  tani_sim,
-                                                                  Chem.MolToSmiles(bb),
-                                                                  reaction.name,
-                                                                  str(hash(reaction))))
+                            except RuntimeError:
+                                print('Fingerprint calculation of a product failed!', flush=True)
+                                tani_sim = 0.0
+                            self.enumerated_molecules.append((Chem.MolToSmiles(p),
+                                                                str(round(tani_sim)),
+                                                                Chem.MolToSmiles(bb),
+                                                                reaction.name,
+                                                                str(hash(reaction))))
 
     def save_results(self, path: str='enumerated_molecules.csv'):
         '''
@@ -185,11 +166,13 @@ class CustomEnumerator(_BaseEnumerator):
             Args:
                 path (str): path to the file.
         '''
-        # save the enumerated molecules
-        with open(path, 'w') as f:
-            f.write('Product,Similarity_to_query,BB,Reaction_name,Reaction_ID\n')
-            for mol in self.enumerated_molecules:
-                f.write(','.join(mol) + '\n')  
+        if not self.enumerated_molecules:
+            print('No enumerated molecules found! Writing an empty file...')
+        
+        column_names = ['Product', 'Similarity_to_query', 'BB', 'Reaction_name', 'Reaction_ID']
+        df = pd.DataFrame(self.enumerated_molecules, columns=column_names)
+        df = df.drop_duplicates(subset=['Product'])
+        df.to_csv(path, index=False)
 
     def set_rules(self, **kwargs):
         '''
@@ -225,7 +208,7 @@ class CustomEnumerator(_BaseEnumerator):
                 flag = Chem.SanitizeMol(bb)
                 assert flag == Chem.rdmolops.SanitizeFlags.SANITIZE_NONE
             except AssertionError:
-                print('Sanitization failed!')
+                print('Sanitization failed!', flush=True)
                 continue
             if self._check_rules(bb) and self._check_struct_rules(bb):
                 self._filtered_bb.append(bb)
@@ -236,10 +219,8 @@ class CustomEnumerator(_BaseEnumerator):
             part of the reaction site.
         '''
         self._prepared_mol = Chem.MolFromSmiles(Chem.MolToSmiles(self.molecule))
-        if not self.reaction_sites:
-            return
-        else:
-            # add protection to the atoms that are not part of the reaction site or neigbors of the reaction site
+        if self.reaction_sites:
+            # Only given reaction sites should be considered reactive
             dont_protect = set()
             for atom in self._prepared_mol.GetAtoms():
                 if atom.GetIdx() in self.reaction_sites:
@@ -249,6 +230,8 @@ class CustomEnumerator(_BaseEnumerator):
             for atom in self._prepared_mol.GetAtoms():
                 if atom.GetIdx() not in dont_protect:
                     atom.SetProp('_protected', '1')
+        else:
+            pass
 
     def _check_struct_rules(self, building_block: Chem.rdchem.Mol):
         '''
@@ -271,11 +254,9 @@ class CustomEnumerator(_BaseEnumerator):
             Args:
                 building_block: rdkit mol or SMILES string.
         '''
-        # convert building block to rdkit mol object
         if isinstance(building_block, str):
             building_block = Chem.MolFromSmiles(building_block)
 
-        # check rules
         for key, value in self.rules.items():
             if key == 'MW':
                 if not value[0] <= Descriptors.MolWt(building_block) <= value[1]:
@@ -365,10 +346,15 @@ class AutomatedEnumerator(_BaseEnumerator):
                     if products:
                         for product in products:
                             for p in product:
-                                product_fp = AllChem.GetMorganFingerprintAsBitVect(p, 3, nBits=2048)
-                                tani_sim = utils.get_tani_sim_fp(query_fp, product_fp)
+                                try:
+                                    p = Chem.MolFromSmiles(Chem.MolToSmiles(p))
+                                    product_fp = AllChem.GetMorganFingerprintAsBitVect(p, 3, nBits=2048)
+                                    tani_sim = utils.get_tani_sim_fp(query_fp, product_fp)
+                                except RuntimeError:
+                                    print('Fingerprint calculation of a product failed!', flush=True)
+                                    tani_sim = 0.0
                                 self.enumerated_molecules.append((Chem.MolToSmiles(p),
-                                                                  tani_sim,
+                                                                  str(round(tani_sim, 2)),
                                                                   Chem.MolToSmiles(b1),
                                                                   Chem.MolToSmiles(b2),
                                                                   reaction.name,
@@ -384,12 +370,12 @@ class AutomatedEnumerator(_BaseEnumerator):
                 path (str): path to the file.
         '''
         if not self.enumerated_molecules:
-            print('No enumerated molecules found!')
-        # save the enumerated molecules
-        with open(path, 'w') as f:
-            f.write('Product,Similarity_to_query,BB1,BB2,Reaction_name,Reaction_ID\n')
-            for mol in self.enumerated_molecules:
-                f.write(','.join(mol) + '\n')
+            print('No enumerated molecules found! Writing an empty file...')
+
+        column_names = ['Product', 'Similarity_to_query', 'BB1', 'BB2', 'Reaction_name', 'Reaction_ID']
+        df = pd.DataFrame(self.enumerated_molecules, columns=column_names)
+        df = df.drop_duplicates(subset=['Product'])
+        df.to_csv(path, index=False)
 
     def _process_building_blocks(self):
         '''
@@ -436,7 +422,6 @@ class AutomatedEnumerator(_BaseEnumerator):
                         continue
                 self._compositions.append(product)
         else:
-            # iterate through the reactions and find possible splits
             for reaction in self._reactions:
                 products = reaction.run_retro(self.molecule)
                 if products:
@@ -450,7 +435,6 @@ class AutomatedEnumerator(_BaseEnumerator):
                                 continue
                         self._compositions.append(product)
             
-            # remove duplicate compositions
             self._remove_duplicate_compositions()
 
         self.print_compositions()

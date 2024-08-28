@@ -7,6 +7,8 @@ from rdkit import Chem
 from rdkit.Chem import AllChem, Descriptors
 
 
+#TODO: Implement a method to extract reaction templates from a given reaction
+
 class ReactionTemplate21:
     '''
         Wraps rdkit reaction functions to define chemical reactions.

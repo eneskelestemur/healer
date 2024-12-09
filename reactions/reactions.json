@@ -321,6 +321,22 @@
         ],
         "tier": 1
     },
+    "amide_coupling-5": {
+        "description": "Traditional amide coupling using a carboxylic acid and a primary or secondary amine.",
+        "display_smarts": "[#6:101]-C(=O)-O.[#7]-[#6:102]>>[#6:102]-N-C(=O)-[#6:101]",
+        "long_name": "Amide synthesis from carboxylic acids and primary or secondary amines",
+        "retro_smarts": "[#6;!$(C=[C,N,O,S]):1]-[N;$([N;H0](-[#6;!$(C=[C,N,O,S]):1])-[#6;!$(C=[C,N,O,S])]),$([N;H1]);!$(N=*);!$([N-]);!$(N#*);!$([ND4]);!$(N[O,N]):2]-!@[C;!R:3](=[O:5])-[#6&!$(C=[C,N,O,S]),#7&!$(N=[C,N,O,S]):4]>>[#6,#7:4]-[C:3](=[O:5])-[O;H1].[N:2]-[#6:1]",
+        "rhs_classes": [
+            "carboxylates",
+            "amines-primsec"
+        ],
+        "syn_smarts": "[#6&!$(C=[C,N,O,S]),#7&!$(N=[C,N,O,S]):101]-[C:2](=O)-[O;H1].[N;$([N;H1](-[#6;!$(C=[C,N,O,S])])-[#6;!$(C=[C,N,O,S])]),$([N;H2]-[#6;!$(C=[C,N,O,S])]);!$(N-[C,N,O,S]=[C,N,O,S]):3]-[#6;!$(C=[C,N,O,S]):102]>>[#6,#7:101]-[C:2](=O)-[N:3]-[#6:102]",
+        "tags": [
+            "amide coupling",
+            "amide"
+        ],
+        "tier": 1
+    },
     "amination-1": {
         "description": "Buchwald-Hartwig Amination: N-arylation of primary and secondary amines using aryl halides.",
         "display_smarts": "[#35]-[#6:201].[#7]-[#6:101]>>[#6:101]-[#7]-[#6:201] |$;Aryl_p;;;;;Aryl_p$|",
@@ -1367,6 +1383,23 @@
             "carboxylates"
         ],
         "syn_smarts": "[#6;!$(C=[C,N,O,S]):101]-[#6:2]#[#7:3].[#6;!$(C=[C,N,O,S]):102]-[C:4](=O)-[O;H1]>>[#6:101]-[#6:2]1=[#7:3]-O-[C:4](-[#6:102])=N-1",
+        "tags": [
+            "heterocycle formation",
+            "heterocycle",
+            "oxadiazole"
+        ],
+        "tier": 1
+    },
+    "oxadiazole-2": {
+        "description": "Oxadiazole synthesis from an amidoxime and a carboxylic acid. 2nd step of oxadiazole-1.",
+        "display_smarts": "[#6;!$(C=[C,N,O,S]):101]-C(=N-[O;H1])-[N;H2].[#6;!$(C=[C,N,O,S]):102]-C(=O)-[O;H1]>>[#6:101]-c1=n-o-c(-[C:102])=n-1",
+        "long_name": "Oxadiazole synthesis",
+        "retro_smarts": "[#6;!$(C=[C,N,O,S]):101]-!@[c:2]1[n:3][o:4][c:5](-!@[#6;!$(C=[C,N,O,S]):102])[n:6]1>>[#6:101]-[#6:2](=[#7:3]-[O;H1:4])-[#7;H2:6].[#6:102]-[C:5](=O)-[O;H1]",
+        "rhs_classes": [
+            "amidoximes",
+            "carboxylates"
+        ],
+        "syn_smarts": "[#6;!$(C=[C,N,O,S]):101]-[#6:2](=[#7:3]-[O;H1])-[#7;H2:4].[#6;!$(C=[C,N,O,S]):102]-[C:5](=O)-[O;H1]>>[#6:101]-[#6:2]1=[#7:3]-O-[#6:5](-[#6:102])=[#7:4]-1",
         "tags": [
             "heterocycle formation",
             "heterocycle",

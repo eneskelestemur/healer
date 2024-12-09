@@ -2,17 +2,18 @@
     This file contains helper functions for the project.
 '''
 
+import os
 import json
 import base64
-import pandas as pd
+import jax
+import numpy as np
+import jax.numpy as jnp
 
 from rdkit import RDLogger, Chem
 from rdkit.Chem import AllChem, DataStructs, Draw, rdFMCS
 from reaction import ReactionTemplate21
-from enumerator import CustomEnumerator, AutomatedEnumerator
 
 RDLogger.DisableLog('rdApp.*')
-
 
 rdColors = {
     'blue': (0.19, 0.51, 0.70),
@@ -25,7 +26,7 @@ rdColors = {
 }
 
 
-def load_reactions_from_json(file_path):
+def load_reactions_from_json(file_path) -> list[ReactionTemplate21]:
     '''
         Loads reactions from a json file.
 
@@ -48,22 +49,44 @@ def load_reactions_from_json(file_path):
 
     return reactions
 
-# TODO: mol inputs is not useful when getting similarity against one molecule
-def get_tani_sim(mol1, mol2):
-    '''
-        Calculates the Tanimoto similarity between two molecules.
+@jax.jit
+def get_batch_tani_sims_jax(query_fps, stock_fps):
+    """
+        Calculates the Tanimoto similarity between query fingerprints and
+        stock fingerprints in batches using jax.
 
         Args:
-            mol1: rdkit.Chem.rdchem.Mol, molecule 1.
-            mol2: rdkit.Chem.rdchem.Mol, molecule 2.
+            query_fps: jnp.ndarray, query fingerprints, shape=(n_query, 2048).
+            stock_fps: jnp.ndarray, stock fingerprints, shape=(n_stock, 2048).
 
         Returns:
-            float, Tanimoto similarity.
+            jnp.ndarray, Tanimoto similarities, shape=(n_query, n_stock).
+    """
+    intersection = jnp.matmul(query_fps, jnp.transpose(stock_fps))
+    union = (jnp.sum(query_fps, axis=-1, keepdims=True) +
+             jnp.sum(stock_fps, axis=-1, keepdims=False) -
+             intersection)
+    return intersection / union
+
+def get_batch_tani_sims_rdkit(query_fps, stock_fps):
     '''
-    # calculate similarity
-    fp1 = AllChem.GetMorganFingerprintAsBitVect(mol1, 3, nBits=2048)
-    fp2 = AllChem.GetMorganFingerprintAsBitVect(mol2, 3, nBits=2048)
-    return DataStructs.TanimotoSimilarity(fp1, fp2)
+        Calculates the Tanimoto similarity between query fingerprints and
+        stock fingerprints in batches.
+
+        NOTE: this function can be faster than `get_batch_tani_sims_tf` if
+            running on a single CPU core.
+
+        Args:
+            query_fps: list of rdkit DataStructs.ExplicitBitVect, query fingerprints.
+            stock_fps: list of rdkit DataStructs.ExplicitBitVect, stock fingerprints.
+
+        Returns:
+            np.ndarray, Tanimoto similarities, shape=(n_query, n_stock).
+    '''
+    sims = np.zeros((len(query_fps), len(stock_fps)))
+    for i, query_fp in enumerate(query_fps):
+        sims[i] = DataStructs.BulkTanimotoSimilarity(query_fp, stock_fps)
+    return sims
 
 def get_tani_sim_fp(fp1, fp2):
     '''
@@ -78,83 +101,15 @@ def get_tani_sim_fp(fp1, fp2):
     '''
     return DataStructs.TanimotoSimilarity(fp1, fp2)
 
-def split_molecule(mol: Chem.rdchem.Mol | str, split_site: tuple[int, int]):
-    '''
-        Splits the molecule at the given bond.
-
-        Args:
-            mol: rdkit mol object or smiles string.
-            split_site: tuple of two integers, bond to split.
-
-        Returns:
-            tuple of rdkit mol objects, split molecules.
-    '''
-    if isinstance(mol, str):
-        mol = Chem.MolFromSmiles(mol)
-    
-    # split the molecule
-    with Chem.RWMol(mol) as m:
-        m.RemoveBond(split_site[0], split_site[1])
-    m = m.GetMol()
-    frags = Chem.GetMolFrags(m, asMols=True, sanitizeFrags=True)
-    return frags
-
-def custom_enumerator(molecule, building_blocks, reaction_sites, reaction_tags, rules, struct_rules):
-    '''
-        Wrapper function for CustomEnumerator class. Used in Dash app.
-    '''
-    enumerator = CustomEnumerator(molecule, building_blocks, reaction_sites, reaction_tags, rules, struct_rules)
-    enumerator.enumerate()
-    return enumerator
-
-def custom_enumerator_download_df(res):
-    '''
-        Wrapper function to download the results of CustomEnumerator. 
-        Used in Dash app.
-    '''
-    res_df = pd.DataFrame(res, columns=['Product', 'BB', 'Reaction_name', 'Reaction_ID'])
-    return res_df 
-
-def automated_enumerator(molecule, building_blocks, reaction_tags, custom_comp_sites, n_compositions, sim_threshold):
-    '''
-        Wrapper function for AutomatedEnumerator class. Used in Dash app.
-    '''
-    enumerator = AutomatedEnumerator(molecule, building_blocks, reaction_tags, custom_comp_sites, n_compositions, sim_threshold)
-    enumerator.enumerate()
-    return enumerator
-
-def automated_enumerator_download_df(res):
-    '''
-        Wrapper function to download the results of AutomatedEnumerator. 
-        Used in Dash app.
-    '''
-    res_df = pd.DataFrame(res, columns=['Product', 'BB1', 'BB2', 'Reaction_name', 'Reaction_ID'])
-    return res_df
-
-def text2svg(text, fill: str = "black", font: str = "sans-serif", size: float = 16,
-             ratio: float = 1, text_anchor: str = "middle",
-             background_fill: str = "white", background_opacity: float = 1.0,
-             width: float = 350, height: float = 150, 
-             ):
-    """
-        Convert text to svg+xml format.
-    """
-    svg_out = f'<svg version="1.1" width="{width}" height="{height}" xmlns="http://www.w3.org/2000/svg">'
-    svg_out += f'<rect width="80%" height="90%" fill="{background_fill}" opacity="{background_opacity}" x="10%" y="5%" rx="20" ry="20" />'
-    svg_out += '<text>'
-    svg_out += f'<tspan x="{width//2}" y="{(height//2) + (size * ratio // 2)}" font-family="{font}" font-size="{size}" text-anchor="{text_anchor}" fill="{fill}">{text}</tspan>'
-    svg_out += '</text>'
-    svg_out += '</svg>'
-    svg_out = base64.b64encode(svg_out.encode('utf-8')).decode('utf-8')
-    return f"data:image/svg+xml;base64,{svg_out}"
-
-def get_svg_mol(mol, sub_mol=None, sub_mol_color='green', legend='', show_idx=False):
+def get_svg_mol(mol, sub_mol=None, sub_mol_color='green', legend='', show_idx=False, return_drawing=False):
     '''
         Get svg image of a molecule with a substructure highlighted.
     '''
     sub_mol_color = rdColors[sub_mol_color]
     if isinstance(mol, str):
-       mol = Chem.MolFromSmiles(mol)
+        mol = Chem.MolFromSmiles(mol)
+        if mol is None:
+            raise ValueError('Invalid molecule')
     AllChem.Compute2DCoords(mol)
     if sub_mol is not None:
         if isinstance(sub_mol, str):
@@ -181,6 +136,8 @@ def get_svg_mol(mol, sub_mol=None, sub_mol_color='green', legend='', show_idx=Fa
                           highlightBondColors={i: sub_mol_color for i in hit_bonds},
                           legend=legend)
     drawing.FinishDrawing()
+    if return_drawing:
+        return drawing.GetDrawingText()
     svg = drawing.GetDrawingText()
     svg = base64.b64encode(svg.encode('utf-8')).decode('utf-8')
     return f"data:image/svg+xml;base64,{svg}"

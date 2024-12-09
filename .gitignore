@@ -1,5 +1,12 @@
-scratch.*
-buildingblocks/Enamine*
+__pycache__
+.vscode
+scratch*
+buildingblocks/Enamine*.sdf
+buildingblocks/Enamine_building_blocks_sdf.zip
 slurm-*
 *.sdf
 *.csv
+*.smi
+results
+analyze_results*
+cache

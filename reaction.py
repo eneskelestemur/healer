@@ -4,10 +4,10 @@
 import inspect
 
 from rdkit import Chem
-from rdkit.Chem import AllChem, Descriptors
+from rdkit.Chem import Descriptors, rdChemReactions
 
 
-#TODO: Implement a method to extract reaction templates from a given reaction
+# TODO: Implement a method to extract reaction templates from a given reaction
 
 class ReactionTemplate21:
     '''
@@ -54,11 +54,12 @@ class ReactionTemplate21:
         self.tier = tier
 
         self.sanitized_ = False
-        self._reaction = AllChem.ReactionFromSmarts(reaction_smarts)
+        self._reaction = rdChemReactions.ReactionFromSmarts(reaction_smarts)
+        self._reaction.Initialize()
 
         # check if a reaction is valid
         try:
-            _ = AllChem.SanitizeRxn(self._reaction)
+            _ = rdChemReactions.SanitizeRxn(self._reaction)
             self._reaction.RemoveUnmappedReactantTemplates(0.1)
             self._reaction.RemoveUnmappedProductTemplates(0.1)
             if len(self.get_reactants()) == 2 and len(self.get_products()) == 1:
@@ -95,9 +96,9 @@ class ReactionTemplate21:
             Sets the reaction SMARTS string.
         '''
         self._reaction_smarts = reaction_smarts
-        self._reaction = AllChem.ReactionFromSmarts(reaction_smarts)
+        self._reaction = rdChemReactions.ReactionFromSmarts(reaction_smarts)
         try:
-            flags = AllChem.SanitizeRxn(self._reaction)
+            flags = rdChemReactions.SanitizeRxn(self._reaction)
             self._reaction.RemoveUnmappedReactantTemplates(0.1)
             self._reaction.RemoveUnmappedProductTemplates(0.1)
             if len(self.get_reactants()) == 2 and len(self.get_products()) == 1:
@@ -115,7 +116,7 @@ class ReactionTemplate21:
         return self.name
     
     def __hash__(self):
-        return hash(AllChem.ReactionToSmiles(self._reaction, canonical=True))
+        return hash(rdChemReactions.ReactionToSmiles(self._reaction, canonical=True))
     
     def get_reactants(self):
         '''
@@ -177,11 +178,13 @@ class ReactionTemplate21:
         '''
             Runs the reaction on the reactants and returns the products.
         '''
-        return self._reaction.RunReactants(list(reactants), maxProducts=10)
+        products1 = self._reaction.RunReactants(list(reactants), maxProducts=10)
+        products2 = self._reaction.RunReactants(list(reactants[::-1]), maxProducts=10)
+        return products1 + products2
 
     def run_retro(self, *products):
         '''
             Runs the retro reaction on the products and returns the reactants.
         '''
-        retro_reaction = AllChem.ReactionFromSmarts(self.retro_smarts)
+        retro_reaction = rdChemReactions.ReactionFromSmarts(self.retro_smarts)
         return retro_reaction.RunReactants(list(products), maxProducts=10)

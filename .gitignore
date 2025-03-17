@@ -1,6 +1,6 @@
 __pycache__
 .vscode
-scratch*
+*scratch*
 buildingblocks/Enamine*.sdf
 buildingblocks/Enamine_building_blocks_sdf.zip
 slurm-*

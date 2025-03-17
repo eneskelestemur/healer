@@ -38,12 +38,15 @@ class _BaseEnumerator(abc.ABC):
                 bb_supplier (str): "US_stock", "EU_stock", "Global_stock",
                                     or "NoRush_stock". A custom path to a file
                                     containing building blocks can also be provided.
+                load_reactions (bool): load the reaction templates.
         '''
         # molecule
         if isinstance(molecule, str):
             self.molecule = Chem.MolFromSmiles(molecule)
         else:
             self.molecule = molecule
+        flag = Chem.SanitizeMol(self.molecule, catchErrors=True)
+        assert flag == Chem.rdmolops.SanitizeFlags.SANITIZE_NONE, f'Molecule sanitization failed with flags: {flag}'
 
         # building blocks
         if bb_supplier == 'US_stock':
@@ -420,6 +423,7 @@ class MoleculeEnumerator(_BaseEnumerator):
         self.sim_threshold = sim_threshold
         if isinstance(self.reaction_tags, str) and self.reaction_tags == 'all':
             self.reaction_tags = [tag for tag in [reaction.tags for reaction in self._reactions]]
+            self.reaction_tags = list(set(chain(*self.reaction_tags)))
             self.reactions = self._reactions
         else:
             self.reactions = [reaction for reaction in self._reactions 
@@ -587,7 +591,7 @@ class MoleculeEnumerator(_BaseEnumerator):
                 product = self._split_molecule(site)
                 for p in product:
                     try:
-                        flag = Chem.SanitizeMol(p)
+                        flag = Chem.SanitizeMol(p, catchErrors=True)
                         assert flag == Chem.rdmolops.SanitizeFlags.SANITIZE_NONE
                     except AssertionError:
                         print('Sanitization failed!')
@@ -600,11 +604,12 @@ class MoleculeEnumerator(_BaseEnumerator):
                     for product in products:
                         for p in product:
                             try:
-                                flag = Chem.SanitizeMol(p)
+                                flag = Chem.SanitizeMol(p, catchErrors=True)
                                 assert flag == Chem.rdmolops.SanitizeFlags.SANITIZE_NONE
                             except AssertionError:
                                 print('Sanitization failed!')
                                 continue
+                        print(reaction.name)
                         self._compositions.append(product)
             
             self._remove_duplicate_compositions()

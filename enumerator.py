@@ -402,14 +402,13 @@ class MoleculeEnumerator(_BaseEnumerator):
             Initialize the MoleculeEnumerator object.
 
             Args:
-                molecule (str): SMILES string or rdkit mol object.
+                molecule (str): SMILES string or rdkit mol object. If the molecule has 2 fragments,
+                    the building block search will be performed on the fragments.
                 bb_supplier (str): "US_stock", "EU_stock", "Global_stock", or "NoRush_stock". 
-                                    A custom path to a file containing building blocks can 
-                                    also be provided.
+                    A custom path to a file containing building blocks can also be provided.
                 reaction_tags (list): list of reaction tags to consider for the enumeration.
                 custom_comp_sites (list(tuple)): list of tuples containing the atom indices for
-                                                 splitting the molecule. Each tuple represents a
-                                                 a composition site.
+                    splitting the molecule. Each tuple represents a composition site.
                 n_compositions (int): number of compositions of the molecule to enumerate.
                 sim_threshold (float): similarity threshold.
 

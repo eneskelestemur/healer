@@ -35,8 +35,7 @@ class _BaseEnumerator(abc.ABC):
 
             Args:
                 molecule (str): SMILES string or rdkit mol object.
-                bb_supplier (str): "US_stock", "EU_stock", "Global_stock",
-                                    or "NoRush_stock". A custom path to a file
+                bb_supplier (str): "US_stock", "EU_stock" or "Global_stock". A custom path to a file
                                     containing building blocks can also be provided.
                 load_reactions (bool): load the reaction templates.
         '''
@@ -50,19 +49,17 @@ class _BaseEnumerator(abc.ABC):
 
         # building blocks
         if bb_supplier == 'US_stock':
-            self._supplier_path = 'buildingblocks/Enamine_US_BB_stock_sanitized.sdf'
+            self._supplier_path = 'buildingblocks/Enamine_Rush-Delivery_Building_Blocks-US_195312cmpd_20240610.sdf'
         elif bb_supplier == 'EU_stock':
-            self._supplier_path = 'buildingblocks/Enamine_EU_BB_stock_sanitized.sdf'
+            self._supplier_path = 'buildingblocks/Enamine_Rush-Delivery_Building_Blocks-EU_153230cmpd_20240806.sdf'
         elif bb_supplier == 'Global_stock':
-            self._supplier_path = 'buildingblocks/Enamine_Global_BB_stock_sanitized.sdf'
-        elif bb_supplier == 'NoRush_stock':
-            self._supplier_path = 'buildingblocks/Enamine_NoRush_BB_stock_sanitized.sdf'
+            self._supplier_path = 'buildingblocks/Enamine_Building_Blocks_Stock_290951cmpd_20240806.sdf'
         elif bb_supplier == 'test':
             self._supplier_path = 'buildingblocks/test_100_bb.sdf'
         else:
             self._supplier_path = bb_supplier
 
-        if bb_supplier in ['US_stock', 'EU_stock', 'Global_stock', 'NoRush_stock', 'test']:
+        if bb_supplier in ['US_stock', 'EU_stock', 'Global_stock', 'test']:
             self.bb_supplier = FastSDMolSupplier(self._supplier_path, sanitize=True)
         else:
             self.bb_supplier = FastSDMolSupplier(self._supplier_path, sanitize=True)
@@ -97,9 +94,9 @@ class _BaseEnumerator(abc.ABC):
     def _prepare_molecule(self):
         raise NotImplementedError
     
-    def _get_fingerprints(self, mols, return_np: bool=True):
+    def _get_fingerprints(self, mols: list[Chem.Mol], return_np: bool=True):
         '''
-            Generates fingerprints for the given molecules.
+            Generates binary fingerprints for the given molecules.
 
             Args:
                 mols: list of rdkit.Chem.rdchem.Mol, molecules.
@@ -415,6 +412,9 @@ class MoleculeEnumerator(_BaseEnumerator):
                                                  a composition site.
                 n_compositions (int): number of compositions of the molecule to enumerate.
                 sim_threshold (float): similarity threshold.
+
+            Raises:
+                ValueError: if the molecule has more than 2 fragments.
         '''
         super().__init__(molecule, building_blocks, True)
         self.reaction_tags = reaction_tags
@@ -429,19 +429,29 @@ class MoleculeEnumerator(_BaseEnumerator):
             self.reactions = [reaction for reaction in self._reactions 
                               if any(tag in reaction.tags for tag in self.reaction_tags)]
 
-        self._compositions = [] # list of rxn based compositions of the molecule
+        # list of rxn-based or user-defined compositions of the molecule
+        frags = Chem.GetMolFrags(self.molecule, asMols=True, sanitizeFrags=True)
+        if len(frags) == 2:
+            self._compositions = [frags]
+        elif len(frags) == 1:
+            self._compositions = [] 
+        else:
+            raise ValueError('The molecule has more than 2 fragments! Please provide a valid molecule.')
 
     def enumerate(self):
         '''
             Enumerate the molecule with building blocks.
         '''
-        self._prepare_molecule()
-        if not self._compositions:
+        if not self._compositions: # check if the input is multiple frags
+            self._prepare_molecule()
+        else:
+            self.print_compositions()
+        if not self._compositions: # check if preparation added compositions
             self.enumerated_molecules = []
             return
         self._process_building_blocks()
 
-        # enumerate the molecule with building blocks
+        # enumerate with building blocks
         query_fp = self._get_fingerprint(self.molecule)
         self.enumerated_molecules = []
         counter = 0
@@ -542,7 +552,7 @@ class MoleculeEnumerator(_BaseEnumerator):
             ```
         '''
         composition_fps = self._get_fingerprints(list(chain(*self._compositions)), return_np=False)
-        stock_fps = self._get_fingerprints(self.bb_supplier, return_np=False)
+        stock_fps = self._get_fingerprints([mol for mol in self.bb_supplier if mol is not None], return_np=False)
         tani_sims = np.zeros((len(composition_fps), len(stock_fps)))
         for i in tqdm(range(0, len(stock_fps), batch_size), desc='Processing building blocks', total=len(stock_fps)//batch_size):
             batch_stock_fps = stock_fps[i:i+batch_size]
@@ -555,7 +565,7 @@ class MoleculeEnumerator(_BaseEnumerator):
 
         self._filtered_bb = self._get_mols_from_supplier(tani_sims)
                 
-    def _get_mols_from_supplier(self, mask=None):
+    def _get_mols_from_supplier(self, mask: np.ndarray | None=None):
         '''
             Get molecules from the supplier based on the mask.
 
@@ -609,7 +619,6 @@ class MoleculeEnumerator(_BaseEnumerator):
                             except AssertionError:
                                 print('Sanitization failed!')
                                 continue
-                        print(reaction.name)
                         self._compositions.append(product)
             
             self._remove_duplicate_compositions()

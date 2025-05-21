@@ -14,7 +14,6 @@
 ## Installation
 
 1. **Prerequisites**
-   - Install [Git](https://git-scm.com/) on your system.
    - Install [Anaconda](https://www.anaconda.com/products/individual) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html) for Python package management.
 
 2. **Clone the Repository**
@@ -51,7 +50,6 @@ molecule_smiles = "CC1(C(N2C(S1)C(C2=O)NC(=O)CC3=CC=CC=C3)C(=O)O)C"  # Example S
 
 # Initialize the MoleculeEnumerator with desired parameters:
 enumerator = MoleculeEnumerator(
-    molecule=molecule_smiles,
     building_blocks='US_stock',  # Options: 'US_stock', 'EU_stock', 'Global_stock', or a custom file path
     reaction_tags=['amide coupling', 'C-N bond formation'],  # List of reaction tags to filter reactions
     custom_comp_sites=[],  # List of tuples for custom composition sites (if any)
@@ -60,7 +58,7 @@ enumerator = MoleculeEnumerator(
 )
 
 # Run the enumeration process
-enumerator.enumerate()
+enumerator.enumerate(molecule_smiles)
 
 # Retrieve the results as a pandas DataFrame and print them
 results = enumerator.get_results()
@@ -80,7 +78,6 @@ molecule_smiles = "CC1(C(N2C(S1)C(C2=O)NC(=O)CC3=CC=CC=C3)C(=O)O)C"  # Example S
 
 # Initialize the SiteEnumerator with desired parameters:
 enumerator = SiteEnumerator(
-    molecule=molecule_smiles,
     building_blocks='US_stock',  # Options: 'US_stock', 'EU_stock', 'Global_stock', or a custom file path
     reaction_sites=[1, 2, 3],  # List of atom indices to consider as reaction sites
     reaction_tags=['amide coupling', 'C-N bond formation'],  # List of reaction tags to filter reactions
@@ -98,7 +95,7 @@ enumerator = SiteEnumerator(
 )
 
 # Run the enumeration process
-enumerator.enumerate()
+enumerator.enumerate(molecule_smiles)
 
 # Retrieve the results as a pandas DataFrame and print them
 results = enumerator.get_results()
@@ -115,6 +112,9 @@ Alternatively, you can host the web application locally by running the following
 ```sh
 python webserver/EnumeratorApp.py
 ```
+
+### CLI 
+
 
 ## Key Files
 

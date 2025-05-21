@@ -8,5 +8,6 @@ slurm-*
 *.csv
 *.smi
 results
-analyze_results*
+*results*
 cache
+data

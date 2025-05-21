@@ -3,6 +3,7 @@
 '''
 
 import os
+import sys
 import json
 import base64
 import jax
@@ -12,6 +13,9 @@ import jax.numpy as jnp
 from rdkit import RDLogger, Chem
 from rdkit.Chem import AllChem, DataStructs, Draw, rdFMCS
 from reaction import ReactionTemplate21
+
+sys.path.append(os.path.join(os.environ['CONDA_PREFIX'],'share','RDKit','Contrib'))
+from SA_Score import sascorer
 
 RDLogger.DisableLog('rdApp.*')
 
@@ -25,6 +29,47 @@ rdColors = {
     'orange': (0.93, 0.69, 0.17)
 }
 
+
+def get_sascore(mol: Chem.rdchem.Mol | str) -> float:
+    '''
+        Calculates the synthetic accessibility score of a molecule.
+
+        Args:
+            mol: rdkit.Chem.rdchem.Mol or str, molecule.
+
+        Returns:
+            float, synthetic accessibility score, ranging from 1 to 10,
+            where 1 is easy to synthesize and 10 is hard to synthesize.
+    '''
+    if isinstance(mol, str):
+        mol = Chem.MolFromSmiles(mol)
+    if mol is None:
+        raise ValueError('Invalid molecule')
+    return sascorer.calculateScore(mol)
+
+def read_cxsmiles_file(file_path: str, header: bool=True) -> list[str]:
+    '''
+        Reads a CXSMILES file and returns a list of SMILES strings.
+        
+        Args:
+            file_path: str, path to the file.
+            header: bool, whether the file has a header or not.
+
+        Returns:
+            list of SMILES strings.
+    '''
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File not found: {file_path}")
+    
+    with open(file_path, 'r') as file:
+        smiles_list = []
+        if header:
+            next(file)  
+        for line in file:
+            smi = line.split(maxsplit=1)[0]
+            smiles_list.append(smi)
+
+    return smiles_list
 
 def load_reactions_from_json(file_path) -> list[ReactionTemplate21]:
     '''
@@ -49,43 +94,31 @@ def load_reactions_from_json(file_path) -> list[ReactionTemplate21]:
 
     return reactions
 
-@jax.jit
-def get_batch_tani_sims_jax(query_fps, stock_fps):
-    """
-        Calculates the Tanimoto similarity between query fingerprints and
-        stock fingerprints in batches using jax.
-
-        Args:
-            query_fps: jnp.ndarray, query fingerprints, shape=(n_query, 2048).
-            stock_fps: jnp.ndarray, stock fingerprints, shape=(n_stock, 2048).
-
-        Returns:
-            jnp.ndarray, Tanimoto similarities, shape=(n_query, n_stock).
-    """
-    intersection = jnp.matmul(query_fps, jnp.transpose(stock_fps))
-    union = (jnp.sum(query_fps, axis=-1, keepdims=True) +
-             jnp.sum(stock_fps, axis=-1, keepdims=False) -
-             intersection)
-    return intersection / union
-
-def get_batch_tani_sims_rdkit(query_fps, stock_fps):
+def get_batch_tversky_sims_rdkit(query_fps, stock_fps, query_factor=0.95, stock_factor=0.05):
     '''
-        Calculates the Tanimoto similarity between query fingerprints and
+        Calculates the Tversky similarity between query fingerprints and
         stock fingerprints in batches.
-
-        NOTE: this function can be faster than `get_batch_tani_sims_tf` if
-            running on a single CPU core.
 
         Args:
             query_fps: list of rdkit DataStructs.ExplicitBitVect, query fingerprints.
             stock_fps: list of rdkit DataStructs.ExplicitBitVect, stock fingerprints.
+            query_factor: float, factor for the contribution of the query
+                fingerprints to the similarity. Larger values will give more
+                weight to the query fingerprints.
+            stock_factor: float, factor for the contribution of the stock
+                fingerprints to the similarity. Larger values will give more
+                weight to the stock fingerprints.
+
+        NOTE: The sum of query_factor and stock_factor should be 1.
 
         Returns:
-            np.ndarray, Tanimoto similarities, shape=(n_query, n_stock).
+            np.ndarray, Tversky similarities, shape=(n_query, n_stock).
     '''
     sims = np.zeros((len(query_fps), len(stock_fps)))
     for i, query_fp in enumerate(query_fps):
-        sims[i] = DataStructs.BulkTanimotoSimilarity(query_fp, stock_fps)
+        sims[i] = DataStructs.BulkTverskySimilarity(query_fp, stock_fps,
+                                                    a=query_factor,
+                                                    b=stock_factor)
     return sims
 
 def get_tani_sim_fp(fp1, fp2):

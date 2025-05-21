@@ -2,6 +2,7 @@
     Reaction class to define chemical reacitons using rdkit.
 '''
 import inspect
+from itertools import chain
 
 from rdkit import Chem
 from rdkit.Chem import Descriptors, rdChemReactions
@@ -118,11 +119,15 @@ class ReactionTemplate21:
     def __hash__(self):
         return hash(rdChemReactions.ReactionToSmiles(self._reaction, canonical=True))
     
-    def get_reactants(self):
+    def get_reactants(self, sort_by_mw=True):
         '''
-            Returns the reactants of the reaction sorted by molecular weight 
-            in descending order.
+            Returns the reactants of the reaction.
+            If sort_by_mw is True, the reactants are sorted by molecular weight 
+            in descending order. Otherwise, the reactants are returned in the order
+            they are defined in the reaction.
         '''
+        if not sort_by_mw:
+            return list(self._reaction.GetReactants())
         return sorted(list(self._reaction.GetReactants()), key=lambda x: Descriptors.MolWt(x), reverse=True)
     
     def get_products(self):
@@ -156,6 +161,16 @@ class ReactionTemplate21:
         '''
         return [Chem.MolToSmiles(product) for product in self.get_products()]
     
+    def get_reactant_index(self, mol: Chem.Mol):
+        '''
+            Returns the index of the reactant in the reaction.
+            If the molecule is not a reactant, returns None.
+        '''
+        if not self.is_reactant(mol):
+            return None
+        reactants = self.get_reactants(False)
+        return [i for i, reactant in enumerate(reactants) if mol.HasSubstructMatch(reactant)]
+    
     def is_valid(self):
         '''
             Returns True if the reaction template is valid.
@@ -180,7 +195,7 @@ class ReactionTemplate21:
         '''
         products1 = self._reaction.RunReactants(list(reactants), maxProducts=10)
         products2 = self._reaction.RunReactants(list(reactants[::-1]), maxProducts=10)
-        return products1 + products2
+        return list(chain(*(products1 + products2)))
 
     def run_retro(self, *products):
         '''

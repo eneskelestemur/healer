@@ -6,9 +6,7 @@ import os
 import sys
 import json
 import base64
-import jax
 import numpy as np
-import jax.numpy as jnp
 
 from rdkit import RDLogger, Chem
 from rdkit.Chem import AllChem, DataStructs, Draw, rdFMCS

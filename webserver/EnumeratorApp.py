@@ -7,10 +7,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import dash_bootstrap_components as dbc
 import diskcache
 import pandas as pd
-import utils
+import healer.utils.utils as utils
 
 from dash import dcc, html, Dash, Input, Output, State, DiskcacheManager, callback_context, no_update
-from enumerator import MoleculeEnumerator, SiteEnumerator
+from legacy.enumerator import MoleculeEnumerator, SiteEnumerator
 
 
 # Diskcache for handling background jobs

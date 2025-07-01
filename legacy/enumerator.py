@@ -8,7 +8,7 @@
 import os
 import abc
 import json
-import utils
+import healer.utils.utils as utils
 import pandas as pd
 import numpy as np
 
@@ -529,7 +529,7 @@ class MoleculeEnumerator(_BaseEnumerator):
             batch_sizes = np.array([mol.GetNumHeavyAtoms() for mol in batch_mols])
             batch_sim_weights = 1 - (np.clip(batch_sizes - comp_sizes, 0, None) / batch_sizes)
             batch_stock_fps = self._get_fingerprints(batch_mols)
-            batch_sims = utils.get_batch_tversky_sims_rdkit(composition_fps, batch_stock_fps)
+            batch_sims = utils.get_batch_tversky_sims(composition_fps, batch_stock_fps)
             sims[:, i:i+batch_size] = batch_sims * batch_sim_weights
 
         if self.max_bbs_per_comp > 0:

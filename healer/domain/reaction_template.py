@@ -7,8 +7,8 @@ from itertools import chain
 from rdkit import Chem
 from rdkit.Chem import Descriptors, rdChemReactions
 
+from healer.domain.building_block import BuildingBlock
 
-# TODO: Implement a method to extract reaction templates from a given reaction
 
 class ReactionTemplate21:
     '''
@@ -68,6 +68,15 @@ class ReactionTemplate21:
         except:
             self.sanitized_ = False
 
+    def __str__(self):
+        return self.name
+    
+    def __repr__(self):
+        return self.name
+    
+    def __hash__(self):
+        return hash(rdChemReactions.ReactionToSmiles(self._reaction, canonical=True))
+    
     @classmethod
     def from_reaction_json(cls, name: str, reaction_json: dict):
         cls_parameters = [
@@ -109,15 +118,6 @@ class ReactionTemplate21:
 
     def get_rdkit_reaction_object(self):
         return self._reaction
-
-    def __str__(self):
-        return self.name
-    
-    def __repr__(self):
-        return self.name
-    
-    def __hash__(self):
-        return hash(rdChemReactions.ReactionToSmiles(self._reaction, canonical=True))
     
     def get_reactants(self, sort_by_mw=True):
         '''
@@ -164,10 +164,7 @@ class ReactionTemplate21:
     def get_reactant_index(self, mol: Chem.Mol):
         '''
             Returns the index of the reactant in the reaction.
-            If the molecule is not a reactant, returns None.
         '''
-        if not self.is_reactant(mol):
-            return None
         reactants = self.get_reactants(False)
         return [i for i, reactant in enumerate(reactants) if mol.HasSubstructMatch(reactant)]
     
@@ -189,17 +186,48 @@ class ReactionTemplate21:
         '''
         return self._reaction.IsMoleculeProduct(mol)
     
-    def run_syn(self, *reactants):
+    def run_syn(self, *reactants, ):
         '''
-            Runs the reaction on the reactants and returns the products.
+            Runs the reaction on the reactants and returns all possible products.
         '''
-        products1 = self._reaction.RunReactants(list(reactants), maxProducts=10)
-        products2 = self._reaction.RunReactants(list(reactants[::-1]), maxProducts=10)
-        return list(chain(*(products1 + products2)))
+        assert len(reactants) == 2, "Reaction must have exactly 2 reactants."
 
-    def run_retro(self, *products):
+        reactants_ordered = self._order_reactants_by_annotations(reactants)
+        products = []
+        for reactant_pair in reactants_ordered:
+            products += self._reaction.RunReactants(reactant_pair, maxProducts=10)
+        
+        return list(chain(*products))
+
+    def run_retro(self, product):
         '''
-            Runs the retro reaction on the products and returns the reactants.
+            Runs the retro reaction on the product and returns the possible tuples of
+            reactants. Each tuple contains the reactants that can form the product
+            using the reaction template.
         '''
         retro_reaction = rdChemReactions.ReactionFromSmarts(self.retro_smarts)
-        return retro_reaction.RunReactants(list(products), maxProducts=10)
+        return list(retro_reaction.RunReactants([product], maxProducts=100))
+
+    def _order_reactants_by_annotations(self, reactants):
+        '''
+            Orders the reactants based on the 'rxn_annotations' property.
+            This is used to ensure that the reactants are in the same order
+            as they are defined in the reaction template.
+        '''
+        ann0 = (reactants[0].get_parsed_prop('rxn_annotations').get(self.name, [])
+                if isinstance(reactants[0], BuildingBlock) else self.get_reactant_index(reactants[0]))
+        ann1 = (reactants[1].get_parsed_prop('rxn_annotations').get(self.name, [])
+                if isinstance(reactants[1], BuildingBlock) else self.get_reactant_index(reactants[1]))
+
+        orderings = []
+        for p0 in ann0:
+            for p1 in ann1:
+                if p0 == p1:
+                    continue
+                out = [None, None]
+                out[p0] = reactants[0]
+                out[p1] = reactants[1]
+                orderings.append(out)
+
+        return orderings
+

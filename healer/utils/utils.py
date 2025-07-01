@@ -10,7 +10,7 @@ import numpy as np
 
 from rdkit import RDLogger, Chem
 from rdkit.Chem import AllChem, DataStructs, Draw, rdFMCS
-from reaction import ReactionTemplate21
+from healer.domain.reaction_template import ReactionTemplate21
 
 sys.path.append(os.path.join(os.environ['CONDA_PREFIX'],'share','RDKit','Contrib'))
 from SA_Score import sascorer
@@ -92,7 +92,21 @@ def load_reactions_from_json(file_path) -> list[ReactionTemplate21]:
 
     return reactions
 
-def get_batch_tversky_sims_rdkit(query_fps, stock_fps, query_factor=0.95, stock_factor=0.05):
+def sanitize_mol(mol: Chem.rdchem.Mol):
+    '''
+        Sanitizes the mol inplace and returns whether the sanitization was successful 
+        along with the sanitization flags.
+
+        Args:
+            mol: rdkit.Chem.rdchem.Mol, molecule to sanitize.
+
+        Returns:
+            returns a tuple (bool, error_message).
+    '''
+    flags = Chem.SanitizeMol(mol, catchErrors=True)
+    return flags == Chem.SanitizeFlags.SANITIZE_NONE, flags
+
+def get_batch_tversky_sims(query_fps, stock_fps, query_factor=0.95, stock_factor=0.05):
     '''
         Calculates the Tversky similarity between query fingerprints and
         stock fingerprints in batches.
@@ -117,6 +131,23 @@ def get_batch_tversky_sims_rdkit(query_fps, stock_fps, query_factor=0.95, stock_
         sims[i] = DataStructs.BulkTverskySimilarity(query_fp, stock_fps,
                                                     a=query_factor,
                                                     b=stock_factor)
+    return sims
+
+def get_batch_tani_sims(query_fps, stock_fps):
+    '''
+        Calculates the Tanimoto similarity between query fingerprints and
+        stock fingerprints in batches.
+
+        Args:
+            query_fps: list of rdkit DataStructs.ExplicitBitVect, query fingerprints.
+            stock_fps: list of rdkit DataStructs.ExplicitBitVect, stock fingerprints.
+
+        Returns:
+            np.ndarray, Tanimoto similarities, shape=(n_query, n_stock).
+    '''
+    sims = np.zeros((len(query_fps), len(stock_fps)))
+    for i, query_fp in enumerate(query_fps):
+        sims[i] = DataStructs.BulkTanimotoSimilarity(query_fp, stock_fps)
     return sims
 
 def get_tani_sim_fp(fp1, fp2):

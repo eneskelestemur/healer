@@ -4,7 +4,7 @@
 
 import os
 import json
-import utils
+import healer.utils.utils as utils
 
 from tqdm import tqdm
 from rdkit import Chem

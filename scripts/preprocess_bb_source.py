@@ -11,7 +11,7 @@ from rdkit import Chem
 from rdkit.Chem.FastSDMolSupplier import FastSDMolSupplier
 from rdkit.Chem.rdmolfiles import SDWriter
 
-REACTIONS = utils.load_reactions_from_json('reactions/reactions.json')
+REACTIONS = utils.load_reactions_from_json('healer/data/reactions/reactions.json')
 REACTIONS = [rxn for rxn in REACTIONS if rxn.is_valid()]
 
 

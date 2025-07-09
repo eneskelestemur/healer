@@ -4,10 +4,14 @@ __pycache__
 healer/data/buildingblocks/Enamine*.sdf
 healer/data/buildingblocks/Enamine_building_blocks_sdf.zip
 slurm-*
-*.csv
-*.smi
+./*.csv
+./*.smi
 ./results
 cache
 profiler
 figures.ipynb
 analyze_results.ipynb
+*.egg-info
+
+# temporarily ignore these files
+benchmark

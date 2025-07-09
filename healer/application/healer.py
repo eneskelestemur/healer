@@ -30,10 +30,10 @@ logger = logging.getLogger(__name__)
 
 # Constants: mapping building-block sources to file paths
 BB_PATHS: Dict[str, str] = {
-    "US_stock": "buildingblocks/Enamine_Rush-Delivery_Building_Blocks-US_*_processed.sdf",
-    "EU_stock": "buildingblocks/Enamine_Rush-Delivery_Building_Blocks-EU_*_processed.sdf",
-    "Global_stock": "buildingblocks/Enamine_Building_Blocks_Stock_*_processed.sdf",
-    "test": "buildingblocks/test_100_bb_processed.sdf",
+    "US_stock": "healer/data/buildingblocks/Enamine_Rush-Delivery_Building_Blocks-US_*_processed.sdf",
+    "EU_stock": "healer/data/buildingblocks/Enamine_Rush-Delivery_Building_Blocks-EU_*_processed.sdf",
+    "Global_stock": "healer/data/buildingblocks/Enamine_Building_Blocks_Stock_*_processed.sdf",
+    "test": "healer/data/buildingblocks/test_100_bb_processed.sdf",
 }
 
 
@@ -45,6 +45,7 @@ class _BaseHEALER(abc.ABC):
         self, 
         bb_supplier: str, 
         reaction_tags: Union[List[str], str],
+        max_evals_per_comp: Optional[int] = None,
         verbose: int=1,
     ) -> None:
         '''
@@ -53,6 +54,7 @@ class _BaseHEALER(abc.ABC):
             Args:
                 bb_supplier: one of "US_stock", "EU_stock" or "Global_stock"; or path to an SDF file.
                 reaction_tags: list of tags or 'all'.
+                max_evals_per_comp: maximum number of evaluations for each composition.
                 verbose: verbosity level.
                     - 0: only errors
                     - 1: warnings
@@ -67,7 +69,8 @@ class _BaseHEALER(abc.ABC):
         
         self.query_mol: Chem.Mol = None
         self._compositions: List[Union[CompositionPath, CompositionWithBBs]] = []
-        
+        self.max_evals_per_comp: Optional[int] = max_evals_per_comp
+
         self.reactions: List[ReactionTemplate21] = []
         self.reaction_tags: List[str] = []
         self._reactions: List[ReactionTemplate21] = []  # all reactions loaded from JSON
@@ -117,7 +120,7 @@ class _BaseHEALER(abc.ABC):
                     'all' to use all reactions.
         '''
         # reaction data
-        all_rxns = utils.load_reactions_from_json('reactions/reactions.json')
+        all_rxns = utils.load_reactions_from_json('healer/data/reactions/reactions.json')
         self._reactions = [r for r in all_rxns if r.is_valid()]
         all_tags = list(set(chain(*[r.tags for r in self._reactions])))
         if isinstance(reaction_tags, str):
@@ -146,7 +149,7 @@ class _BaseHEALER(abc.ABC):
     def enumerate(
         self, 
         optimizer: Optional[Union[BaseStagewiseOptimizer, BaseSequenceOptimizer]] = None,
-        max_evals: Optional[int] = None,
+        max_evals_per_comp: Optional[int] = None,
     ) -> None:
         '''
             Enumerate the molecule with building blocks based on the reactions. An optimizer
@@ -154,11 +157,13 @@ class _BaseHEALER(abc.ABC):
 
             Args:
                 optimizer: an optimizer object to use for enumeration.
-                max_evals: maximum number of evaluations for the optimizer.
+                max_evals_per_comp: maximum number of evaluations for each composition.
 
             Raises:
                 TypeError: if the optimizer is not of a supported type.
         '''
+        if max_evals_per_comp is not None:
+            self.max_evals_per_comp = max_evals_per_comp
         if not isinstance(self.query_mol, Chem.Mol):
             raise ValueError("Query molecule must be set before enumeration. Use set_query_mol() method.")
         self._process_query_mol()
@@ -175,13 +180,13 @@ class _BaseHEALER(abc.ABC):
 
         if optimizer is None:
             logger.info("No optimizer provided, using default enumeration.")
-            self.enumerated_molecules += self._enumerate_base(max_evals)
+            self.enumerated_molecules += self._enumerate_base(self.max_evals_per_comp)
         elif isinstance(optimizer, BaseStagewiseOptimizer):
             logger.info("Using stagewise optimization for enumeration.")
-            self.enumerated_molecules += self._enumerate_stagewise(optimizer, max_evals)
+            self.enumerated_molecules += self._enumerate_stagewise(optimizer, self.max_evals_per_comp)
         elif isinstance(optimizer, BaseSequenceOptimizer):
             logger.info("Using sequence optimization for enumeration.")
-            self.enumerated_molecules += self._enumerate_sequence(optimizer, max_evals)
+            self.enumerated_molecules += self._enumerate_sequence(optimizer, self.max_evals_per_comp)
         else:
             raise TypeError(f"Unsupported optimizer type: {type(optimizer)}. ")
     
@@ -220,9 +225,9 @@ class _BaseHEALER(abc.ABC):
         '''
             Exhaustive enumeration without optimization.
         '''
-        eval_count = 0
         results: List[EnumerationRecord] = []
         for comp_bb in tqdm(self._compositions, desc="Enumerating compositions", disable=self.verbose < 1):
+            eval_count = 0
             bb_lists = comp_bb.fragment_bbs 
             stage_records = self._make_seed_records(bb_lists[0])
             for bb_pool in tqdm(bb_lists[1:], desc="Enumerating stages", disable=self.verbose < 2):
@@ -245,9 +250,9 @@ class _BaseHEALER(abc.ABC):
         '''
             Stagewise enumeration with optimizer.filter() hook.
         '''
-        eval_count = 0
         results: List[EnumerationRecord] = []
         for comp_bb in self._compositions:
+            eval_count = 0
             bb_lists = comp_bb.fragment_bbs
             stage_records = self._make_seed_records(bb_lists[0])
             for depth, bb_pool in enumerate(tqdm(bb_lists[1:], desc="Enumerating stages", disable=self.verbose < 2), start=1):
@@ -274,11 +279,10 @@ class _BaseHEALER(abc.ABC):
     ) -> List[EnumerationRecord]:
         '''
             Sequence-based enumeration using optimizer.ask() and optimizer.tell().
-        '''
-        eval_count = 0
+        '''     
         results: List[EnumerationRecord] = []
-
         for comp_bb in self._compositions:
+            eval_count = 0
             optimizer.init_search(
                 domain=comp_bb.fragment_bbs, 
                 budget=max_evals or 0
@@ -480,6 +484,7 @@ class SiteHEALER(_BaseHEALER):
             bb_supplier: str='US_stock',
             reaction_tags: list[str] | str=['amide coupling', 'amide', 'C-N bond formation', 'C-N',
                                             'alkylation', 'N-arylation', 'azole', 'amination'],
+            max_evals_per_comp: Optional[int] = None,
             rules: dict[str, tuple[int, int]]={
                 'MW': (0, 500), # molecular weight
                 'HBD': (0, 5), # hydrogen bond donors
@@ -499,11 +504,12 @@ class SiteHEALER(_BaseHEALER):
             Args:
                 bb_supplier: one of "US_stock", "EU_stock" or "Global_stock"; or path to an SDF file.
                 reaction_tags: list of tags or 'all'.
+                max_evals_per_comp: maximum number of evaluations for each composition.
                 rules: dictionary of rules for filtering molecules.
                 struct_rules: list of structural rules for filtering molecules.
                 verbose: verbosity level, 0 for errors, 1 for warnings, 2 for info.
         '''
-        super().__init__(bb_supplier, reaction_tags, verbose)
+        super().__init__(bb_supplier, reaction_tags, max_evals_per_comp, verbose)
         self.rules = rules
         self.struct_rules = struct_rules
     
@@ -642,6 +648,7 @@ class MoleculeHEALER(_BaseHEALER):
             bb_supplier: str='US_stock', 
             reaction_tags: list[str]=['amide coupling', 'amide', 'C-N bond formation', 'C-N',
                                       'alkylation', 'N-arylation', 'azole', 'amination'],
+            max_evals_per_comp: Optional[int] = None,
             n_compositions: int=10,
             sim_threshold: float=0.5,
             max_bbs_per_comp: int=-1,
@@ -653,8 +660,7 @@ class MoleculeHEALER(_BaseHEALER):
             Args:
                 bb_supplier: one of "US_stock", "EU_stock" or "Global_stock"; or path to an SDF file.
                 reaction_tags: list of tags or 'all'.
-                custom_comp_sites: list of tuples containing the atom indices for splitting site of 
-                    the molecule.
+                max_evals_per_comp: maximum number of evaluations for each composition.
                 n_compositions: number of compositions to consider for enumeration.
                 sim_threshold: similarity threshold for filtering building blocks.
                 max_bbs_per_comp: maximum number of building blocks per fragment.
@@ -662,7 +668,7 @@ class MoleculeHEALER(_BaseHEALER):
                     threshold will be asjusted to the number of building blocks.
                 verbose: verbosity level, 0 for errors, 1 for warnings, 2 for info.
         '''
-        super().__init__(bb_supplier, reaction_tags, verbose)
+        super().__init__(bb_supplier, reaction_tags, max_evals_per_comp, verbose)
         self.n_compositions = n_compositions
         self.sim_threshold = sim_threshold
         self.max_bbs_per_comp = max_bbs_per_comp
@@ -824,6 +830,7 @@ class FragmentHEALER(MoleculeHEALER):
             bb_supplier: str='US_stock', 
             reaction_tags: list[str]=['amide coupling', 'amide', 'C-N bond formation', 'C-N',
                                       'alkylation', 'N-arylation', 'azole', 'amination'],
+            max_evals_per_comp: Optional[int] = None,
             n_compositions: int=10,
             sim_threshold: float=0.5,
             max_bbs_per_comp: int=-1,
@@ -835,6 +842,7 @@ class FragmentHEALER(MoleculeHEALER):
             Args:
                 bb_supplier: one of "US_stock", "EU_stock" or "Global_stock"; or path to an SDF file.
                 reaction_tags: list of tags or 'all'.
+                max_evals_per_comp: maximum number of evaluations for each composition.
                 n_compositions: number of compositions to consider for enumeration.
                 sim_threshold: similarity threshold for filtering building blocks.
                 max_bbs_per_comp: maximum number of building blocks per fragment.
@@ -843,7 +851,8 @@ class FragmentHEALER(MoleculeHEALER):
                 verbose: verbosity level, 0 for errors, 1 for warnings, 2 for info.
         '''
         super().__init__(
-            bb_supplier, reaction_tags, n_compositions, sim_threshold, max_bbs_per_comp, verbose
+            bb_supplier, reaction_tags, max_evals_per_comp, 
+            n_compositions, sim_threshold, max_bbs_per_comp, verbose
         )
 
     def set_query_mol(

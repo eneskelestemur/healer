@@ -29,14 +29,16 @@ logger = logging.getLogger(__name__)
 
 healer = None  # global for worker processes
 
-def _init_worker(healer_type, bb_source, reaction_tags, n_compositions,
-                 sim_threshold, max_bb, rules, struct_rules, verbose):
+def _init_worker(healer_type, bb_source, reaction_tags, max_evals_per_comp, 
+                 n_compositions, sim_threshold, max_bb, rules, struct_rules, 
+                 verbose):
     """Initialize the global healer in each worker."""
     global healer
     if healer_type == 'molecule':
         healer = MoleculeHEALER(
             bb_supplier=bb_source,
             reaction_tags=reaction_tags,
+            max_evals_per_comp=max_evals_per_comp,
             n_compositions=n_compositions,
             sim_threshold=sim_threshold,
             max_bbs_per_comp=max_bb,
@@ -46,6 +48,7 @@ def _init_worker(healer_type, bb_source, reaction_tags, n_compositions,
         healer = SiteHEALER(
             bb_supplier=bb_source,
             reaction_tags=reaction_tags,
+            max_evals_per_comp=max_evals_per_comp,
             rules=rules,
             struct_rules=struct_rules,
             verbose=verbose,
@@ -54,6 +57,7 @@ def _init_worker(healer_type, bb_source, reaction_tags, n_compositions,
         healer = FragmentHEALER(
             bb_supplier=bb_source,
             reaction_tags=reaction_tags,
+            max_evals_per_comp=max_evals_per_comp,
             sim_threshold=sim_threshold,
             max_bbs_per_comp=max_bb,
             verbose=verbose,
@@ -113,6 +117,8 @@ class HEALERCLI:
                             help='Building block source.')
         parser.add_argument('--reaction_tags', default='amide coupling,amide,alkylation,N-arylation,azole,amination',
                             help='Comma-separated reaction tags, or "all" for all valid tags.')
+        parser.add_argument('--max_evals_per_comp', type=int, default=1000,
+                            help='Maximum number of evaluations for each composition (default: 1000).')
         parser.add_argument('--calculate_similarity', action='store_true',
                             help='Calculate similarity between query and enumerated molecules.')
         parser.add_argument('--calculate_stoplight', action='store_true',
@@ -139,20 +145,20 @@ class HEALERCLI:
         parser.add_argument('--structure_based_rules', default='',
                             help='Dot-separated SMARTS rules for building blocks.')
         parser.add_argument('--reactive_sites', type=json.loads, default=None,
-                            help='Reactive site indices for site healer (JSON list of ints).')
+                            help='Reactive site indices for site healer (list of ints).')
         # molecule enumeration args, sim_threshold and max_bb are used for both molecule and fragment healers
-        parser.add_argument('--sim_threshold', type=float, default=0.40,
+        parser.add_argument('--sim_threshold', type=float, default=0.30,
                             help='Similarity threshold for building block matching.')
         parser.add_argument('--max_bb', type=int, default=10,
                             help='Max building blocks per split.')
         parser.add_argument('--n_compositions', type=int, default=10,
                             help='Number of compositions to consider for an enumeration.')
         parser.add_argument('--custom_split_sites', type=json.loads, default=None,
-                            help='Custom split sites for molecule healer (JSON list of [ [i,j], … ]).')
-        parser.add_argument('--retro_tree_depth', type=int, default=1,
-                            help='Depth of the retro synthesis tree for molecule healer.')
+                            help='Custom split sites for molecule healer (list of [ [i,j], … ]).')
+        parser.add_argument('--retro_tree_depth', type=int, default=2,
+                            help='Depth of the retro synthesis tree for molecule healer. Default is 2.')
         parser.add_argument('--min_frag_size', type=int, default=3,
-                            help='Minimum fragment size for molecule healer.')
+                            help='Minimum fragment size for molecule healer. Default is 3.')
         # other args
         parser.add_argument('--workers', type=int, default=1,
                             help='Number of parallel workers (1 for sequential).')
@@ -161,7 +167,7 @@ class HEALERCLI:
         return parser.parse_args()
 
     def load_reactions(self):
-        reactions = utils.load_reactions_from_json('reactions/reactions.json')
+        reactions = utils.load_reactions_from_json('healer/data/reactions/reactions.json')
         return [r for r in reactions if r.is_valid()]
 
     def parse_reaction_tags(self):
@@ -237,6 +243,7 @@ class HEALERCLI:
             healer = MoleculeHEALER(
                 bb_supplier=self.args.bb_source,
                 reaction_tags=self.reaction_tags,
+                max_evals_per_comp=self.args.max_evals_per_comp,
                 n_compositions=self.args.n_compositions,
                 sim_threshold=self.args.sim_threshold,
                 max_bbs_per_comp=self.args.max_bb,
@@ -251,6 +258,7 @@ class HEALERCLI:
             healer = SiteHEALER(
                 bb_supplier=self.args.bb_source,
                 reaction_tags=self.reaction_tags,
+                max_evals_per_comp=self.args.max_evals_per_comp,
                 rules=self.rules,
                 struct_rules=self.struct_rules,
                 verbose=self.args.verbose,
@@ -262,6 +270,7 @@ class HEALERCLI:
             healer = FragmentHEALER(
                 bb_supplier=self.args.bb_source,
                 reaction_tags=self.reaction_tags,
+                max_evals_per_comp=self.args.max_evals_per_comp,
                 sim_threshold=self.args.sim_threshold,
                 max_bbs_per_comp=self.args.max_bb,
                 verbose=self.args.verbose,
@@ -296,6 +305,7 @@ class HEALERCLI:
             self.args.healer_type,
             self.args.bb_source,
             self.reaction_tags,
+            self.args.max_evals_per_comp,
             self.args.n_compositions,
             self.args.sim_threshold,
             self.args.max_bb,

@@ -11,7 +11,7 @@ from tqdm import tqdm
 import networkx as nx
 from python_tsp.exact import solve_tsp_dynamic_programming
 from python_tsp.heuristics import solve_tsp_local_search
-from HamDiv.utils import identify_functional_groups, GetRingSystems
+from .utils import identify_functional_groups, GetRingSystems
 
 
 def dist_array(smiles = None, mols = None):

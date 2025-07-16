@@ -893,7 +893,7 @@ class FragmentHEALER(MoleculeHEALER):
             raise ValueError('Query molecule must be an RDKit Mol object. '
                              'Set it using set_query_mol() method.')
         
-        frags = Chem.GetMolFrags(self.query_mol, sanitizeFrags=True)
+        frags = Chem.GetMolFrags(self.query_mol, asMols=True, sanitizeFrags=True)
         self._compositions.append(
             CompositionPath(fragments=frags)
         )

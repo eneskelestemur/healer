@@ -4,6 +4,8 @@
 
 import os
 import json
+import zipfile
+from pathlib import Path
 import healer.utils.utils as utils
 
 from tqdm import tqdm
@@ -57,16 +59,55 @@ def remove_smaller_fragments(mol: Chem.Mol) -> Chem.Mol:
     largest_frag = max(frags, key=lambda x: x.GetNumAtoms())
     return largest_frag
 
+def extract_zip_if_needed(input_file: str, verbose: bool = True) -> str:
+    """
+        Extract ZIP file if the input is a ZIP file, otherwise return the input file path.
+        
+        Args:
+            input_file (str): Path to the input file (could be ZIP or SDF).
+            verbose (bool): Whether to print extraction progress.
+            
+        Returns:
+            str: Path to the extracted SDF file or original file if not a ZIP.
+    """
+    input_path = Path(input_file)
+    
+    if input_path.suffix.lower() == '.zip':
+        extract_dir = input_path.parent / input_path.stem
+        extract_dir.mkdir(exist_ok=True)
+        
+        if verbose:
+            print(f"Extracting {input_file} to {extract_dir}")
+            
+        with zipfile.ZipFile(input_file, 'r') as zip_ref:
+            zip_ref.extractall(extract_dir)
+            
+        # Find the SDF file in the extracted directory
+        sdf_files = list(extract_dir.glob('*.sdf'))
+        if not sdf_files:
+            raise FileNotFoundError(f"No SDF file found in extracted ZIP: {input_file}")
+        
+        if len(sdf_files) > 1:
+            print(f"Warning: Multiple SDF files found. Using: {sdf_files[0]}")
+            
+        return str(sdf_files[0])
+    
+    return input_file
+
 def process_buildingblock_file(input_file: str, verbose: bool=True) -> None:
     """
         Process the building block file and add the 'rxn_annotations' property
-        to each molecule.
+        to each molecule. Automatically extracts ZIP files if needed.
 
         Args:
-            input_file (str): Path to the input file.
+            input_file (str): Path to the input file (SDF or ZIP containing SDF).
+            verbose (bool): Whether to print progress information.
     """
-    output_file = os.path.splitext(input_file)[0] + '_processed.sdf'
-    suppl = FastSDMolSupplier(input_file)
+    # Extract ZIP file if needed
+    sdf_file = extract_zip_if_needed(input_file, verbose)
+    
+    output_file = os.path.splitext(sdf_file)[0] + '_processed.sdf'
+    suppl = FastSDMolSupplier(sdf_file)
     
     count = 0
     with SDWriter(output_file) as writer:

@@ -8,7 +8,7 @@ slurm-*
 ./*.smi
 ./results
 cache
-profiler
+external/prop_profiler
 figures.ipynb
 analyze_results.ipynb
 *.egg-info

@@ -203,7 +203,10 @@ class HEALERCLI:
                              usecols=[self.args.column_name if self.args.header else 0])
             col = self.args.column_name if self.args.header else df.columns[0]
             return df[col].tolist()
-        return [self.args.input_smiles]
+        if Chem.MolFromSmiles(self.args.input_smiles):
+            return [self.args.input_smiles]
+        raise ValueError(f"Unsupported input format: {suffix}. "
+                         "Please provide a valid SMILES string, SDF file, or CSV file.")
     
     def get_output_columns(self):
         sample_healer = MoleculeHEALER('test', verbose=0)

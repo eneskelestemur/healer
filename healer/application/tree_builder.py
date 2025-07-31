@@ -1,6 +1,7 @@
 '''
     Retrosynthesis decomposition tree structure.
 '''
+import random
 from typing import List, Tuple
 
 from rdkit import Chem
@@ -121,17 +122,24 @@ class RetrosynthesisTree:
             return False
         return True
     
-    def get_composition_paths(self) -> List[CompositionPath]:
+    def get_composition_paths(self, randomize: bool=False, random_seed: int=-1) -> List[CompositionPath]:
         '''
             Traverse the built tree and return all retrosynthetic composition paths. 
-            This will deduplicate CompositionPaths on the fly.
+            This will deduplicate CompositionPaths on the fly. The final list will 
+            be sorted by the number of fragments in each path (ascending).
 
             NOTE: Fragment order matters in CompositionPaths, for examples:
                 - (A, B) is different from (B, A)
 
-            Each CompositionPath includes:
-                - steps: the sequence of RetroStep instances applied
-                - fragments: the final fragment tuple
+            Args:
+                randomize: If True, shuffle the order of branches at each node.
+                random_seed: Seed for randomization (if enabled). If < 0, no seed is set.
+
+            Returns:
+                List of CompositionPath instances representing retrosynthetic paths.
+                Each CompositionPath includes:
+                    - steps: the sequence of RetroStep instances applied
+                    - fragments: the final fragment tuple
         '''
         results: List[CompositionPath] = []
         seen: set[Tuple[str, ...]] = set()
@@ -158,6 +166,12 @@ class RetrosynthesisTree:
             results.append(CompositionPath(steps=tuple(steps), fragments=tuple(frags)))
 
         results.sort(key=lambda x: len(x.fragments))
+        if randomize:
+            if random_seed >= 0:
+                random.seed(random_seed)
+            else:
+                random.seed()
+            random.shuffle(results)
         return results
 
     def display_tree(self, **kwargs) -> None:

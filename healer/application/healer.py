@@ -30,9 +30,9 @@ logger = logging.getLogger(__name__)
 
 # Constants: mapping building-block sources to file paths
 BB_PATHS: Dict[str, str] = {
-    "US_stock": "healer/data/buildingblocks/Enamine_Rush-Delivery_Building_Blocks-US_*_processed.sdf",
-    "EU_stock": "healer/data/buildingblocks/Enamine_Rush-Delivery_Building_Blocks-EU_*_processed.sdf",
-    "Global_stock": "healer/data/buildingblocks/Enamine_Building_Blocks_Stock_*_processed.sdf",
+    "US_stock": "healer/data/buildingblocks/Enamine_Rush-Delivery_Building_Blocks-US/*_processed.sdf",
+    "EU_stock": "healer/data/buildingblocks/Enamine_Rush-Delivery_Building_Blocks-EU/*_processed.sdf",
+    "Global_stock": "healer/data/buildingblocks/Enamine_Building_Blocks_Stock/*_processed.sdf",
     "test": "healer/data/buildingblocks/test_100_bb_processed.sdf",
 }
 
@@ -644,15 +644,14 @@ class MoleculeHEALER(_BaseHEALER):
         generate compositions from the query molecule.
     '''
     def __init__(
-            self, 
-            bb_supplier: str='US_stock', 
-            reaction_tags: list[str]=['amide coupling', 'amide', 'C-N bond formation', 'C-N',
-                                      'alkylation', 'N-arylation', 'azole', 'amination'],
-            max_evals_per_comp: Optional[int] = None,
-            n_compositions: int=10,
-            sim_threshold: float=0.5,
-            max_bbs_per_comp: int=-1,
-            verbose: int=1,
+        self, 
+        bb_supplier: str='US_stock', 
+        reaction_tags: list[str]=['amide coupling', 'amide', 'C-N bond formation', 'C-N',
+                                    'alkylation', 'N-arylation', 'azole', 'amination'],
+        max_evals_per_comp: Optional[int] = None,
+        sim_threshold: float=0.5,
+        max_bbs_per_comp: int=-1,
+        verbose: int=1,
     ):
         '''
             Initialize MoleculeHEALER.
@@ -661,20 +660,22 @@ class MoleculeHEALER(_BaseHEALER):
                 bb_supplier: one of "US_stock", "EU_stock" or "Global_stock"; or path to an SDF file.
                 reaction_tags: list of tags or 'all'.
                 max_evals_per_comp: maximum number of evaluations for each composition.
-                n_compositions: number of compositions to consider for enumeration.
                 sim_threshold: similarity threshold for filtering building blocks.
                 max_bbs_per_comp: maximum number of building blocks per fragment.
                     If <= 0, all building blocks will be considered. Otherwise, the similarity
-                    threshold will be asjusted to the number of building blocks.
+                    threshold will be adjusted to the number of building blocks.
                 verbose: verbosity level, 0 for errors, 1 for warnings, 2 for info.
         '''
         super().__init__(bb_supplier, reaction_tags, max_evals_per_comp, verbose)
-        self.n_compositions = n_compositions
         self.sim_threshold = sim_threshold
         self.max_bbs_per_comp = max_bbs_per_comp
 
     def set_query_mol(
-        self, query_mol: Union[str, Chem.Mol], 
+        self, 
+        query_mol: Union[str, Chem.Mol], 
+        n_compositions: int=10,
+        randomize_compositions: bool=False,
+        random_seed: int=-1,
         custom_split_sites: Optional[List[List[Tuple[int, int]]]] = None,
         retro_tree_depth: int = 1,
         min_frag_size: int = 3,
@@ -684,12 +685,18 @@ class MoleculeHEALER(_BaseHEALER):
 
             Args:
                 query_mol: a SMILES string or an RDKit Mol object.
+                n_compositions: number of compositions to consider for enumeration. Higher values
+                    will increase the diversity.
+                randomize_compositions: if True, randomize the order of compositions, 
+                    otherwise sorted by the number of fragments. Randomization may increase
+                    the diversity but also lead to more reaction steps.
+                random_seed: seed for randomization, -1 for no specified seed.
                 custom_split_sites: Custom split sites for the molecule. If provided, 
                     the molecule will be split into fragments based on these sites.
                     Each site is a tuple of atom indices (start, end) to split the molecule.
                     A molecule can have multiple split sites to generate multiple fragments.
                     For example, if `custom_split_sites = [[(0, 2), (3, 5)], [(1, 4)]]`, then 
-                    there will be two seaparate compositions generated from the molecule. 
+                    there will be two separate compositions generated from the molecule.
                 retro_tree_depth: depth of retrosynthesis tree to generate compositions.
                 min_frag_size: minimum number of heavy atoms in a fragment to consider it valid.
         '''
@@ -704,6 +711,9 @@ class MoleculeHEALER(_BaseHEALER):
             raise ValueError('Query molecule must be a single connected component. '
                              'Use FragmentHEALER for multi-component molecules.')
 
+        self.n_compositions = n_compositions
+        self.randomize_compositions = randomize_compositions
+        self.random_seed = random_seed
         self.custom_split_sites = custom_split_sites if custom_split_sites else []
         self.retro_tree_depth = retro_tree_depth
         self.min_frag_size = min_frag_size

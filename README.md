@@ -65,8 +65,12 @@ HEALER uses commercial building block databases from **Enamine**, which are free
    - Place the downloaded ZIP files in `healer/data/buildingblocks/`
 
 2. **Preprocess building blocks:**
+   
+   This step might take some time depending on the number of files and their sizes. For US Stock, it takes around 10-12 minutes.
+
    ```bash
    # Process a single building block file (automatically extracts ZIP files)
+   # Change the zip file name as needed
    python scripts/preprocess_bb_source.py healer/data/buildingblocks/Enamine_building_blocks_stock.zip --verbose
    
    # Process all building block files

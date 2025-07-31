@@ -1,0 +1,59 @@
+Significance results for HEALER on Enamine
+T-test: Top 5 vs Query: statistic=5.9511, p-value=0.0000 (***)
+T-test: Top 50 vs Query: statistic=3.6636, p-value=0.0001 (***)
+T-test: Top 100 vs Query: statistic=2.7899, p-value=0.0026 (**)
+
+Significance results for HEALER on ChEMBL
+T-test: Top 5 vs Query: statistic=10.9798, p-value=0.0000 (***)
+T-test: Top 50 vs Query: statistic=8.1287, p-value=0.0000 (***)
+T-test: Top 100 vs Query: statistic=6.4523, p-value=0.0000 (***)
+
+Significance results for HEALER on ASKCOS
+T-test: Top 5 vs Query: statistic=40.6861, p-value=0.0000 (***)
+T-test: Top 50 vs Query: statistic=49.8508, p-value=0.0000 (***)
+T-test: Top 100 vs Query: statistic=49.1240, p-value=0.0000 (***)
+
+Significance results for ChemProjector on Enamine
+T-test: Top 5 vs Query: statistic=6.1585, p-value=0.0000 (***)
+T-test: Top 50 vs Query: statistic=1.4017, p-value=0.0805 (ns)
+T-test: Top 100 vs Query: statistic=0.1752, p-value=0.4305 (ns)
+
+Significance results for ChemProjector on ChEMBL
+T-test: Top 5 vs Query: statistic=10.4956, p-value=0.0000 (***)
+T-test: Top 50 vs Query: statistic=5.2070, p-value=0.0000 (***)
+T-test: Top 100 vs Query: statistic=3.9400, p-value=0.0000 (***)
+
+Significance results for ChemProjector on ASKCOS
+T-test: Top 5 vs Query: statistic=35.3142, p-value=0.0000 (***)
+T-test: Top 50 vs Query: statistic=35.6792, p-value=0.0000 (***)
+T-test: Top 100 vs Query: statistic=32.9246, p-value=0.0000 (***)
+
+Significance results for Synformer on Enamine
+T-test: Top 5 vs Query: statistic=0.5158, p-value=0.3030 (ns)
+T-test: Top 50 vs Query: statistic=-3.9228, p-value=1.0000 (ns)
+T-test: Top 100 vs Query: statistic=-8.1371, p-value=1.0000 (ns)
+
+Significance results for Synformer on ChEMBL
+T-test: Top 5 vs Query: statistic=5.5739, p-value=0.0000 (***)
+T-test: Top 50 vs Query: statistic=-1.9104, p-value=0.9720 (ns)
+T-test: Top 100 vs Query: statistic=-6.3766, p-value=1.0000 (ns)
+
+Significance results for Synformer on ASKCOS
+T-test: Top 5 vs Query: statistic=30.4443, p-value=0.0000 (***)
+T-test: Top 50 vs Query: statistic=30.2452, p-value=0.0000 (***)
+T-test: Top 100 vs Query: statistic=25.9873, p-value=0.0000 (***)
+
+Significance results for REINVENT on Enamine
+T-test: Top 5 vs Query: statistic=-2.3325, p-value=0.9901 (ns)
+T-test: Top 50 vs Query: statistic=-2.9186, p-value=0.9982 (ns)
+T-test: Top 100 vs Query: statistic=-2.4667, p-value=0.9932 (ns)
+
+Significance results for REINVENT on ChEMBL
+T-test: Top 5 vs Query: statistic=-4.0525, p-value=1.0000 (ns)
+T-test: Top 50 vs Query: statistic=-5.5167, p-value=1.0000 (ns)
+T-test: Top 100 vs Query: statistic=-5.4602, p-value=1.0000 (ns)
+
+Significance results for REINVENT on ASKCOS
+T-test: Top 5 vs Query: statistic=-1.9255, p-value=0.9729 (ns)
+T-test: Top 50 vs Query: statistic=-2.6119, p-value=0.9955 (ns)
+T-test: Top 100 vs Query: statistic=-2.1414, p-value=0.9839 (ns)

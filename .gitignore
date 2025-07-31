@@ -1,17 +1,23 @@
 __pycache__
 .vscode
 *scratch*
-healer/data/buildingblocks/Enamine*.sdf
-healer/data/buildingblocks/Enamine_building_blocks_sdf.zip
-slurm-*
-./*.csv
-./*.smi
-./results
-cache
-external/prop_profiler
-figures.ipynb
-analyze_results.ipynb
 *.egg-info
 
-# temporarily ignore these files
-benchmark
+# data files
+healer/data/buildingblocks/*
+!healer/data/buildingblocks/test_100_bb_processed.sdf
+
+# log or temporary files
+/*.csv
+/*.smi
+/*.json
+/*.html
+/*.log
+/*.xlsx
+
+# large results files
+benchmark/results/*/*.csv
+!benchmark/results/*/*subset*
+
+# external/optional dependencies
+external/prop_profiler

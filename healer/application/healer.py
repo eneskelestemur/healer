@@ -28,12 +28,18 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Get the absolute path to the healer package data directory
+_HEALER_ROOT = Path(__file__).parent.parent
+_DATA_DIR = _HEALER_ROOT / 'data'
+_BB_DIR = _DATA_DIR / 'buildingblocks'
+_REACTIONS_FILE = _DATA_DIR / 'reactions' / 'reactions.json'
+
 # Constants: mapping building-block sources to file paths
 BB_PATHS: Dict[str, str] = {
-    "US_stock": "healer/data/buildingblocks/Enamine_Rush-Delivery_Building_Blocks-US/*_processed.sdf",
-    "EU_stock": "healer/data/buildingblocks/Enamine_Rush-Delivery_Building_Blocks-EU/*_processed.sdf",
-    "Global_stock": "healer/data/buildingblocks/Enamine_Building_Blocks_Stock/*_processed.sdf",
-    "test": "healer/data/buildingblocks/test_100_bb_processed.sdf",
+    "US_stock": str(_BB_DIR / "Enamine_Rush-Delivery_Building_Blocks-US" / "*_processed.sdf"),
+    "EU_stock": str(_BB_DIR / "Enamine_Rush-Delivery_Building_Blocks-EU" / "*_processed.sdf"),
+    "Global_stock": str(_BB_DIR / "Enamine_Building_Blocks_Stock" / "*_processed.sdf"),
+    "test": str(_BB_DIR / "test_100_bb_processed.sdf"),
 }
 
 
@@ -120,7 +126,7 @@ class _BaseHEALER(abc.ABC):
                     'all' to use all reactions.
         '''
         # reaction data
-        all_rxns = utils.load_reactions_from_json('healer/data/reactions/reactions.json')
+        all_rxns = utils.load_reactions_from_json(str(_REACTIONS_FILE))
         self._reactions = [r for r in all_rxns if r.is_valid()]
         all_tags = list(set(chain(*[r.tags for r in self._reactions])))
         if isinstance(reaction_tags, str):

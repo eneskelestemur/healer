@@ -6,10 +6,13 @@ import os
 import sys
 import json
 import base64
-import numpy as np
+from typing import List, Union, Tuple
+from itertools import chain
 
+import numpy as np
 from rdkit import RDLogger, Chem
 from rdkit.Chem import AllChem, DataStructs, Draw, rdFMCS
+
 from healer.domain.reaction_template import ReactionTemplate21
 
 sys.path.append(os.path.join(os.environ['CONDA_PREFIX'],'share','RDKit','Contrib'))
@@ -204,50 +207,82 @@ def get_svg_mol(mol, sub_mol=None, sub_mol_color='green', legend='', show_idx=Fa
     svg = base64.b64encode(svg.encode('utf-8')).decode('utf-8')
     return f"data:image/svg+xml;base64,{svg}"
 
-def get_svg_mol_with_bbs(mol, bb1, bb2, bb_colors=['red', 'green'], legend=''):
+def get_svg_mol_with_bbs(
+        mol: Union[Chem.Mol, str],
+        bbs: List[Union[Chem.Mol, str]],
+        bb_colors: List[Union[Tuple[int, int, int], str]] = None,
+        legend: str = '',
+        width: int = 350,
+        height: int = 150
+    ) -> str:
     '''
-        Similar to get_svg_mol, but instead of highlighting a substructure,
-        it highlights the building blocks.
+        Draws a molecule with highlighted building blocks.
+
+        Args:
+            mol: The molecule to draw.
+            bbs: The building blocks to highlight.
+            bb_colors: The colors to use for the building blocks.
+            legend: The legend to display.
+            width: The width of the drawing.
+            height: The height of the drawing.
+
+        Returns:
+            The SVG representation of the drawing.
     '''
-    bb_colors = [rdColors[c] for c in bb_colors]
+    num_bbs = len(bbs)
+    
+    if bb_colors is None:
+        rd_color_names = list(rdColors.keys())
+        bb_colors = [rdColors[rd_color_names[i % len(rd_color_names)]] for i in range(num_bbs)]
+    elif isinstance(bb_colors[0], tuple):
+        bb_colors = bb_colors
+    elif isinstance(bb_colors[0], str):
+        bb_colors = [rdColors[c] for c in bb_colors]
+
+    if num_bbs != len(bb_colors):
+        raise ValueError(f'Number of building blocks ({num_bbs}) does not match number of colors ({len(bb_colors)})')
+
     if isinstance(mol, str):
        mol = Chem.MolFromSmiles(mol)
     AllChem.Compute2DCoords(mol)
-    if isinstance(bb1, str):
-        bb1 = Chem.MolFromSmiles(bb1)
-    if isinstance(bb2, str):
-        bb2 = Chem.MolFromSmiles(bb2)
-    assert bb1 is not None, 'Invalid building block 1'
-    assert bb2 is not None, 'Invalid building block 2'
-    
-    mcs1 = rdFMCS.FindMCS([mol, bb1])
-    mcs2 = rdFMCS.FindMCS([mol, bb2])
-    smarts1 = mcs1.smartsString
-    smarts2 = mcs2.smartsString
-    bb1 = Chem.MolFromSmarts(smarts1)
-    bb2 = Chem.MolFromSmarts(smarts2)
-    hit_atoms1 = list(mol.GetSubstructMatch(bb1))
-    hit_atoms2 = list(mol.GetSubstructMatch(bb2))
-    hit_bonds1 = []
-    hit_bonds2 = []
-    for bond in bb1.GetBonds():
-        a1 = hit_atoms1[bond.GetBeginAtomIdx()]
-        a2 = hit_atoms1[bond.GetEndAtomIdx()]
-        try:
-            hit_bonds1.append(mol.GetBondBetweenAtoms(a1, a2).GetIdx())
-        except:
-            pass
-    for bond in bb2.GetBonds():
-        a1 = hit_atoms2[bond.GetBeginAtomIdx()]
-        a2 = hit_atoms2[bond.GetEndAtomIdx()]
-        try:
-            hit_bonds2.append(mol.GetBondBetweenAtoms(a1, a2).GetIdx())
-        except:
-            pass
-    drawing = Draw.MolDraw2DSVG(350, 150)
-    drawing.DrawMolecule(mol, highlightAtoms=hit_atoms1+hit_atoms2, highlightBonds=hit_bonds1+hit_bonds2,
-                          highlightAtomColors={**{i: bb_colors[0] for i in hit_atoms1}, **{i: bb_colors[1] for i in hit_atoms2}},
-                          highlightBondColors={**{i: bb_colors[0] for i in hit_bonds1}, **{i: bb_colors[1] for i in hit_bonds2}},
+
+    bbs = [Chem.MolFromSmiles(bb) if isinstance(bb, str) else bb for bb in bbs]
+    for i, bb in enumerate(bbs):
+        if bb is None:
+            raise ValueError(f'Invalid building block: bb{i}')
+
+    def _get_mcs_smarts_mol(bb):
+        mcs = rdFMCS.FindMCS([mol, bb])
+        if mcs.numAtoms == 0:
+            raise ValueError(f'No common substructure found between mol and bb{i}')
+        return Chem.MolFromSmarts(mcs.smartsString)
+    new_bbs = [_get_mcs_smarts_mol(bb) for bb in bbs]
+
+    hit_atoms_list = [list(mol.GetSubstructMatch(bb)) for bb in new_bbs]
+    hit_bonds_list = []
+    for i, bb in enumerate(new_bbs):
+        hit_bonds = []
+        for bond in bb.GetBonds():
+            a1 = hit_atoms_list[i][bond.GetBeginAtomIdx()]
+            a2 = hit_atoms_list[i][bond.GetEndAtomIdx()]
+            try:
+                hit_bonds.append(mol.GetBondBetweenAtoms(a1, a2).GetIdx())
+            except:
+                pass
+        hit_bonds_list.append(hit_bonds)
+
+    # Draw the molecule with highlighted building blocks
+    drawing = Draw.MolDraw2DSVG(width, height)
+    highlight_atom_colors = {}
+    for i, hit_atoms in enumerate(hit_atoms_list):
+        for atom in hit_atoms:
+            highlight_atom_colors[atom] = bb_colors[i]
+    highlight_bond_colors = {}
+    for i, hit_bonds in enumerate(hit_bonds_list):
+        for bond in hit_bonds:
+            highlight_bond_colors[bond] = bb_colors[i]
+    drawing.DrawMolecule(mol, highlightAtoms=list(chain.from_iterable(hit_atoms_list)), highlightBonds=list(chain.from_iterable(hit_bonds_list)),
+                          highlightAtomColors=highlight_atom_colors, highlightBondColors=highlight_bond_colors,
                           legend=legend)
     drawing.FinishDrawing()
     svg = drawing.GetDrawingText()

@@ -195,7 +195,11 @@ def get_svg_mol(mol, sub_mol=None, sub_mol_color='green', legend='', show_idx=Fa
     if show_idx:
         for i, atom in enumerate(mol.GetAtoms()):
             atom.SetProp('atomNote', str(i))
+
+    draw_opts = Draw.MolDrawOptions()
+    draw_opts.clearBackground = None
     drawing = Draw.MolDraw2DSVG(350, 150)
+    drawing.SetDrawOptions(draw_opts)
     drawing.DrawMolecule(mol, highlightAtoms=hit_atoms, highlightBonds=hit_bonds,
                           highlightAtomColors={i: sub_mol_color for i in hit_atoms},
                           highlightBondColors={i: sub_mol_color for i in hit_bonds},
@@ -272,7 +276,10 @@ def get_svg_mol_with_bbs(
         hit_bonds_list.append(hit_bonds)
 
     # Draw the molecule with highlighted building blocks
+    draw_opts = Draw.MolDrawOptions()
+    draw_opts.clearBackground = None
     drawing = Draw.MolDraw2DSVG(width, height)
+    drawing.SetDrawOptions(draw_opts)
     highlight_atom_colors = {}
     for i, hit_atoms in enumerate(hit_atoms_list):
         for atom in hit_atoms:

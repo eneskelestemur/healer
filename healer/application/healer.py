@@ -847,7 +847,6 @@ class FragmentHEALER(MoleculeHEALER):
             reaction_tags: list[str]=['amide coupling', 'amide', 'C-N bond formation', 'C-N',
                                       'alkylation', 'N-arylation', 'azole', 'amination'],
             max_evals_per_comp: Optional[int] = None,
-            n_compositions: int=10,
             sim_threshold: float=0.5,
             max_bbs_per_comp: int=-1,
             verbose: int=1,
@@ -859,7 +858,6 @@ class FragmentHEALER(MoleculeHEALER):
                 bb_supplier: one of "US_stock", "EU_stock" or "Global_stock"; or path to an SDF file.
                 reaction_tags: list of tags or 'all'.
                 max_evals_per_comp: maximum number of evaluations for each composition.
-                n_compositions: number of compositions to consider for enumeration.
                 sim_threshold: similarity threshold for filtering building blocks.
                 max_bbs_per_comp: maximum number of building blocks per fragment.
                     If <= 0, all building blocks will be considered. Otherwise, the similarity
@@ -868,7 +866,7 @@ class FragmentHEALER(MoleculeHEALER):
         '''
         super().__init__(
             bb_supplier, reaction_tags, max_evals_per_comp, 
-            n_compositions, sim_threshold, max_bbs_per_comp, verbose
+            sim_threshold, max_bbs_per_comp, verbose
         )
 
     def set_query_mol(

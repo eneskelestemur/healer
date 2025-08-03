@@ -2,6 +2,7 @@ __pycache__
 .vscode
 *scratch*
 *.egg-info
+cache
 
 # data files
 healer/data/buildingblocks/*

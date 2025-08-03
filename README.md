@@ -229,14 +229,24 @@ healer --help
 Launch the interactive Dash web interface:
 
 ```bash
-python webserver/EnumeratorApp.py
+# Navigate to webserver directory
+cd webserver
+
+# Local Mode (default - unlimited parameters)
+python app.py
+
+# Server Mode (enforced limits for shared deployment) 
+export HEALER_SERVER_MODE=true && python app.py
 ```
 
-Then navigate to `http://localhost:8052` in your browser for the graphical interface featuring:
-- Interactive molecule sketcher
-- Real-time parameter adjustment
-- Visualization of enumerated structures
-- Export capabilities
+Then navigate to `http://localhost:8053` in your browser for the modern web interface featuring:
+- **Automatic Fragment Detection**: Smart switching between MoleculeHEALER and FragmentHEALER
+- **Server/Local Mode**: Configurable computational limits for deployment
+- **Enhanced UI**: Bootstrap Minty theme with comprehensive tooltips
+- **Tab-based Interface**: Separate Molecule HEALER and Site HEALER workflows
+- **Real-time Enumeration**: Background processing with progress indicators
+- **Results Export**: CSV download with building block URLs
+- **Parameter Validation**: Real-time validation with user feedback
 
 ## 🔧 Configuration
 

@@ -137,8 +137,12 @@ class _BaseHEALER(abc.ABC):
                 self.reaction_tags = [reaction_tags]
                 self.reactions = [r for r in self._reactions if reaction_tags in r.tags]
         else:
-            self.reaction_tags = [tag for tag in reaction_tags if tag in all_tags]
-            self.reactions = [r for r in self._reactions if any(tag in r.tags for tag in self.reaction_tags)]
+            if 'all' in reaction_tags:
+                self.reaction_tags = all_tags
+                self.reactions = self._reactions
+            else:
+                self.reaction_tags = [tag for tag in reaction_tags if tag in all_tags]
+                self.reactions = [r for r in self._reactions if any(tag in r.tags for tag in self.reaction_tags)]
         
         logger.info("Using %d reactions", len(self.reactions))
 

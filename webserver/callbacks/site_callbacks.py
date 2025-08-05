@@ -112,8 +112,15 @@ def register_site_callbacks(app, app_id: str = "site"):
             )
             
             # Format results for web app
-            formatted_results = format_enumeration_results(results, 'site')
-            n_results = len(formatted_results)
+            display_results, complete_results = format_enumeration_results(results, 'site')
+            n_results = len(display_results)
+            
+            # Store both versions: display for UI, complete for download
+            stored_data = {
+                'display_results': display_results,
+                'complete_results': complete_results,
+                'app_type': 'site'
+            }
             
             # Generate response based on results
             if n_results < 2:  # Only query molecule returned
@@ -149,7 +156,7 @@ def register_site_callbacks(app, app_id: str = "site"):
                 'color': 'white'
             }
             
-            return enum_img, enum_style, slider_max, slider_marks, formatted_results
+            return enum_img, enum_style, slider_max, slider_marks, stored_data
             
         except Exception as e:
             # Handle errors

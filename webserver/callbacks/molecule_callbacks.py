@@ -11,7 +11,6 @@ from webserver.utils.healer_interface import (
     run_molecule_enumeration, 
     format_enumeration_results, 
     count_molecular_fragments,
-    generate_molecule_visualization
 )
 
 
@@ -61,16 +60,6 @@ def register_molecule_callbacks(app, app_id: str = "molecule"):
             return True, {'display': 'block'}
         else:
             return False, {'display': 'none'}
-            return False, {"display": "none"}
-        
-        try:
-            num_fragments = count_molecular_fragments(molecule)
-            if num_fragments > 1:
-                return True, {"display": "block"}
-            else:
-                return False, {"display": "none"}
-        except Exception:
-            return False, {"display": "none"}
     
     @app.callback(
         [Output(f"{app_id}-enumeration-svg", "children", True),
@@ -180,8 +169,15 @@ def register_molecule_callbacks(app, app_id: str = "molecule"):
             )
             
             # Format results for web app
-            formatted_results = format_enumeration_results(results, 'molecule')
-            n_results = len(formatted_results)
+            display_results, complete_results = format_enumeration_results(results, 'molecule')
+            n_results = len(display_results)
+            
+            # Store both versions: display for UI, complete for download
+            stored_data = {
+                'display_results': display_results,
+                'complete_results': complete_results,
+                'app_type': 'molecule'
+            }
             
             # Generate response based on results
             if n_results < 2:  # Only query molecule returned
@@ -217,7 +213,7 @@ def register_molecule_callbacks(app, app_id: str = "molecule"):
                 'color': 'white'
             }
             
-            return enum_img, enum_style, slider_max, slider_marks, formatted_results
+            return enum_img, enum_style, slider_max, slider_marks, stored_data
             
         except Exception as e:
             # Handle errors

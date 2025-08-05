@@ -117,8 +117,11 @@ def register_shared_callbacks(app, app_id: str):
     def save_enumeration_results(n_clicks, enum_data, filename):
         '''Save enumeration results to CSV file.'''
         if enum_data and filename:
-            df = pd.DataFrame.from_records(enum_data)
-            return dcc.send_data_frame(df.to_csv, filename=filename, index=False)
+            # Use complete results for download to preserve all information
+            complete_results = enum_data.get('complete_results', [])
+            if complete_results:
+                df = pd.DataFrame.from_records(complete_results)
+                return dcc.send_data_frame(df.to_csv, filename=filename, index=False)
         return None
     
     @app.callback(
@@ -130,26 +133,30 @@ def register_shared_callbacks(app, app_id: str):
     )
     def update_enumeration_display(slider_val, enum_data):
         '''Update the enumeration result visualization based on slider value.'''
-        if not enum_data or slider_val >= len(enum_data):
+        if not enum_data:
+            return "No data available", {'text-align': 'center'}
+        
+        # Use display results for visualization
+        display_results = enum_data.get('display_results', [])
+        if not display_results or slider_val >= len(display_results):
             return "No data available", {'text-align': 'center'}
         
         try:
-            result = enum_data[slider_val]
-            query_mol = enum_data[0]['Product']  # First result is always the query
+            result = display_results[slider_val]
+            query_mol = display_results[0]['Product']  # First result is always the query
             
             # Extract building blocks for visualization
             bb_smiles = []
-            if app_id == "molecule":
+            app_type = enum_data.get('app_type', app_id)  # Use stored app_type or fallback to app_id
+            if app_type == "molecule":
                 # For molecule healer, look for BB1, BB2, etc.
                 bb_keys = [k for k in result.keys() if k.startswith('BB') and k[2:].isdigit()]
                 bb_keys.sort(key=lambda x: int(x[2:]))
                 bb_smiles = [result.get(k, '') for k in bb_keys if result.get(k)]
-                colors = ['purple', 'green', 'blue', 'orange'][:len(bb_smiles)]
-            elif app_id == "site":
+            elif app_type == "site":
                 # For site healer, look for BB and include query molecule
                 if result.get('BB'):
                     bb_smiles = [result['BB'], query_mol]
-                    colors = ['purple', 'green']
             
             # Generate legend
             similarity = result.get('Similarity_to_query', 0.0)

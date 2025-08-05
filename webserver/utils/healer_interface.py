@@ -389,7 +389,7 @@ def run_site_enumeration(
         raise
 
 
-def format_enumeration_results(results: List[Dict[str, Any]], app_type: str) -> List[Dict[str, Any]]:
+def format_enumeration_results(results: List[Dict[str, Any]], app_type: str) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
     '''
         Format enumeration results for web app compatibility.
         
@@ -398,41 +398,49 @@ def format_enumeration_results(results: List[Dict[str, Any]], app_type: str) -> 
             app_type: 'molecule' or 'site'
             
         Returns:
-            Formatted results compatible with the web app
+            Tuple of (display_results, complete_results):
+            - display_results: Formatted results for web display with organized reaction names
+            - complete_results: Complete raw results with all original information preserved
     '''
-    formatted_results = []
+    display_results = []
+    complete_results = []
     
     for result in results:
-        formatted_result = {
+        # Complete results: preserve all original data
+        complete_result = result.copy()
+        complete_results.append(complete_result)
+        
+        # Display results: formatted for web display
+        display_result = {
             'Product': result.get('Product', ''),
             'Similarity_to_query': result.get('Similarity_to_query', 0.0)
         }
         
-        # Extract building blocks
-        bb_keys = [k for k in result.keys() if k.startswith('BB')]
+        # Extract building blocks for display
+        bb_keys = [k for k in result.keys() if k.startswith('BB') and not k.endswith('_url') and not k.endswith('_id')]
         bb_keys.sort(key=lambda x: int(x[2:]))  # Sort BB1, BB2, etc.
         
         if app_type == 'molecule':
             # For molecule healer, we expect multiple BBs
             for i, bb_key in enumerate(bb_keys, 1):
                 if result.get(bb_key):
-                    formatted_result[f'BB{i}'] = result[bb_key]
+                    display_result[f'BB{i}'] = result[bb_key]
         elif app_type == 'site':
             # For site healer, we typically have one BB
             if bb_keys and result.get(bb_keys[0]):
-                formatted_result['BB'] = result[bb_keys[0]]
+                display_result['BB'] = result[bb_keys[0]]
         
-        # Extract reaction names
+        # Extract and organize reaction names for display
         rxn_keys = [k for k in result.keys() if k.startswith('Reaction') and k.endswith('_name')]
         if rxn_keys:
             rxn_keys.sort(key=lambda x: int(x.split('_')[0][8:]))  # Sort Reaction1_name, etc.
             reaction_names = [result.get(k, '') for k in rxn_keys if result.get(k)]
             if reaction_names:
-                formatted_result['Reaction_name'] = ' -> '.join(reaction_names)
+                display_result['Reaction_name'] = ' -> '.join(reaction_names)
         
-        formatted_results.append(formatted_result)
+        display_results.append(display_result)
     
-    return formatted_results
+    return display_results, complete_results
 
 
 def generate_molecule_visualization(

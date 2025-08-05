@@ -329,14 +329,24 @@ class TestResultFormatting:
             }
         ]
         
-        formatted = format_enumeration_results(raw_results, 'molecule')
+        display_results, complete_results = format_enumeration_results(raw_results, 'molecule')
         
-        assert len(formatted) == 1
-        assert formatted[0]['Product'] == 'CC1=CC=CC=C1'
-        assert formatted[0]['BB1'] == 'CCO'
-        assert formatted[0]['BB2'] == 'C1=CC=CC=C1'
-        assert formatted[0]['Reaction_name'] == 'amide coupling -> C-N bond formation'
-        assert formatted[0]['Similarity_to_query'] == 0.85
+        # Test display results
+        assert len(display_results) == 1
+        assert display_results[0]['Product'] == 'CC1=CC=CC=C1'
+        assert display_results[0]['BB1'] == 'CCO'
+        assert display_results[0]['BB2'] == 'C1=CC=CC=C1'
+        assert display_results[0]['Reaction_name'] == 'amide coupling -> C-N bond formation'
+        assert display_results[0]['Similarity_to_query'] == 0.85
+        
+        # Test complete results preserve all original data
+        assert len(complete_results) == 1
+        assert complete_results[0]['Product'] == 'CC1=CC=CC=C1'
+        assert complete_results[0]['BB1'] == 'CCO'
+        assert complete_results[0]['BB2'] == 'C1=CC=CC=C1'
+        assert complete_results[0]['Reaction1_name'] == 'amide coupling'
+        assert complete_results[0]['Reaction2_name'] == 'C-N bond formation'
+        assert complete_results[0]['Similarity_to_query'] == 0.85
     
     def test_format_site_results(self):
         """Test formatting of site enumeration results."""
@@ -351,15 +361,27 @@ class TestResultFormatting:
         
         formatted = format_enumeration_results(raw_results, 'site')
         
-        assert len(formatted) == 1
-        assert formatted[0]['Product'] == 'CC1=CC=CC=C1O'
-        assert formatted[0]['BB'] == 'CCO'  # Site healer uses 'BB' not 'BB1'
-        assert 'Reaction_name' in formatted[0]
+        display_results, complete_results = format_enumeration_results(raw_results, 'site')
+        
+        # Test display results
+        assert len(display_results) == 1
+        assert display_results[0]['Product'] == 'CC1=CC=CC=C1O'
+        assert display_results[0]['BB'] == 'CCO'  # Site uses 'BB' not 'BB1' in display
+        assert display_results[0]['Reaction_name'] == 'amide coupling'
+        assert display_results[0]['Similarity_to_query'] == 0.72
+        
+        # Test complete results preserve all original data
+        assert len(complete_results) == 1
+        assert complete_results[0]['Product'] == 'CC1=CC=CC=C1O'
+        assert complete_results[0]['BB1'] == 'CCO'  # Original key preserved
+        assert complete_results[0]['Reaction1_name'] == 'amide coupling'
+        assert complete_results[0]['Similarity_to_query'] == 0.72
     
     def test_format_empty_results(self):
         """Test formatting of empty results."""
-        formatted = format_enumeration_results([], 'molecule')
-        assert formatted == []
+        display_results, complete_results = format_enumeration_results([], 'molecule')
+        assert display_results == []
+        assert complete_results == []
     
     def test_format_results_missing_fields(self):
         """Test formatting with missing fields."""
@@ -371,11 +393,17 @@ class TestResultFormatting:
             }
         ]
         
-        formatted = format_enumeration_results(raw_results, 'molecule')
+        display_results, complete_results = format_enumeration_results(raw_results, 'molecule')
         
-        assert len(formatted) == 1
-        assert formatted[0]['Product'] == 'CC1=CC=CC=C1'
-        assert formatted[0]['Similarity_to_query'] == 0.85
+        # Test display results
+        assert len(display_results) == 1
+        assert display_results[0]['Product'] == 'CC1=CC=CC=C1'
+        assert display_results[0]['Similarity_to_query'] == 0.85
+        
+        # Test complete results preserve all original data
+        assert len(complete_results) == 1
+        assert complete_results[0]['Product'] == 'CC1=CC=CC=C1'
+        assert complete_results[0]['Similarity_to_query'] == 0.85
 
 
 class TestVisualization:

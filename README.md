@@ -8,7 +8,7 @@ HEALER performs **retrosynthetic fragmentation** of query molecules and systemat
 
 - **MoleculeHEALER**: Full retrosynthetic analysis and enumeration
 - **SiteHEALER**: Site-specific enumeration with property-based filtering  
-- **FragmentHEALER**: Fragment-based enumeration for scaffold hopping
+- **FragmentHEALER**: Fragment-based enumeration
 
 ## 🏗️ Repository Structure
 
@@ -25,9 +25,9 @@ healer/
 ├── scripts/                  # Preprocessing and utility scripts
 ├── webserver/               # Dash web application
 ├── benchmark/               # Benchmarking data and results
-├── external/                # External dependencies
+├── external/                # External/optional dependencies
 ├── tests/                   # Unit tests
-└── figures.ipynb           # Analysis and visualization notebook
+└── notebooks/               # Analysis and visualization notebook
 ```
 
 ## 🚀 Installation
@@ -58,7 +58,7 @@ healer/
 
 ### Building Block Setup
 
-HEALER uses commercial building block databases from **Enamine**, which are freely available:
+HEALER needs a pre-processed building block database. You can use your own library of building blocks or use commercial building block databases from **Enamine**, which are freely available:
 
 1. **Download building blocks** from [Enamine Building Blocks Catalog](https://enamine.net/building-blocks/building-blocks-catalog)
    - Download the SDF files for your desired catalog (US Stock, EU Stock, or Global Stock)

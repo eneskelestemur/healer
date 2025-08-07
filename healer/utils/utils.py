@@ -15,8 +15,6 @@ from rdkit.Chem import AllChem, DataStructs, Draw, rdFMCS
 
 from healer.domain.reaction_template import ReactionTemplate21
 
-sys.path.append(os.path.join(os.environ['CONDA_PREFIX'],'share','RDKit','Contrib'))
-from SA_Score import sascorer
 
 RDLogger.DisableLog('rdApp.*')
 
@@ -42,6 +40,9 @@ def get_sascore(mol: Chem.rdchem.Mol | str) -> float:
             float, synthetic accessibility score, ranging from 1 to 10,
             where 1 is easy to synthesize and 10 is hard to synthesize.
     '''
+    sys.path.append(os.path.join(os.environ['CONDA_PREFIX'],'share','RDKit','Contrib'))
+    from SA_Score import sascorer
+    
     if isinstance(mol, str):
         mol = Chem.MolFromSmiles(mol)
     if mol is None:

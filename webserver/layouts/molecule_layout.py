@@ -250,7 +250,7 @@ def get_molecule_layout(app_id: str = "molecule") -> dbc.Container:
                         type="number",
                         id=f"{app_id}-max-bbs-input",
                         placeholder="-1 (unlimited)",
-                        value=-1,
+                        value=5,
                         style={'fontSize': '14px'}
                     ),
                     width=2
@@ -305,27 +305,6 @@ def get_molecule_layout(app_id: str = "molecule") -> dbc.Container:
             ],
             className="mb-3"
         ),
-        
-        # Random Seed (shown only when randomize is checked)
-        # dbc.Row(
-        #     [
-        #         dbc.Col(html.Label("Random Seed"), width=2),
-        #         dbc.Col(
-        #             dbc.Input(
-        #                 type="number",
-        #                 id=f"{app_id}-random-seed-input",
-        #                 placeholder="-1 (auto)",
-        #                 value=-1,
-        #                 style={'fontSize': '14px', 'display': 'none'},
-        #                 disabled=True
-        #             ),
-        #             width=2
-        #         )
-        #     ],
-        #     className="mb-3",
-        #     id=f"{app_id}-random-seed-row",
-        #     style={'display': 'none'}
-        # )
     ]
     
     return create_base_layout(app_id, "Molecule", additional_inputs, server_info, tool_description, fragment_alert)

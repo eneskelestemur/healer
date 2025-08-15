@@ -3,6 +3,7 @@
 '''
 import dash_bootstrap_components as dbc
 from dash import dcc, html
+from components.molecule_sketcher import create_ketcher_modal, create_ketcher_button
 
 
 def create_base_layout(app_id: str, title: str, additional_inputs: list, server_info=None, tool_description=None, fragment_alert=None) -> dbc.Container:
@@ -49,13 +50,16 @@ def create_base_layout(app_id: str, title: str, additional_inputs: list, server_
                             [
                                 dbc.Col(html.Label("Molecule"), width=3),
                                 dbc.Col(
-                                    dbc.Input(
-                                        type="text",
-                                        id=f"{app_id}-molecule-input",
-                                        placeholder="Enter molecule SMILES",
-                                        value="CC1(C(N2C(S1)C(C2=O)NC(=O)CC3=CC=CC=C3)C(=O)O)C",
-                                        style={'fontSize': '14px'}
-                                    ),
+                                    dbc.InputGroup([
+                                        dbc.Input(
+                                            type="text",
+                                            id=f"{app_id}-molecule-input",
+                                            placeholder="Enter molecule SMILES",
+                                            value="CC1(C(N2C(S1)C(C2=O)NC(=O)CC3=CC=CC=C3)C(=O)O)C",
+                                            style={'fontSize': '14px'}
+                                        ),
+                                        create_ketcher_button(app_id)
+                                    ]),
                                     width=9
                                 )
                             ],
@@ -130,6 +134,7 @@ def create_base_layout(app_id: str, title: str, additional_inputs: list, server_
                                     dbc.Tooltip(
                                         "Maximum number of molecules generated for each composition. "
                                         "Higher values explore more chemical space per composition. "
+                                        "Leave blank for unlimited. "
                                         "Server limit: 1-500. Used for all HEALER types.",
                                         target=f"{app_id}-max-evals-tooltip",
                                         placement="top"
@@ -140,6 +145,7 @@ def create_base_layout(app_id: str, title: str, additional_inputs: list, server_
                                         type="number",
                                         id=f"{app_id}-max-evals-input",
                                         placeholder="None (unlimited)",
+                                        value=300,
                                         style={'fontSize': '14px'}
                                     ),
                                     width=9
@@ -299,6 +305,9 @@ def create_base_layout(app_id: str, title: str, additional_inputs: list, server_
             style={'height': '100%', 'justify_content': 'center', 'margin': '40px 0px 0px 0px'}
         )
     )
+    
+    # Add the Ketcher modal
+    layout_components.append(create_ketcher_modal(app_id))
     
     return dbc.Container(
         layout_components,

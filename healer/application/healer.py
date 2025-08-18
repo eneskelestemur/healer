@@ -449,7 +449,7 @@ class _BaseHEALER(abc.ABC):
             enum_fps = self._get_fingerprints(df['Product'].apply(Chem.MolFromSmiles).tolist())
             query_fp = enum_fps.pop(0)  
             tani_sims = utils.get_batch_tani_sims([query_fp], enum_fps)[0]
-            tani_sims = np.concat((np.array([1.001]), tani_sims))
+            tani_sims = np.concatenate((np.array([1.001]), tani_sims))
             df['Similarity_to_query'] = tani_sims
             df = df.sort_values(by='Similarity_to_query', ascending=False, ignore_index=True)
             df = df.round({'Similarity_to_query': 2})

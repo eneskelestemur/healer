@@ -1,6 +1,6 @@
 # HEALER: Hit Expansion to Advanced Leads Using Enumerated Reactions
 
-HEALER is a powerful computational chemistry tool designed for **hit expansion** and **lead optimization** through systematic enumeration of chemical reactions. It enables researchers to explore chemical space by generating novel molecules from query structures using retrosynthetic analysis and building block databases.
+HEALER is a computational chemistry tool designed for **hit expansion** and **lead optimization** through systematic enumeration of chemical reactions. It enables researchers to explore chemical space by generating novel molecules from query structures using retrosynthetic analysis and building block databases.
 
 ## 🎯 Overview
 
@@ -66,12 +66,12 @@ HEALER needs a pre-processed building block database. You can use your own libra
 
 2. **Preprocess building blocks:**
    
-   This step might take some time depending on the number of files and their sizes. For US Stock, it takes around 10-12 minutes.
+   This step might take some time depending on the number of files and their sizes. For US Stock, it takes around 10-12 minutes. If you want to use your own library of building blocks, process the file as shown below; later when you use the Python API or CLI, pass the absolute path of the processed file to the `bb_supplier`/`bb_source` argument.
 
    ```bash
    # Process a single building block file (automatically extracts ZIP files)
-   # Change the zip file name as needed
-   python scripts/preprocess_bb_source.py healer/data/buildingblocks/Enamine_building_blocks_stock.zip --verbose
+   # No need to rename the files here, HEALER will recognize the Enamine naming patterns.
+   python scripts/preprocess_bb_source.py healer/data/buildingblocks/Enamine_Rush-Delivery_Building_Blocks-US.zip --verbose
    
    # Process all building block files
    for file in healer/data/buildingblocks/*.zip; do
@@ -99,7 +99,7 @@ healer = MoleculeHEALER(
     bb_supplier='US_stock',  # Options: 'US_stock', 'EU_stock', 'Global_stock'
     reaction_tags=['amide coupling', 'N-arylation', 'alkylation'],  # or 'all'
     max_evals_per_comp=1000,
-    n_compositions=10,
+    shuffle_bbs=False,
     sim_threshold=0.30,
     max_bbs_per_comp=10,
     verbose=1
@@ -109,9 +109,12 @@ healer = MoleculeHEALER(
 query_smiles = "CC1(C)SC2C(NC(=O)Cc3ccccc3)C(=O)N2C1C(=O)O"  # Penicillin G
 healer.set_query_mol(
     query_mol=query_smiles,
-    retro_tree_depth=2,     # Depth of retrosynthetic analysis
-    min_frag_size=3,        # Minimum fragment size
-    custom_split_sites=None # Optional: custom reaction sites
+    n_compositions=10,              # Number of compositions to use
+    randomize_compositions=True,    # Select compositions randomly
+    random_seed=-1,                 # Seed for randomization
+    retro_tree_depth=2,             # Depth of retrosynthetic analysis
+    min_frag_size=3,                # Minimum fragment size
+    custom_split_sites=None         # Manual splits for the molecule
 )
 
 # Perform enumeration
@@ -139,6 +142,7 @@ healer = SiteHEALER(
     bb_supplier='EU_stock',
     reaction_tags=['amide coupling', 'C-N bond formation'],
     max_evals_per_comp=500,
+    shuffle_bbs=False,
     rules={
         'MW': (100, 500),      # Molecular weight range
         'HBD': (0, 5),         # H-bond donors
@@ -173,6 +177,7 @@ healer = FragmentHEALER(
     bb_supplier='Global_stock',
     reaction_tags='all',
     max_evals_per_comp=2000,
+    shuffle_bbs=False,
     sim_threshold=0.25,
     max_bbs_per_comp=15,
     verbose=1

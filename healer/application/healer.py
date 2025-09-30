@@ -52,6 +52,7 @@ class _BaseHEALER(abc.ABC):
         bb_supplier: str, 
         reaction_tags: Union[List[str], str],
         max_evals_per_comp: Optional[int] = None,
+        shuffle_bb_order: bool = False,
         verbose: int=1,
     ) -> None:
         '''
@@ -61,6 +62,7 @@ class _BaseHEALER(abc.ABC):
                 bb_supplier: one of "US_stock", "EU_stock" or "Global_stock"; or path to an SDF file.
                 reaction_tags: list of tags or 'all'.
                 max_evals_per_comp: maximum number of evaluations for each composition.
+                shuffle_bb_order: whether to shuffle the order of BBs after loading
                 verbose: verbosity level.
                     - 0: only errors
                     - 1: warnings
@@ -94,8 +96,22 @@ class _BaseHEALER(abc.ABC):
 
         # load and filter reactions along with compatible building blocks
         self.set_reactions(reaction_tags)
+        if shuffle_bb_order:
+            np.random.shuffle(self.bb_mols)
 
         # fingerprint generator
+        self._fp_generator = rdFingerprintGenerator.GetMorganGenerator(
+            radius=3, fpSize=2048, includeChirality=True
+        )
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        del state['bb_supplier'], state['_fp_generator']
+        return state
+    
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self.bb_supplier = FastSDMolSupplier(self._supplier_path, sanitize=True)
         self._fp_generator = rdFingerprintGenerator.GetMorganGenerator(
             radius=3, fpSize=2048, includeChirality=True
         )
@@ -119,7 +135,8 @@ class _BaseHEALER(abc.ABC):
 
     def set_reactions(self, reaction_tags: Union[List[str], str]) -> None:
         '''
-            Set reactions to use for enumeration.
+            Set reactions to use for enumeration. This will also update `self.bb_mols` 
+            with the building blocks that support the reactions set.
 
             Args:
                 reaction_tags: a rection tag or a list of tags to filter by.
@@ -208,12 +225,6 @@ class _BaseHEALER(abc.ABC):
             of multiple molecules without reinitializing the HEALER instance.
         '''
         ...
-        # if isinstance(molecule, str):
-        #     self.query_mol = Chem.MolFromSmiles(molecule)
-        # else:
-        #     self.query_mol = molecule
-        # flag = Chem.SanitizeMol(self.query_mol, catchErrors=True)
-        # assert flag == Chem.rdmolops.SanitizeFlags.SANITIZE_NONE, f"SanitizeMol failed: {flag}"
 
     @abc.abstractmethod
     def _process_query_mol(self) -> None:
@@ -491,11 +502,12 @@ class SiteHEALER(_BaseHEALER):
     '''
     def __init__(
             self, 
-            bb_supplier: str='US_stock',
-            reaction_tags: list[str] | str=['amide coupling', 'amide', 'C-N bond formation', 'C-N',
+            bb_supplier: str = 'US_stock',
+            reaction_tags: list[str] | str = ['amide coupling', 'amide', 'C-N bond formation', 'C-N',
                                             'alkylation', 'N-arylation', 'azole', 'amination'],
             max_evals_per_comp: Optional[int] = None,
-            rules: dict[str, tuple[int, int]]={
+            shuffle_bbs: bool = False,
+            rules: dict[str, tuple[int, int]] = {
                 'MW': (0, 500), # molecular weight
                 'HBD': (0, 5), # hydrogen bond donors
                 'HBA': (0, 10), # hydrogen bond acceptors
@@ -515,11 +527,12 @@ class SiteHEALER(_BaseHEALER):
                 bb_supplier: one of "US_stock", "EU_stock" or "Global_stock"; or path to an SDF file.
                 reaction_tags: list of tags or 'all'.
                 max_evals_per_comp: maximum number of evaluations for each composition.
+                shuffle_bbs: shuffle the building blocks loaded from source
                 rules: dictionary of rules for filtering molecules.
                 struct_rules: list of structural rules for filtering molecules.
                 verbose: verbosity level, 0 for errors, 1 for warnings, 2 for info.
         '''
-        super().__init__(bb_supplier, reaction_tags, max_evals_per_comp, verbose)
+        super().__init__(bb_supplier, reaction_tags, max_evals_per_comp, shuffle_bbs, verbose)
         self.rules = rules
         self.struct_rules = struct_rules
     
@@ -545,7 +558,8 @@ class SiteHEALER(_BaseHEALER):
                 raise ValueError(f'Invalid rule: {key}')
     
     def set_query_mol(
-        self, query_mol: Union[str, Chem.Mol], 
+        self, 
+        query_mol: Union[str, Chem.Mol], 
         reactive_sites: Optional[List[int]] = None
     ) -> None:
         '''
@@ -599,7 +613,6 @@ class SiteHEALER(_BaseHEALER):
                 fragment_bbs=([BuildingBlock(comp.fragments[0])], filtered_bbs)
             ) for comp in self._compositions
         ]
-
 
     def _check_struct_rules(self, building_block: Union[Chem.Mol, BuildingBlock]) -> bool:
         '''
@@ -658,7 +671,8 @@ class MoleculeHEALER(_BaseHEALER):
         bb_supplier: str='US_stock', 
         reaction_tags: list[str]=['amide coupling', 'amide', 'C-N bond formation', 'C-N',
                                     'alkylation', 'N-arylation', 'azole', 'amination'],
-        max_evals_per_comp: Optional[int] = None,
+        max_evals_per_comp: Optional[int]=None,
+        shuffle_bbs: bool=False,
         sim_threshold: float=0.5,
         max_bbs_per_comp: int=-1,
         verbose: int=1,
@@ -670,13 +684,14 @@ class MoleculeHEALER(_BaseHEALER):
                 bb_supplier: one of "US_stock", "EU_stock" or "Global_stock"; or path to an SDF file.
                 reaction_tags: list of tags or 'all'.
                 max_evals_per_comp: maximum number of evaluations for each composition.
+                shuffle_bbs: shuffle the building blocks loaded from source.
                 sim_threshold: similarity threshold for filtering building blocks.
                 max_bbs_per_comp: maximum number of building blocks per fragment.
                     If <= 0, all building blocks will be considered. Otherwise, the similarity
                     threshold will be adjusted to the number of building blocks.
                 verbose: verbosity level, 0 for errors, 1 for warnings, 2 for info.
         '''
-        super().__init__(bb_supplier, reaction_tags, max_evals_per_comp, verbose)
+        super().__init__(bb_supplier, reaction_tags, max_evals_per_comp, shuffle_bbs, verbose)
         self.sim_threshold = sim_threshold
         self.max_bbs_per_comp = max_bbs_per_comp
 
@@ -851,6 +866,7 @@ class FragmentHEALER(MoleculeHEALER):
             reaction_tags: list[str]=['amide coupling', 'amide', 'C-N bond formation', 'C-N',
                                       'alkylation', 'N-arylation', 'azole', 'amination'],
             max_evals_per_comp: Optional[int] = None,
+            shuffle_bbs: bool=False,
             sim_threshold: float=0.5,
             max_bbs_per_comp: int=-1,
             verbose: int=1,
@@ -862,6 +878,7 @@ class FragmentHEALER(MoleculeHEALER):
                 bb_supplier: one of "US_stock", "EU_stock" or "Global_stock"; or path to an SDF file.
                 reaction_tags: list of tags or 'all'.
                 max_evals_per_comp: maximum number of evaluations for each composition.
+                shuffle_bbs: shuffle the building blocks loaded from source
                 sim_threshold: similarity threshold for filtering building blocks.
                 max_bbs_per_comp: maximum number of building blocks per fragment.
                     If <= 0, all building blocks will be considered. Otherwise, the similarity
@@ -869,7 +886,7 @@ class FragmentHEALER(MoleculeHEALER):
                 verbose: verbosity level, 0 for errors, 1 for warnings, 2 for info.
         '''
         super().__init__(
-            bb_supplier, reaction_tags, max_evals_per_comp, 
+            bb_supplier, reaction_tags, max_evals_per_comp, shuffle_bbs,
             sim_threshold, max_bbs_per_comp, verbose
         )
 

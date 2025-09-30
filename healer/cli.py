@@ -37,7 +37,7 @@ _rxn_data_path = Path(_root, 'data', 'reactions', 'reactions.json')
 REACTIONS = _load_reactions(_rxn_data_path)
 healer = None  # global for worker processes
 
-def _init_worker(healer_type, bb_source, reaction_tags, max_evals_per_comp, 
+def _init_worker(healer_type, bb_source, reaction_tags, max_evals_per_comp, shuffle_bbs,
                  sim_threshold, max_bb, rules, struct_rules, verbose):
     """Initialize the global healer in each worker."""
     global healer
@@ -46,6 +46,7 @@ def _init_worker(healer_type, bb_source, reaction_tags, max_evals_per_comp,
             bb_supplier=bb_source,
             reaction_tags=reaction_tags,
             max_evals_per_comp=max_evals_per_comp,
+            shuffle_bbs=shuffle_bbs,
             sim_threshold=sim_threshold,
             max_bbs_per_comp=max_bb,
             verbose=verbose,
@@ -55,6 +56,7 @@ def _init_worker(healer_type, bb_source, reaction_tags, max_evals_per_comp,
             bb_supplier=bb_source,
             reaction_tags=reaction_tags,
             max_evals_per_comp=max_evals_per_comp,
+            shuffle_bbs=shuffle_bbs,
             rules=rules,
             struct_rules=struct_rules,
             verbose=verbose,
@@ -64,6 +66,7 @@ def _init_worker(healer_type, bb_source, reaction_tags, max_evals_per_comp,
             bb_supplier=bb_source,
             reaction_tags=reaction_tags,
             max_evals_per_comp=max_evals_per_comp,
+            shuffle_bbs=shuffle_bbs,
             sim_threshold=sim_threshold,
             max_bbs_per_comp=max_bb,
             verbose=verbose,
@@ -130,6 +133,8 @@ class HEALERCLI:
                                  f'(Default: amide coupling,amide,alkylation,N-arylation,azole,amination)')
         parser.add_argument('--max_evals_per_comp', type=int, default=1000,
                             help='Maximum number of evaluations for each composition. (default: 1000)')
+        parser.add_argument('--shuffle_bbs', action='store_true',
+                            help='Shuffle building blocks loaded from the source.')
         parser.add_argument('--calculate_similarity', action='store_true',
                             help='Calculate similarity between query and enumerated molecules.')
         parser.add_argument('--calculate_stoplight', action='store_true',
@@ -261,6 +266,7 @@ class HEALERCLI:
                 bb_supplier=self.args.bb_source,
                 reaction_tags=self.reaction_tags,
                 max_evals_per_comp=self.args.max_evals_per_comp,
+                shuffle_bbs=self.args.shuffle_bbs,
                 sim_threshold=self.args.sim_threshold,
                 max_bbs_per_comp=self.args.max_bb,
                 verbose=self.verbose,
@@ -278,6 +284,7 @@ class HEALERCLI:
                 bb_supplier=self.args.bb_source,
                 reaction_tags=self.reaction_tags,
                 max_evals_per_comp=self.args.max_evals_per_comp,
+                shuffle_bbs=self.args.shuffle_bbs,
                 rules=self.rules,
                 struct_rules=self.struct_rules,
                 verbose=self.verbose,
@@ -290,6 +297,7 @@ class HEALERCLI:
                 bb_supplier=self.args.bb_source,
                 reaction_tags=self.reaction_tags,
                 max_evals_per_comp=self.args.max_evals_per_comp,
+                shuffle_bbs=self.args.shuffle_bbs,
                 sim_threshold=self.args.sim_threshold,
                 max_bbs_per_comp=self.args.max_bb,
                 verbose=self.verbose,
@@ -325,6 +333,7 @@ class HEALERCLI:
             self.args.bb_source,
             self.reaction_tags,
             self.args.max_evals_per_comp,
+            self.args.shuffle_bbs,
             self.args.sim_threshold,
             self.args.max_bb,
             self.rules,

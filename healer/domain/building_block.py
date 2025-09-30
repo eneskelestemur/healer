@@ -29,6 +29,10 @@ class BuildingBlock:
             Delegate attribute access to the underlying RDKit molecule.
             This allows us to access properties like GetNumAtoms, GetNumBonds, etc.
         '''
+        # Prevent infinite recursion during pickle reconstruction
+        # Use __dict__ to avoid triggering __getattr__ recursion
+        if '_mol' not in self.__dict__ or self.__dict__['_mol'] is None:
+            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{attr}'")
         return getattr(self._mol, attr)
 
     def get_parsed_prop(self, name: str) -> Any:

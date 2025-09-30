@@ -10,6 +10,7 @@ healer/data/buildingblocks/*
 
 # log or temporary files
 /*.csv
+/*.tsv
 /*.smi
 /*.json
 /*.html

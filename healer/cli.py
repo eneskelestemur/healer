@@ -125,8 +125,8 @@ class HEALERCLI:
         # general enumeration args
         parser.add_argument('--output', default='healer_results.csv',
                             help='Path to output CSV. (default: healer_results.csv)')
-        parser.add_argument('--bb_source', choices=['US_stock','EU_stock','Global_stock'], default='US_stock',
-                            help='Building block source. (default: US_stock)')
+        parser.add_argument('--bb_source', default='US_stock',
+                            help='Building block source. One of"US_stock","EU_stock", "Global_stock", or a custom path. (default: US_stock)')
         parser.add_argument('--reaction_tags', default='amide coupling,amide,alkylation,N-arylation,azole,amination',
                             choices=['all'] + list(set(chain(*(r.tags for r in REACTIONS)))),
                             help=f'Comma-separated reaction tags, or "all" for all valid tags. '
@@ -269,7 +269,7 @@ class HEALERCLI:
                 shuffle_bbs=self.args.shuffle_bbs,
                 sim_threshold=self.args.sim_threshold,
                 max_bbs_per_comp=self.args.max_bb,
-                verbose=self.verbose,
+                verbose=self.verbose-1,
             )
             query_kwargs = {
                 'n_compositions': self.args.n_compositions,
@@ -308,7 +308,7 @@ class HEALERCLI:
         
         output_columns = self.get_output_columns()
         first = True
-        for smi in tqdm(self.smiles_list, desc="Enumerating", disable=self.verbose == 2, unit="molecule"):
+        for mol_idx, smi in enumerate(tqdm(self.smiles_list, desc="Enumerating", disable=self.verbose == 2, unit="molecule")):
             mol = Chem.MolFromSmiles(smi) if isinstance(smi, str) else smi
             if not mol:
                 logger.warning("Skipping invalid SMILES: %s", smi)
@@ -338,7 +338,7 @@ class HEALERCLI:
             self.args.max_bb,
             self.rules,
             self.struct_rules,
-            self.verbose,
+            self.verbose-1,
         )
 
         if self.args.healer_type == 'molecule':

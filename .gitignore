@@ -16,6 +16,7 @@ healer/data/buildingblocks/*
 /*.html
 /*.log
 /*.xlsx
+/*.out
 
 # large results files
 benchmark/results/*/*.csv

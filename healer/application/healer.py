@@ -189,13 +189,6 @@ class _BaseHEALER(abc.ABC):
             Raises:
                 TypeError: if the optimizer is not of a supported type.
         '''
-        if max_evals_per_comp is not None:
-            self.max_evals_per_comp = max_evals_per_comp
-        if not isinstance(self.query_mol, Chem.Mol):
-            raise ValueError("Query molecule must be set before enumeration. Use set_query_mol() method.")
-        self._process_query_mol()
-        self._process_building_blocks()
-
         self.enumerated_molecules = [
             EnumerationRecord(
                 product=self.query_mol,
@@ -204,6 +197,13 @@ class _BaseHEALER(abc.ABC):
                 props={'optimization_score': optimizer.target_fn(self.query_mol)} if optimizer else {}
             )
         ]
+
+        if max_evals_per_comp is not None:
+            self.max_evals_per_comp = max_evals_per_comp
+        if not isinstance(self.query_mol, Chem.Mol):
+            raise ValueError("Query molecule must be set before enumeration. Use set_query_mol() method.")
+        self._process_query_mol()
+        self._process_building_blocks()
 
         if optimizer is None:
             logger.info("No optimizer provided, using default enumeration.")
@@ -773,7 +773,7 @@ class MoleculeHEALER(_BaseHEALER):
                 min_heavy_atoms=self.min_frag_size
             )
             retro_tree.build()
-            self._compositions = retro_tree.get_composition_paths()
+            self._compositions = retro_tree.get_composition_paths(self.randomize_compositions, self.random_seed)
 
         # print compositions
         logger.info("Compositions generated from the query molecule: "
@@ -803,7 +803,7 @@ class MoleculeHEALER(_BaseHEALER):
             for i, comp in enumerate(self._compositions)
         ) if self._compositions else 'No compositions found.'
 
-    def _process_building_blocks(self, batch_size: int=10000) -> None:
+    def _process_building_blocks(self, bb_chunk_size: int=10000, frag_chunk_size: int=100) -> None:
         '''
             Process building blocks to filter them based on the similarity 
             to the query molecule and the number of building blocks per composition 
@@ -815,33 +815,52 @@ class MoleculeHEALER(_BaseHEALER):
         frag_lists = [path.fragments for path in self._compositions]
         offsets = np.concatenate(([0], np.cumsum([len(frag_list) for frag_list in frag_lists])))
         frags_flatten = [frag for frag_list in frag_lists for frag in frag_list]
-        frag_sizes = np.array([frag.GetNumHeavyAtoms() for frag in frags_flatten])[:, None]
-        frag_fps = self._get_fingerprints(frags_flatten)
         
-        sims = np.zeros((len(frags_flatten), len(self.bb_mols)), dtype=float)
-        for start in tqdm(range(0, len(self.bb_mols), batch_size), 
-                          desc='Processing building blocks', 
-                          total=len(self.bb_mols)//batch_size, 
-                          disable=self.verbose < 2):
-            end = start + batch_size
-            batch_fps = bb_fps[start:end]
-            batch_sizes = bb_sizes[start:end]
+        # Process fragments in chunks to reduce memory usage
+        n_frags = len(frags_flatten)
+        n_bbs = len(self.bb_mols)
+        
+        # Initialize final mask for all fragments
+        final_mask = np.zeros((n_frags, n_bbs), dtype=bool)
+        
+        for frag_start in tqdm(range(0, n_frags, frag_chunk_size),
+                              desc='Processing fragment chunks',
+                              disable=self.verbose < 2):
+            frag_end = min(frag_start + frag_chunk_size, n_frags)
+            chunk_frags = frags_flatten[frag_start:frag_end]
             
-            delta = batch_sizes[None, :] - frag_sizes
-            weights = 1 - np.clip(delta, 0, None) / batch_sizes[None, :]
+            # Process this chunk of fragments
+            frag_sizes = np.array([frag.GetNumHeavyAtoms() for frag in chunk_frags])[:, None]
+            frag_fps = self._get_fingerprints(chunk_frags)
+            
+            # Create similarity matrix for this chunk
+            chunk_sims = np.zeros((len(chunk_frags), n_bbs), dtype=np.float16)
+            
+            for start in range(0, n_bbs, bb_chunk_size):
+                end = min(start + bb_chunk_size, n_bbs)
+                batch_fps = bb_fps[start:end]
+                batch_sizes = bb_sizes[start:end]
+                
+                delta = batch_sizes[None, :] - frag_sizes
+                weights = 1 - np.clip(delta, 0, None) / batch_sizes[None, :]
+                
+                chunk_sims[:, start:end] = (weights * utils.get_batch_tversky_sims(frag_fps, batch_fps)).astype(np.float16)
+            
+            # Apply filtering to this chunk
+            if self.max_bbs_per_comp > 0:
+                kth = np.argpartition(-chunk_sims, self.max_bbs_per_comp-1, axis=1)[:, :self.max_bbs_per_comp]
+                chunk_mask = np.zeros_like(chunk_sims, dtype=bool)
+                rows = np.arange(chunk_sims.shape[0])[:, None]
+                chunk_mask[rows, kth] = True
+            else:
+                chunk_mask = chunk_sims >= self.sim_threshold
+            
+            # Store chunk results in final mask
+            final_mask[frag_start:frag_end, :] = chunk_mask
 
-            sims[:, start:end] = weights * utils.get_batch_tversky_sims(frag_fps, batch_fps)
-
-        if self.max_bbs_per_comp > 0:
-            kth = np.argpartition(-sims, self.max_bbs_per_comp-1, axis=1)[:, :self.max_bbs_per_comp]
-            mask = np.zeros_like(sims, dtype=bool)
-            rows = np.arange(sims.shape[0])[:, None]
-            mask[rows, kth] = True
-        else:
-            mask = sims >= self.sim_threshold
-
+        # Split mask back into per-composition masks
         masks_per_comp = [
-            mask[offsets[i]:offsets[i+1], :] for i in range(len(self._compositions))
+            final_mask[offsets[i]:offsets[i+1], :] for i in range(len(self._compositions))
         ]
 
         orig_comps = self._compositions

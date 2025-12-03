@@ -1,7 +1,7 @@
 '''
     Helper functions for plotting.
 '''
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING, Tuple, Optional
 
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
@@ -17,6 +17,8 @@ def plot_retrosynthesis_tree(
     figsize: Tuple[float, float] = (6, 4),
     name_prop: str = '_Name',  # 'image', 'smiles', or Mol property
     font_size: int = 8,
+    save_path: Optional[str] = None,
+    save_dpi: int = 300
 ) -> None:
     '''
         Simple Matplotlib-only tree, using either images or text labels per name_prop.
@@ -27,6 +29,8 @@ def plot_retrosynthesis_tree(
             name_prop: property to use for node labels; 'image' for images, 'smiles' for SMILES,
                        or any valid Mol property (e.g. '_Name')
             font_size: font size for text labels
+            save_path: optional path to save the figure
+            save_dpi: DPI for saving the figure
     '''
     positions: dict[object, tuple[float, float]] = {}   # maps objects to (x, y) positions
     def compute_positions(obj, depth=0) -> int:
@@ -69,7 +73,7 @@ def plot_retrosynthesis_tree(
                 ax.plot([x, bx], [y, by], 'k-')
             # node label/image
             if name_prop == 'image':
-                img = Draw.MolToImage(obj.molecule, size=(100,100))
+                img = Draw.MolToImage(obj.molecule, size=(150,100))
                 im = OffsetImage(img, zoom=0.5)
                 ab = AnnotationBbox(im, (x,y), frameon=False)
                 ax.add_artist(ab)
@@ -90,5 +94,7 @@ def plot_retrosynthesis_tree(
                     bbox=dict(boxstyle='ellipse', fc='lightgray', ec='black', lw=0.5))
     ax.axis('off')
     plt.tight_layout()
+    if save_path:
+        plt.savefig(save_path, dpi=save_dpi)
     plt.show()
 

@@ -344,7 +344,7 @@ class TestEnumerationCallbacks:
             # Run enumeration
             results = mock_run_enumeration(
                 molecule=molecule,
-                bb_supplier=bb_source,
+                bb_source=bb_source,
                 reaction_tags=reaction_tags,
                 custom_sites=custom_sites,
                 sim_threshold=sim_threshold,
@@ -391,7 +391,7 @@ class TestErrorHandling:
         try:
             results = mock_run_enumeration(
                 molecule="CC1=CC=CC=C1",
-                bb_supplier="test",
+                bb_source="test",
                 reaction_tags=["amide coupling"]
             )
             error_occurred = False

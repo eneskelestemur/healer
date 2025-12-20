@@ -128,7 +128,7 @@ def validate_server_parameters(params: Dict[str, Any], healer_type: str = "molec
 
 
 def create_molecule_healer(
-    bb_supplier: str = 'test',
+    bb_source: str = 'test',
     reaction_tags: List[str] = None,
     sim_threshold: float = 0.15,
     max_bbs_per_comp: int = -1,
@@ -141,7 +141,7 @@ def create_molecule_healer(
         Create a MoleculeHEALER or FragmentHEALER instance with the specified parameters.
         
         Args:
-            bb_supplier: Building block supplier ('test', 'US_stock', 'EU_stock', 'Global_stock')
+            bb_source: Building block source ('test', 'US_stock', 'EU_stock', 'Global_stock')
             reaction_tags: List of reaction tags to filter reactions
             sim_threshold: Similarity threshold for filtering building blocks
             max_bbs_per_comp: Maximum number of building blocks per composition
@@ -169,11 +169,11 @@ def create_molecule_healer(
     validated_params = validate_server_parameters(params, healer_type)
     
     # Use absolute path for building blocks
-    bb_path = BB_PATHS.get(bb_supplier, bb_supplier)
+    bb_path = BB_PATHS.get(bb_source, bb_source)
     
     if use_fragment_healer:
         return FragmentHEALER(
-            bb_supplier=bb_path,
+            bb_source=bb_path,
             reaction_tags=validated_params['reaction_tags'],
             max_evals_per_comp=validated_params['max_evals_per_comp'],
             sim_threshold=validated_params['sim_threshold'],
@@ -182,7 +182,7 @@ def create_molecule_healer(
         )
     else:
         return MoleculeHEALER(
-            bb_supplier=bb_path,
+            bb_source=bb_path,
             reaction_tags=validated_params['reaction_tags'],
             max_evals_per_comp=validated_params['max_evals_per_comp'],
             sim_threshold=validated_params['sim_threshold'],
@@ -192,7 +192,7 @@ def create_molecule_healer(
 
 
 def create_site_healer(
-    bb_supplier: str = 'test',
+    bb_source: str = 'test',
     reaction_tags: List[str] = None,
     rules: Dict[str, Tuple[int, int]] = None,
     struct_rules: List[str] = None,
@@ -203,7 +203,7 @@ def create_site_healer(
         Create a SiteHEALER instance with the specified parameters.
         
         Args:
-            bb_supplier: Building block supplier ('test', 'US_stock', 'EU_stock', 'Global_stock')
+            bb_source: Building block source ('test', 'US_stock', 'EU_stock', 'Global_stock')
             reaction_tags: List of reaction tags to filter reactions
             rules: Dictionary of molecular property rules
             struct_rules: List of structural rules (SMARTS patterns)
@@ -240,10 +240,10 @@ def create_site_healer(
     validated_params = validate_server_parameters(params, "site")
     
     # Use absolute path for building blocks
-    bb_path = BB_PATHS.get(bb_supplier, bb_supplier)
+    bb_path = BB_PATHS.get(bb_source, bb_source)
     
     return SiteHEALER(
-        bb_supplier=bb_path,
+        bb_source=bb_path,
         reaction_tags=validated_params['reaction_tags'],
         max_evals_per_comp=validated_params['max_evals_per_comp'],
         rules=rules,
@@ -254,7 +254,7 @@ def create_site_healer(
 
 def run_molecule_enumeration(
     molecule: str,
-    bb_supplier: str,
+    bb_source: str,
     reaction_tags: List[str],
     custom_sites: Optional[List[Tuple[int, int]]] = None,
     sim_threshold: float = 0.15,
@@ -272,7 +272,7 @@ def run_molecule_enumeration(
         
         Args:
             molecule: SMILES string of the query molecule
-            bb_supplier: Building block supplier
+            bb_source: Building block source
             reaction_tags: List of reaction tags
             custom_sites: Custom split sites as list of bond tuples
             sim_threshold: Similarity threshold
@@ -297,7 +297,7 @@ def run_molecule_enumeration(
         final_use_fragment_healer = use_fragment_healer or auto_use_fragment_healer
         
         healer = create_molecule_healer(
-            bb_supplier=bb_supplier,
+            bb_source=bb_source,
             reaction_tags=reaction_tags,
             sim_threshold=sim_threshold,
             max_bbs_per_comp=max_bbs_per_comp,
@@ -338,7 +338,7 @@ def run_molecule_enumeration(
 
 def run_site_enumeration(
     molecule: str,
-    bb_supplier: str,
+    bb_source: str,
     reaction_tags: List[str],
     reactive_sites: Optional[List[int]] = None,
     rules: Dict[str, Tuple[int, int]] = None,
@@ -350,7 +350,7 @@ def run_site_enumeration(
         
         Args:
             molecule: SMILES string of the query molecule
-            bb_supplier: Building block supplier
+            bb_source: Building block source
             reaction_tags: List of reaction tags
             reactive_sites: List of reactive site atom indices
             rules: Dictionary of molecular property rules
@@ -362,7 +362,7 @@ def run_site_enumeration(
     '''
     try:
         healer = create_site_healer(
-            bb_supplier=bb_supplier,
+            bb_source=bb_source,
             reaction_tags=reaction_tags,
             rules=rules,
             struct_rules=struct_rules,

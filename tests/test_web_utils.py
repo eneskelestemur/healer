@@ -160,7 +160,7 @@ class TestHealerCreation:
     def test_create_molecule_healer(self):
         """Test MoleculeHEALER creation."""
         healer = create_molecule_healer(
-            bb_supplier='test',
+            bb_source='test',
             reaction_tags=['amide coupling'],
             use_fragment_healer=False
         )
@@ -171,7 +171,7 @@ class TestHealerCreation:
     def test_create_fragment_healer(self):
         """Test FragmentHEALER creation."""
         healer = create_molecule_healer(
-            bb_supplier='test',
+            bb_source='test',
             reaction_tags=['amide coupling'],
             use_fragment_healer=True
         )
@@ -181,7 +181,7 @@ class TestHealerCreation:
     def test_create_site_healer(self):
         """Test SiteHEALER creation."""
         healer = create_site_healer(
-            bb_supplier='test',
+            bb_source='test',
             reaction_tags=['amide coupling']
         )
         
@@ -190,7 +190,7 @@ class TestHealerCreation:
     def test_healer_with_custom_parameters(self):
         """Test HEALER creation with custom parameters."""
         healer = create_molecule_healer(
-            bb_supplier='test',
+            bb_source='test',
             reaction_tags=['amide coupling', 'C-N bond formation'],
             sim_threshold=0.25,
             max_bbs_per_comp=5,
@@ -211,7 +211,7 @@ class TestHealerCreation:
         }
         
         healer = create_site_healer(
-            bb_supplier='test',
+            bb_source='test',
             reaction_tags=['amide coupling'],
             rules=custom_rules
         )
@@ -256,7 +256,7 @@ class TestEnumerationFunctions:
         
         results = run_molecule_enumeration(
             molecule=multi_mol,
-            bb_supplier='test',
+            bb_source='test',
             reaction_tags=['amide coupling'],
             max_evals_per_comp=2
         )
@@ -276,7 +276,7 @@ class TestEnumerationFunctions:
         
         results = run_molecule_enumeration(
             molecule=single_mol,
-            bb_supplier='test',
+            bb_source='test',
             reaction_tags=['amide coupling'],
             n_compositions=5,
             max_evals_per_comp=2
@@ -294,7 +294,7 @@ class TestEnumerationFunctions:
         
         results = run_site_enumeration(
             molecule="CC1=CC=CC=C1",
-            bb_supplier='test',
+            bb_source='test',
             reaction_tags=['amide coupling'],
             reactive_sites=[1, 2, 3],
             max_evals_per_comp=2
@@ -308,7 +308,7 @@ class TestEnumerationFunctions:
         with pytest.raises(Exception):
             run_molecule_enumeration(
                 molecule="InvalidSMILES",
-                bb_supplier='nonexistent',
+                bb_source='nonexistent',
                 reaction_tags=['invalid_tag']
             )
 

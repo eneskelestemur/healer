@@ -103,7 +103,7 @@ def register_site_callbacks(app, app_id: str = "site"):
             # Run enumeration
             results = run_site_enumeration(
                 molecule=molecule,
-                bb_supplier=bb_source,
+                bb_source=bb_source,
                 reaction_tags=reaction_tags,
                 reactive_sites=reactive_sites,
                 rules=rules,

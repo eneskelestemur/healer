@@ -154,7 +154,7 @@ def register_molecule_callbacks(app, app_id: str = "molecule"):
             # Run enumeration
             results = run_molecule_enumeration(
                 molecule=molecule,
-                bb_supplier=bb_source,
+                bb_source=bb_source,
                 reaction_tags=reaction_tags,
                 custom_sites=custom_sites,
                 sim_threshold=sim_threshold,

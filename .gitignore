@@ -5,8 +5,9 @@ __pycache__
 cache
 
 # data files
-healer/data/buildingblocks/*
-!healer/data/buildingblocks/test_100_bb_processed.sdf
+data/buildingblocks/*
+!data/buildingblocks/test_100_bb_processed.sdf
+!data/buildingblocks/test_100_bb.sdf
 
 # log or temporary files
 /*.csv

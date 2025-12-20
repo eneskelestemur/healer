@@ -1,7 +1,7 @@
 '''
-    CLI for the HEALER molecule/site healer with optional parallel execution.
+    CLI for HEALER application.
 '''
-import healer.utils.rdkit_monkey_patch as rdkit_monkey_patch
+import healer.utils.rdkit_monkey_patch  # noqa: F401 - must be first
 
 import os
 os.environ["OMP_NUM_THREADS"] = "1"
@@ -10,402 +10,470 @@ os.environ["MKL_NUM_THREADS"] = "1"
 import json
 import logging
 import argparse
-import textwrap
+import tempfile
+import webbrowser
+import base64
 from pathlib import Path
 from multiprocessing import Pool
-from itertools import chain
 from functools import partial
 
 import pandas as pd
 from tqdm import tqdm
-
-import healer.utils.utils as utils
-from healer.application.healer import MoleculeHEALER, SiteHEALER, FragmentHEALER
-from rdkit.Chem.FastSDMolSupplier import FastSDMolSupplier
 from rdkit import Chem
+from rdkit.Chem import SDMolSupplier
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
+from healer.application.healer import MoleculeHEALER, SiteHEALER, FragmentHEALER
+from healer.domain.bb_repository import get_repository
+import healer.utils.utils as utils
+
 logger = logging.getLogger(__name__)
 
+# Global healer for worker processes
+_worker_healer = None
 
-def _load_reactions(file_path):
-    reactions = utils.load_reactions_from_json(file_path)
-    return [r for r in reactions if r.is_valid()]
 
-_root = Path(__file__).parent
-_rxn_data_path = Path(_root, 'data', 'reactions', 'reactions.json')
-REACTIONS = _load_reactions(_rxn_data_path)
-healer = None  # global for worker processes
+### Input Loading ###
 
-def _init_worker(healer_type, bb_source, reaction_tags, max_evals_per_comp, shuffle_bbs,
-                 sim_threshold, max_bb, rules, struct_rules, verbose):
-    """Initialize the global healer in each worker."""
-    global healer
+def load_input(input_path: str, column: str = 'smiles') -> list[str]:
+    """
+        Load SMILES from various input formats.
+        
+        Args:
+            input_path: SMILES string, or path to .smi/.csv/.sdf file
+            column: Column name for CSV files (default: 'smiles')
+        
+        Returns:
+            List of SMILES strings
+    """
+    path = Path(input_path)
+    
+    # Direct SMILES string
+    if not path.exists():
+        mol = Chem.MolFromSmiles(input_path)
+        if mol is not None:
+            return [input_path]
+        raise ValueError(f"Invalid SMILES or file not found: {input_path}")
+    
+    suffix = path.suffix.lower()
+    
+    if suffix == '.sdf':
+        supplier = SDMolSupplier(str(path))
+        return [Chem.MolToSmiles(mol) for mol in supplier if mol is not None]
+    
+    if suffix in ('.csv', '.smi', '.txt'):
+        df = pd.read_csv(str(path))
+        # Try to find SMILES column
+        if column in df.columns:
+            return df[column].dropna().tolist()
+        # Fallback to first column
+        return df.iloc[:, 0].dropna().tolist()
+    
+    raise ValueError(f"Unsupported file format: {suffix}")
+
+
+### Config File Support ###
+
+def load_config(config_path: str) -> dict:
+    """Load configuration from JSON file."""
+    with open(config_path, 'r') as f:
+        return json.load(f)
+
+
+def merge_args_with_config(args: argparse.Namespace, config: dict) -> argparse.Namespace:
+    """Merge config file values with command-line args (CLI takes precedence)."""
+    for key, value in config.items():
+        # Only set if not explicitly provided on command line
+        if not hasattr(args, key) or getattr(args, key) is None:
+            setattr(args, key, value)
+    return args
+
+
+### View Command ###
+
+def cmd_view(args: argparse.Namespace) -> None:
+    """Show molecule with atom indices in browser."""
+    mol = Chem.MolFromSmiles(args.smiles)
+    if mol is None:
+        logger.error("Invalid SMILES: %s", args.smiles)
+        return
+    
+    # Generate SVG with atom indices
+    svg_data_uri = utils.get_svg_mol(mol, show_idx=True)
+    
+    if args.output:
+        # Save to file if requested
+        svg_bytes = base64.b64decode(svg_data_uri.split(',')[1])
+        with open(args.output, 'wb') as f:
+            f.write(svg_bytes)
+        logger.info("Saved molecule SVG to: %s", args.output)
+    else:
+        # Open in browser via temp file
+        svg_bytes = base64.b64decode(svg_data_uri.split(',')[1])
+        with tempfile.NamedTemporaryFile(suffix='.svg', delete=False) as f:
+            f.write(svg_bytes)
+            temp_path = f.name
+        webbrowser.open(f'file://{temp_path}')
+
+
+### Worker Initialization and Processing for Parallel Execution ###
+
+def _init_worker(healer_type: str, init_kwargs: dict, bb_source: str) -> None:
+    """Initialize healer in worker process."""
+    global _worker_healer
+    
+    # Get shared repository (will use cached if available)
+    bb_repo = get_repository(bb_source)
+    if not bb_repo.is_loaded:
+        bb_repo.load(show_progress=False)
+    
+    init_kwargs['bb_repository'] = bb_repo
+    init_kwargs['bb_source'] = bb_source
+    
     if healer_type == 'molecule':
-        healer = MoleculeHEALER(
-            bb_supplier=bb_source,
-            reaction_tags=reaction_tags,
-            max_evals_per_comp=max_evals_per_comp,
-            shuffle_bbs=shuffle_bbs,
-            sim_threshold=sim_threshold,
-            max_bbs_per_comp=max_bb,
-            verbose=verbose,
-        )
+        _worker_healer = MoleculeHEALER(**init_kwargs)
     elif healer_type == 'site':
-        healer = SiteHEALER(
-            bb_supplier=bb_source,
-            reaction_tags=reaction_tags,
-            max_evals_per_comp=max_evals_per_comp,
-            shuffle_bbs=shuffle_bbs,
-            rules=rules,
-            struct_rules=struct_rules,
-            verbose=verbose,
-        )
+        _worker_healer = SiteHEALER(**init_kwargs)
     elif healer_type == 'fragment':
-        healer = FragmentHEALER(
-            bb_supplier=bb_source,
-            reaction_tags=reaction_tags,
-            max_evals_per_comp=max_evals_per_comp,
-            shuffle_bbs=shuffle_bbs,
-            sim_threshold=sim_threshold,
-            max_bbs_per_comp=max_bb,
-            verbose=verbose,
+        _worker_healer = FragmentHEALER(**init_kwargs)
+
+
+def _process_molecule(
+    smiles: str, 
+    query_kwargs: dict, 
+    enumerate_kwargs: dict,
+    results_kwargs: dict
+) -> pd.DataFrame:
+    """Process a single molecule in worker."""
+    global _worker_healer
+    
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        logger.warning("Skipping invalid SMILES: %s", smiles)
+        return pd.DataFrame()
+    
+    try:
+        _worker_healer.set_query_mol(query_mol=smiles, **query_kwargs)
+        _worker_healer.enumerate(**enumerate_kwargs)
+        return _worker_healer.get_results(**results_kwargs)
+    except Exception as e:
+        logger.error("Error processing %s: %s", smiles, e)
+        return pd.DataFrame()
+
+
+### Enumeration Command Handlers ###
+
+def get_init_kwargs(args: argparse.Namespace, healer_type: str) -> dict:
+    """Build __init__ kwargs for healer class."""
+    kwargs = {
+        'bb_source': args.bb_source,
+        'reaction_tags': args.reactions.split(',') if args.reactions != 'all' else 'all',
+        'shuffle_bb_order': args.shuffle,
+        'verbose': args.verbose,
+    }
+    
+    if healer_type in ('molecule', 'fragment'):
+        kwargs['sim_threshold'] = args.sim_threshold
+        kwargs['max_bbs_per_frag'] = args.max_bbs_per_frag
+    
+    if healer_type == 'site':
+        kwargs['rules'] = parse_rules(args.rules) if args.rules else {}
+        kwargs['struct_rules'] = args.struct_rules.split(',') if args.struct_rules else []
+    
+    return kwargs
+
+
+def get_query_kwargs(args: argparse.Namespace, healer_type: str) -> dict:
+    """Build set_query_mol kwargs."""
+    if healer_type == 'molecule':
+        return {
+            'n_compositions': args.n_compositions,
+            'randomize_compositions': args.randomize,
+            'random_seed': args.seed,
+            'retro_tree_depth': args.retro_depth,
+            'min_frag_size': args.min_frag_size,
+        }
+    elif healer_type == 'site':
+        return {
+            'reactive_sites': args.reactive_sites,
+        }
+    else:  # fragment
+        return {}
+
+
+def get_enumerate_kwargs(args: argparse.Namespace) -> dict:
+    """Build enumerate() kwargs."""
+    return {
+        'max_evals_per_comp': args.max_evals,
+        'max_products_per_comp': args.max_products,
+        'max_total_products': args.max_total,
+    }
+
+
+def get_results_kwargs(args: argparse.Namespace) -> dict:
+    """Build get_results() kwargs."""
+    return {
+        'calc_similarity': args.similarity,
+        'calc_properties': args.properties,
+    }
+
+
+def parse_rules(rules_str: str) -> dict:
+    """Parse rules string like 'MW:0:500,HBD:0:5' into dict."""
+    rules = {}
+    for rule in rules_str.split(','):
+        parts = rule.strip().split(':')
+        if len(parts) == 3:
+            name, lo, hi = parts
+            rules[name] = (int(lo), int(hi))
+    return rules
+
+
+def run_sequential(
+    healer_type: str,
+    smiles_list: list[str],
+    init_kwargs: dict,
+    query_kwargs: dict,
+    enumerate_kwargs: dict,
+    results_kwargs: dict,
+    output_path: str,
+    verbose: int
+) -> None:
+    """Run enumeration sequentially."""
+    logger.info("Starting sequential enumeration for %d molecule(s)", len(smiles_list))
+    
+    # Initialize healer
+    if healer_type == 'molecule':
+        healer = MoleculeHEALER(**init_kwargs)
+    elif healer_type == 'site':
+        healer = SiteHEALER(**init_kwargs)
+    elif healer_type == 'fragment':
+        healer = FragmentHEALER(**init_kwargs)
+    
+    out = Path(output_path)
+    first = True
+    
+    for smiles in tqdm(smiles_list, desc="Enumerating", disable=verbose >= 2):
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            logger.warning("Skipping invalid SMILES: %s", smiles)
+            continue
+        
+        try:
+            healer.set_query_mol(query_mol=smiles, **query_kwargs)
+            healer.enumerate(**enumerate_kwargs)
+            df = healer.get_results(**results_kwargs)
+            
+            df.to_csv(str(out), mode='w' if first else 'a', header=first, index=False)
+            first = False
+        except Exception as e:
+            logger.error("Error processing %s: %s", smiles, e)
+    
+    logger.info("Results saved to %s", out)
+
+
+def run_parallel(
+    healer_type: str,
+    smiles_list: list[str],
+    init_kwargs: dict,
+    query_kwargs: dict,
+    enumerate_kwargs: dict,
+    results_kwargs: dict,
+    output_path: str,
+    workers: int,
+    verbose: int
+) -> None:
+    """Run enumeration in parallel."""
+    logger.info("Starting parallel enumeration with %d workers", workers)
+    
+    # Extract bb_source for worker init
+    bb_source = init_kwargs.get('bb_source')
+    
+    # Pre-load repository in main process
+    bb_repo = get_repository(bb_source)
+    if not bb_repo.is_loaded:
+        bb_repo.load(show_progress=verbose >= 1)
+    
+    out = Path(output_path)
+    first = True
+    
+    worker_fn = partial(
+        _process_molecule,
+        query_kwargs=query_kwargs,
+        enumerate_kwargs=enumerate_kwargs,
+        results_kwargs=results_kwargs
+    )
+    
+    with Pool(
+        processes=workers,
+        initializer=_init_worker,
+        initargs=(healer_type, init_kwargs, bb_source)
+    ) as pool:
+        for df in tqdm(
+            pool.imap(worker_fn, smiles_list),
+            total=len(smiles_list),
+            desc="Enumerating",
+            disable=verbose >= 2
+        ):
+            if df.empty:
+                continue
+            df.to_csv(str(out), mode='w' if first else 'a', header=first, index=False)
+            first = False
+    
+    logger.info("Results saved to %s", out)
+
+
+def cmd_enumerate(args: argparse.Namespace, healer_type: str) -> None:
+    """Run enumeration for molecule/site/fragment commands."""
+    # Load config if provided
+    if args.config:
+        config = load_config(args.config)
+        args = merge_args_with_config(args, config)
+    
+    # Load input
+    smiles_list = load_input(args.input, getattr(args, 'column', 'smiles'))
+    logger.info("Loaded %d molecule(s) from input", len(smiles_list))
+    
+    # Build kwargs
+    init_kwargs = get_init_kwargs(args, healer_type)
+    query_kwargs = get_query_kwargs(args, healer_type)
+    enumerate_kwargs = get_enumerate_kwargs(args)
+    results_kwargs = get_results_kwargs(args)
+    
+    # Save args for reproducibility
+    args_dict = vars(args).copy()
+    args_dict.pop('func', None)  # Remove function reference
+    with open('healer_args.json', 'w') as f:
+        json.dump(args_dict, f, indent=2)
+    
+    # Run enumeration
+    if args.workers > 1:
+        run_parallel(
+            healer_type, smiles_list, init_kwargs, query_kwargs,
+            enumerate_kwargs, results_kwargs, args.output, args.workers, args.verbose
         )
     else:
-        raise ValueError(f"Unknown HEALER type: {healer_type}")
-
-def _process_batch(smi_batch, query_kwargs: dict, results_kwargs: dict):
-    '''Enumerate a batch of SMILES using the worker's healer.'''
-    dfs = []
-    for smi in smi_batch:
-        mol = Chem.MolFromSmiles(smi) if isinstance(smi, str) else smi
-        if not mol:
-            logger.warning("Skipping invalid SMILES: %s", smi)
-            continue
-        healer.set_query_mol(query_mol=smi, **query_kwargs)
-        healer.enumerate()
-        dfs.append(healer.get_results(**results_kwargs))
-    return pd.concat(dfs, ignore_index=True)
-
-
-class HEALERCLI:
-    '''Command-line interface for HEALER.'''
-    def __init__(self):
-        self.args = self.parse_args()
-        self.reaction_tags = self.parse_reaction_tags()
-        self.rules = self.parse_rules()
-        self.struct_rules = self.parse_struct_rules()
-        self.smiles_list = self.load_smiles()
-        self.verbose = 2 if self.args.verbose else 1
-
-        self.results_kwargs = {
-            'calc_similarity': self.args.calculate_similarity,
-            'calc_stoplight': self.args.calculate_stoplight,
-            'calc_cns_mpo': self.args.calculate_cnsmpo,
-        }
-
-        logger.setLevel(logging.WARNING if self.verbose == 1 else logging.INFO)
-
-    def parse_args(self):
-        parser = argparse.ArgumentParser(
-            description=textwrap.dedent('''\
-                Enumerate molecules, sites or fragments using HEALER.
-                Supports single-threaded or parallel execution.
-            '''),
-            formatter_class=argparse.RawTextHelpFormatter,
+        run_sequential(
+            healer_type, smiles_list, init_kwargs, query_kwargs,
+            enumerate_kwargs, results_kwargs, args.output, args.verbose
         )
-        parser.add_argument('healer_type', choices=['molecule','site','fragment'],
-                            help='Type of enumeration: molecule or site.')
-        # input args
-        parser.add_argument('input_smiles', help='SMILES string or input file (.smi, .csv, .sdf).')
-        parser.add_argument('--header', action='store_true', help='Input CSV has a header row.')
-        parser.add_argument('--column_name', default='smiles',
-                            help='SMILES column in CSV if --header is set. (default: smiles)')
-        
-        # general enumeration args
-        parser.add_argument('--output', default='healer_results.csv',
-                            help='Path to output CSV. (default: healer_results.csv)')
-        parser.add_argument('--bb_source', default='US_stock',
-                            help='Building block source. One of"US_stock","EU_stock", "Global_stock", or a custom path. (default: US_stock)')
-        parser.add_argument('--reaction_tags', default='amide coupling,amide,alkylation,N-arylation,azole,amination',
-                            choices=['all'] + list(set(chain(*(r.tags for r in REACTIONS)))),
-                            help=f'Comma-separated reaction tags, or "all" for all valid tags. '
-                                 f'(Default: amide coupling,amide,alkylation,N-arylation,azole,amination)')
-        parser.add_argument('--max_evals_per_comp', type=int, default=1000,
-                            help='Maximum number of evaluations for each composition. (default: 1000)')
-        parser.add_argument('--shuffle_bbs', action='store_true',
-                            help='Shuffle building blocks loaded from the source.')
-        parser.add_argument('--calculate_similarity', action='store_true',
-                            help='Calculate similarity between query and enumerated molecules.')
-        parser.add_argument('--calculate_stoplight', action='store_true',
-                            help='Calculate stoplight scores for enumerated molecules.')
-        parser.add_argument('--calculate_cnsmpo', action='store_true',
-                            help='Calculate CNS MPO scores for enumerated molecules.')
-        
-        # site enumeration args
-        parser.add_argument('--MW_range', default='0:500',
-                            help='Molecular weight range (min:max). (default: 0:500)')
-        parser.add_argument('--HBD_range', default='0:5',
-                            help='HBD count range (min:max). (default: 0:5)')
-        parser.add_argument('--HBA_range', default='0:10',
-                            help='HBA count range (min:max). (default: 0:10)')
-        parser.add_argument('--TPSA_range', default='0:200',
-                            help='TPSA range (min:max). (default: 0:200)')
-        parser.add_argument('--RotB_range', default='0:10',
-                            help='Rotatable bonds range (min:max). (default: 0:10)')
-        parser.add_argument('--Rings_range', default='0:10',
-                            help='Rings range (min:max). (default: 0:10)')
-        parser.add_argument('--ArRings_range', default='0:5',
-                            help='Aromatic rings range (min:max). (default: 0:5)')
-        parser.add_argument('--Chiral_range', default='0:5',
-                            help='Chiral centers range (min:max). (default: 0:5)')
-        parser.add_argument('--structure_based_rules', default='',
-                            help='Dot-separated SMARTS rules for building blocks. (default: None)')
-        parser.add_argument('--reactive_sites', type=json.loads, default=None,
-                            help='Reactive site indices for site healer (list of ints). (default: None)')
-        
-        # molecule enumeration args, sim_threshold and max_bb are used for both molecule and fragment healers
-        parser.add_argument('--sim_threshold', type=float, default=0.40,
-                            help='Similarity threshold for building block matching. (default: 0.40)')
-        parser.add_argument('--max_bb', type=int, default=10,
-                            help='Max building blocks per split. (default: 10)')
-        parser.add_argument('--n_compositions', type=int, default=1000,
-                            help='Number of compositions to consider for an enumeration. (default: 1000)')
-        parser.add_argument('--randomize_compositions', action='store_true',
-                            help='Randomize the order of compositions.')
-        parser.add_argument('--random_seed', type=int, default=-1,
-                            help='Random seed for randomizing compositions (-1 for no seed). (default: -1)')
-        parser.add_argument('--custom_split_sites', type=json.loads, default=None,
-                            help='Custom split sites for molecule healer (list of [ [i,j], … ]). (default: None)')
-        parser.add_argument('--retro_tree_depth', type=int, default=2,
-                            help='Depth of the retro synthesis tree for molecule healer. (Default is 2)')
-        parser.add_argument('--min_frag_size', type=int, default=3,
-                            help='Minimum fragment size for molecule healer. (Default is 3)')
-        
-        # other args
-        parser.add_argument('--workers', type=int, default=1,
-                            help='Number of parallel workers (1 for sequential). (default: 1)')
-        parser.add_argument('--verbose', action='store_true',
-                            help='Enable verbose output.')
-        return parser.parse_args()
 
-    def parse_reaction_tags(self):
-        tags = self.args.reaction_tags.split(',')
-        available = set(chain(*(r.tags for r in REACTIONS)))
-        if 'all' in tags:
-            return list(available)
-        invalid = [t for t in tags if t not in available]
-        if invalid:
-            logger.warning("Invalid tags %s; they will be ignored.", invalid)
-        return [t for t in tags if t in available]
 
-    def parse_rules(self):
-        rules = {}
-        for prop in ['MW','HBD','HBA','TPSA','RotB','Rings','ArRings','Chiral']:
-            val = getattr(self.args, f'{prop}_range')
-            lo, hi = map(int, val.split(':'))
-            rules[prop] = (lo, hi)
-        return rules
+### Argument Parser Construction ###
 
-    def parse_struct_rules(self):
-        return (self.args.structure_based_rules.split('.')
-                if self.args.structure_based_rules else [])
-
-    def load_smiles(self):
-        input_path = Path(self.args.input_smiles)
-        suffix = input_path.suffix.lower()
-        if suffix == '.sdf':
-            return FastSDMolSupplier(str(input_path))
-        if suffix in ('.csv','.smi'):
-            df = pd.read_csv(str(input_path),
-                             header=0 if self.args.header else None,
-                             usecols=[self.args.column_name if self.args.header else 0])
-            col = self.args.column_name if self.args.header else df.columns[0]
-            return df[col].tolist()
-        if Chem.MolFromSmiles(self.args.input_smiles):
-            return [self.args.input_smiles]
-        raise ValueError(f"Unsupported input format: {suffix}. "
-                         "Please provide a valid SMILES string, SDF file, or CSV file.")
+def add_common_args(parser: argparse.ArgumentParser) -> None:
+    """Add arguments common to all enumeration commands."""
+    # Input/Output
+    parser.add_argument('input', help='SMILES string or input file (.smi, .csv, .sdf)')
+    parser.add_argument('-o', '--output', default='healer_results.csv',
+                        help='Output CSV path (default: healer_results.csv)')
+    parser.add_argument('--column', default='smiles',
+                        help='SMILES column name in CSV (default: smiles)')
+    parser.add_argument('--config', help='JSON config file path')
     
-    def get_output_columns(self):
-        sample_healer = MoleculeHEALER('test', verbose=0)
-        smi = "CC1(C)SC2C(NC(=O)Cc3ccccc3)C(=O)N2C1C(=O)O"
-        sample_healer.set_query_mol(query_mol=smi)
-        sample_healer.enumerate()
-        sample_df = sample_healer.get_results(**self.results_kwargs)
-
-        fixed_cols = ['ID', 'Product']
-        bb_cols, rxn_cols, url_cols = [], [], []
-        if self.args.healer_type == 'molecule':
-            max_depth = self.args.retro_tree_depth
-        elif self.args.healer_type == 'fragment':
-            max_depth = 0
-            for mol in self.smiles_list:
-                if isinstance(mol, str):
-                    mol = Chem.MolFromSmiles(mol)
-                max_depth = max(max_depth, len(Chem.GetMolFrags(mol, sanitizeFrags=False)))
-        elif self.args.healer_type == 'site':
-            max_depth = 1
-        
-        bb_cols = [f'BB{i}' for i in range(1, max_depth + 2)]
-        rxn_cols = [f'Reaction{i}_name' for i in range(1, max_depth + 1)]
-        url_cols = [f'URL{i}' for i in range(1, max_depth + 2)]
-        prop_cols = [c for c in sample_df.columns if c not in fixed_cols + bb_cols + rxn_cols + url_cols]
-
-        return fixed_cols + bb_cols + rxn_cols + url_cols + prop_cols
-
-    def run_sequential(self):
-        logger.info("Starting sequential enumeration for %d molecule(s).", len(self.smiles_list))
-        out = Path(self.args.output)
-        if out.exists():
-            logger.warning("Overwriting %s", out)
-            out.unlink()
-
-        if self.args.healer_type == 'molecule':
-            healer = MoleculeHEALER(
-                bb_supplier=self.args.bb_source,
-                reaction_tags=self.reaction_tags,
-                max_evals_per_comp=self.args.max_evals_per_comp,
-                shuffle_bbs=self.args.shuffle_bbs,
-                sim_threshold=self.args.sim_threshold,
-                max_bbs_per_comp=self.args.max_bb,
-                verbose=self.verbose-1,
-            )
-            query_kwargs = {
-                'n_compositions': self.args.n_compositions,
-                'randomize_compositions': self.args.randomize_compositions,
-                'random_seed': self.args.random_seed,
-                'custom_split_sites': self.args.custom_split_sites,
-                'retro_tree_depth': self.args.retro_tree_depth,
-                'min_frag_size': self.args.min_frag_size,
-            }
-        elif self.args.healer_type == 'site':
-            healer = SiteHEALER(
-                bb_supplier=self.args.bb_source,
-                reaction_tags=self.reaction_tags,
-                max_evals_per_comp=self.args.max_evals_per_comp,
-                shuffle_bbs=self.args.shuffle_bbs,
-                rules=self.rules,
-                struct_rules=self.struct_rules,
-                verbose=self.verbose,
-            )
-            query_kwargs = {
-                'reactive_sites': self.args.reactive_sites,
-            }
-        elif self.args.healer_type == 'fragment':
-            healer = FragmentHEALER(
-                bb_supplier=self.args.bb_source,
-                reaction_tags=self.reaction_tags,
-                max_evals_per_comp=self.args.max_evals_per_comp,
-                shuffle_bbs=self.args.shuffle_bbs,
-                sim_threshold=self.args.sim_threshold,
-                max_bbs_per_comp=self.args.max_bb,
-                verbose=self.verbose,
-            )
-            query_kwargs = {}
-        else:
-            raise ValueError(f"Unknown HEALER type: {self.args.healer_type}")
-        
-        output_columns = self.get_output_columns()
-        first = True
-        for mol_idx, smi in enumerate(tqdm(self.smiles_list, desc="Enumerating", disable=self.verbose == 2, unit="molecule")):
-            mol = Chem.MolFromSmiles(smi) if isinstance(smi, str) else smi
-            if not mol:
-                logger.warning("Skipping invalid SMILES: %s", smi)
-                continue
-            healer.set_query_mol(query_mol=smi, **query_kwargs)
-            healer.enumerate()
-            df = healer.get_results(**self.results_kwargs)
-            df = df.reindex(columns=output_columns, fill_value='')
-            df.to_csv(
-                str(out), mode='w' if first else 'a', 
-                header=first, index=False,
-                columns=output_columns
-            )
-            first = False
-
-        logger.info("Results saved to %s", out)
-
-    def run_parallel(self):
-        logger.info("Starting parallel enumeration with %d workers.", self.args.workers)
-        init_args = (
-            self.args.healer_type,
-            self.args.bb_source,
-            self.reaction_tags,
-            self.args.max_evals_per_comp,
-            self.args.shuffle_bbs,
-            self.args.sim_threshold,
-            self.args.max_bb,
-            self.rules,
-            self.struct_rules,
-            self.verbose-1,
-        )
-
-        if self.args.healer_type == 'molecule':
-            query_kwargs = {
-                'n_compositions': self.args.n_compositions,
-                'randomize_compositions': self.args.randomize_compositions,
-                'random_seed': self.args.random_seed,
-                'custom_split_sites': self.args.custom_split_sites,
-                'retro_tree_depth': self.args.retro_tree_depth,
-                'min_frag_size': self.args.min_frag_size,
-            }
-        elif self.args.healer_type == 'site':
-            query_kwargs = {
-                'reactive_sites': self.args.reactive_sites,
-            }
-        elif self.args.healer_type == 'fragment':
-            query_kwargs = {}
-
-        out = Path(self.args.output)
-        if out.exists():
-            logger.info("Overwriting %s", out)
-            out.unlink()
-
-        total = len(self.smiles_list)
-        n_workers = self.args.workers
-        batch_size = max(1, total // (n_workers * 4)) # 4 batches per worker
-        batches = [
-            self.smiles_list[i:i + batch_size]
-            for i in range(0, total, batch_size)
-        ]
-
-        worker_fn = partial(
-            _process_batch, 
-            query_kwargs=query_kwargs, 
-            results_kwargs=self.results_kwargs
-        )
-        output_columns = self.get_output_columns()
-        first = True
-        with Pool(processes=self.args.workers,
-                  initializer=_init_worker,
-                  initargs=init_args) as pool:
-            for df in tqdm(pool.imap(worker_fn, batches),
-                           total=len(batches), desc="Enumerating",
-                           disable=self.verbose == 2, unit="batch"):
-                df = df.reindex(columns=output_columns, fill_value='')
-                df.to_csv(
-                    str(out), mode='w' if first else 'a', 
-                    header=first, index=False,
-                    columns=output_columns
-                )
-                first = False
-        
-        logger.info("Results saved to %s", out)
-
-    def run(self):
-        args_dict = vars(self.args)
-        args_dict['reaction_tags'] = self.reaction_tags
-        args_json = json.dumps(args_dict, indent=4)
-        with open('healer_args.json', 'w') as f:
-            f.write(args_json)
-        logger.info("HEALER arguments saved to healer_args.json")
+    # Building blocks and reactions
+    parser.add_argument('--bb-source', default='US_stock',
+                        help='Building block source: US_stock, EU_stock, Global_stock, or path')
+    parser.add_argument('--reactions', default='all',
+                        help='Comma-separated reaction tags or "all" (default: all)')
+    parser.add_argument('--shuffle', action='store_true',
+                        help='Shuffle building block order')
     
-        if self.args.workers > 1:
-            self.run_parallel()
-        else:
-            self.run_sequential()
+    # Enumeration limits
+    parser.add_argument('--max-evals', type=int, default=None,
+                        help='Max reaction attempts per composition')
+    parser.add_argument('--max-products', type=int, default=None,
+                        help='Max products per composition')
+    parser.add_argument('--max-total', type=int, default=None,
+                        help='Max total products (stops enumeration)')
+    
+    # Output options
+    parser.add_argument('--similarity', action='store_true',
+                        help='Calculate similarity to query molecule')
+    parser.add_argument('--properties', action='store_true',
+                        help='Calculate molecular properties')
+    
+    # Execution
+    parser.add_argument('--workers', type=int, default=1,
+                        help='Number of parallel workers (default: 1)')
+    parser.add_argument('-v', '--verbose', action='count', default=1,
+                        help='Increase verbosity (-v for info, -vv for debug)')
 
-if __name__ == "__main__":
-    HEALERCLI().run()
+
+def build_parser() -> argparse.ArgumentParser:
+    """Build the argument parser with subcommands."""
+    parser = argparse.ArgumentParser(
+        prog='healer',
+        description='HEALER: Hit Expansion by Assembling Ligands from Enumerated Reactions'
+    )
+    subparsers = parser.add_subparsers(dest='command', required=True)
+    
+    # --- molecule subcommand ---
+    mol_parser = subparsers.add_parser('molecule', help='Enumerate from whole molecules')
+    add_common_args(mol_parser)
+    mol_parser.add_argument('--sim-threshold', type=float, default=0.5,
+                            help='Similarity threshold for BB matching (default: 0.5)')
+    mol_parser.add_argument('--max-bbs-per-frag', type=int, default=-1,
+                            help='Max BBs per fragment, -1 for unlimited (default: -1)')
+    mol_parser.add_argument('--n-compositions', type=int, default=10,
+                            help='Number of compositions to consider (default: 10)')
+    mol_parser.add_argument('--retro-depth', type=int, default=1,
+                            help='Retrosynthesis tree depth (default: 1)')
+    mol_parser.add_argument('--min-frag-size', type=int, default=3,
+                            help='Minimum fragment size in heavy atoms (default: 3)')
+    mol_parser.add_argument('--randomize', action='store_true',
+                            help='Randomize composition order')
+    mol_parser.add_argument('--seed', type=int, default=-1,
+                            help='Random seed for reproducibility (default: -1)')
+    mol_parser.set_defaults(func=lambda args: cmd_enumerate(args, 'molecule'))
+    
+    # --- site subcommand ---
+    site_parser = subparsers.add_parser('site', help='Enumerate at specific reactive sites')
+    add_common_args(site_parser)
+    site_parser.add_argument('--reactive-sites', type=json.loads, default=None,
+                             help='Atom indices for reactive sites as JSON list, e.g., "[1,2,5]"')
+    site_parser.add_argument('--rules', default=None,
+                             help='BB filter rules: "MW:0:500,HBD:0:5,..." (default: none)')
+    site_parser.add_argument('--struct-rules', default=None,
+                             help='SMARTS patterns for BB filtering, comma-separated')
+    site_parser.set_defaults(func=lambda args: cmd_enumerate(args, 'site'))
+    
+    # --- fragment subcommand ---
+    frag_parser = subparsers.add_parser('fragment', help='Enumerate from pre-split fragments')
+    add_common_args(frag_parser)
+    frag_parser.add_argument('--sim-threshold', type=float, default=0.5,
+                             help='Similarity threshold for BB matching (default: 0.5)')
+    frag_parser.add_argument('--max-bbs-per-frag', type=int, default=-1,
+                             help='Max BBs per fragment, -1 for unlimited (default: -1)')
+    frag_parser.set_defaults(func=lambda args: cmd_enumerate(args, 'fragment'))
+    
+    # --- view subcommand ---
+    view_parser = subparsers.add_parser('view', help='View molecule with atom indices')
+    view_parser.add_argument('smiles', help='SMILES string to visualize')
+    view_parser.add_argument('-o', '--output', default=None,
+                             help='Save SVG to file instead of opening in browser')
+    view_parser.set_defaults(func=cmd_view)
+    
+    return parser
+
+
+def main():
+    """Main entry point."""
+    parser = build_parser()
+    args = parser.parse_args()
+    
+    # Configure logging based on verbosity
+    if args.command != 'view':
+        level = logging.DEBUG if args.verbose >= 2 else logging.INFO if args.verbose == 1 else logging.WARNING
+        logging.basicConfig(
+            level=level,
+            format="%(asctime)s [%(levelname)s] %(message)s",
+            datefmt="%H:%M:%S"
+        )
+    
+    # Execute command
+    args.func(args)
+
+
+if __name__ == '__main__':
+    main()
 

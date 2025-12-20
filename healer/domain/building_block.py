@@ -12,7 +12,6 @@ class BuildingBlock:
             Initialize the BuildingBlock with a molecule.
         '''
         self._mol: Chem.Mol = molecule
-        self._smiles: str = Chem.MolToSmiles(molecule)
         self.props: Dict[str, Any] = {
             k: self._parse_value(v)
             for k, v in molecule.GetPropsAsDict().items()
@@ -22,7 +21,7 @@ class BuildingBlock:
         '''
             Hash the building block based on its SMILES representation.
         '''
-        return hash(self._smiles)
+        return hash(self.get_smiles())
 
     def __getattr__(self, attr: str) -> Any:
         '''
@@ -50,8 +49,11 @@ class BuildingBlock:
     def get_smiles(self) -> str:
         '''
             Get the SMILES representation of the building block.
+            Cached on first access to avoid repeated computation.
         '''
-        return self._smiles
+        if '_smiles' not in self.__dict__:
+            self.__dict__['_smiles'] = Chem.MolToSmiles(self._mol)
+        return self.__dict__['_smiles']
     
     def SetProp(self, name: str, value: Any) -> None:
         '''

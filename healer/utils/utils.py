@@ -167,7 +167,7 @@ def get_tani_sim_fp(fp1, fp2):
     '''
     return DataStructs.TanimotoSimilarity(fp1, fp2)
 
-def get_svg_mol(mol, sub_mol=None, sub_mol_color='green', legend='', show_idx=False, return_drawing=False):
+def get_svg_mol(mol, sub_mol=None, sub_mol_color='green', legend='', show_idx=False, return_drawing=False, width=350, height=150):
     '''
         Get svg image of a molecule with a substructure highlighted.
     '''
@@ -199,7 +199,9 @@ def get_svg_mol(mol, sub_mol=None, sub_mol_color='green', legend='', show_idx=Fa
 
     draw_opts = Draw.MolDrawOptions()
     draw_opts.clearBackground = None
-    drawing = Draw.MolDraw2DSVG(350, 150)
+    draw_opts.legendFontSize = 10
+    draw_opts.legendFraction = 0.15
+    drawing = Draw.MolDraw2DSVG(width, height)
     drawing.SetDrawOptions(draw_opts)
     drawing.DrawMolecule(mol, highlightAtoms=hit_atoms, highlightBonds=hit_bonds,
                           highlightAtomColors={i: sub_mol_color for i in hit_atoms},

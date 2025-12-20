@@ -32,8 +32,8 @@ PATCH_TARGETS = [
         "NumAromaticRings"
     ]),
     (rdMolDescriptors, [
-        "CalcNumAtomStereoCenters"
-    ])
+        "CalcNumAtomStereoCenters", "_CalcMolWt"
+    ]),
 ]
 
 # Guard against double-patching on reimport

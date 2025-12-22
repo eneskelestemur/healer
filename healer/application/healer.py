@@ -74,7 +74,7 @@ class _BaseHEALER(abc.ABC):
 
         # Reaction attributes
         self.reactions: List[ReactionTemplate21] = []
-        self.reaction_tags: List[str] = []
+        self.reaction_tags: Union[List[str], str] = []
         self._reactions: List[ReactionTemplate21] = []  # all reactions loaded from JSON
 
         # Load reactions first (needed to filter BBs)
@@ -134,14 +134,14 @@ class _BaseHEALER(abc.ABC):
         all_tags = list(set(chain(*[r.tags for r in self._reactions])))
         
         if isinstance(reaction_tags, str):
-            if reaction_tags == 'all':
+            if reaction_tags.lower() == 'all':
                 self.reaction_tags = all_tags
                 self.reactions = self._reactions
             else:
                 self.reaction_tags = [reaction_tags]
                 self.reactions = [r for r in self._reactions if reaction_tags in r.tags]
         else:
-            if 'all' in reaction_tags:
+            if 'all' in [tag.lower() for tag in reaction_tags]:
                 self.reaction_tags = all_tags
                 self.reactions = self._reactions
             else:

@@ -1,0 +1,22 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install git if needed for some dependencies, or other tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy configuration
+COPY pyproject.toml .
+
+# Install python dependencies including the 'web' extras
+# We install in editable mode so changes in the volume are reflected
+# We need to copy the directory structure for pip to be happy finding 'healer' package
+# during install, even if empty initially, but here we copy everything.
+COPY . .
+RUN pip install --no-cache-dir -e ".[web]"
+
+# The command is overridden by docker-compose
+CMD ["uvicorn", "healer.web.app:app", "--host", "0.0.0.0", "--port", "8000"]
+

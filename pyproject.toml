@@ -12,16 +12,45 @@ license-files = ["LICENSE"]
 authors = [
   { name = "Enes Kelestemur", email = "enesk@email.unc.edu" }
 ]
+keywords = ["chemistry", "drug-discovery", "hit-expansion", "enumeration", "retrosynthesis"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Chemistry",
+]
 requires-python = ">=3.11"
-# dependencies = [
+dependencies = [
+  "numpy",
+  "pandas",
+  "tqdm",
+  "rdkit",
   "prop-profiler>=0.1.0",
 ]
 
+[project.optional-dependencies]
+web = [
+    "fastapi",
+    "uvicorn[standard]",
+    "celery[redis]",
+]
+
+[project.urls]
+Homepage = "https://github.com/eneskelestemur/healer"
+Repository = "https://github.com/eneskelestemur/healer"
+
 [project.scripts]
-healer          = "healer.cli:main"
-preprocess-bb   = "healer.scripts.preprocess_bb:main"
+healer        = "healer.cli:main"
+healer-ui     = "healer.web.app:start"
+preprocess-bb = "healer.scripts.preprocess_bb_source:cli"
 
 [tool.setuptools.packages.find]
-where    = ["."]
-include  = ["healer*"]          # only your healer package
-exclude  = ["legacy*", "external*", "webserver*"]
+where   = ["."]
+include = ["healer*"]
+exclude = ["external*", "webserver*", "benchmark*", "notebooks*"]
+
+[tool.setuptools.package-data]
+healer = ["web/static/**/*"]

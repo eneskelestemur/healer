@@ -44,65 +44,11 @@ def count_molecular_fragments(smiles: str) -> int:
         return 0
 
 
-def validate_server_parameters(params: Dict[str, Any], healer_type: str = "molecule") -> Dict[str, Any]:
-    server_mode = os.environ.get('HEALER_SERVER_MODE', 'false').lower() == 'true'
-    
-    if not server_mode:
-        return params
-    
-    validated_params = params.copy()
-    
-    if 'reaction_tags' in validated_params and validated_params['reaction_tags']:
-        if 'all' in validated_params['reaction_tags']:
-            validated_params['reaction_tags'] = [tag for tag in validated_params['reaction_tags'] if tag != 'all']
-        
-        if len(validated_params['reaction_tags']) > 15:
-            validated_params['reaction_tags'] = validated_params['reaction_tags'][:15]
-        
-        if not validated_params['reaction_tags']:
-            validated_params['reaction_tags'] = ["amide coupling", "amide", "C-N bond formation", "C-N",
-                                               "alkylation", "N-arylation", "azole", "amination"]
-    
-    if healer_type in ["molecule", "fragment"]:
-        if 'sim_threshold' in validated_params:
-            if validated_params['sim_threshold'] < 0.3:
-                validated_params['sim_threshold'] = 0.3
-        
-        if 'max_bbs_per_frag' in validated_params:
-            if validated_params['max_bbs_per_frag'] > 10 or validated_params['max_bbs_per_frag'] < 1:
-                validated_params['max_bbs_per_frag'] = min(10, max(1, validated_params['max_bbs_per_frag']))
-        
-        if 'n_compositions' in validated_params:
-            if validated_params['n_compositions'] > 50:
-                validated_params['n_compositions'] = 50
-        
-        if 'retro_depth' in validated_params:
-            if validated_params['retro_depth'] > 2 or validated_params['retro_depth'] < 1:
-                validated_params['retro_depth'] = min(2, max(1, validated_params['retro_depth']))
-
-    # Common limits
-    if 'max_evals_per_comp' in validated_params and validated_params['max_evals_per_comp']:
-        if validated_params['max_evals_per_comp'] > 500 or validated_params['max_evals_per_comp'] < 1:
-            validated_params['max_evals_per_comp'] = min(500, max(1, validated_params['max_evals_per_comp']))
-            
-    if 'max_products_per_comp' in validated_params and validated_params['max_products_per_comp']:
-        if validated_params['max_products_per_comp'] > 100:
-            validated_params['max_products_per_comp'] = 100
-
-    if 'max_total_products' in validated_params and validated_params['max_total_products']:
-        if validated_params['max_total_products'] > 1000:
-            validated_params['max_total_products'] = 1000
-    
-    return validated_params
-
-
 def create_molecule_healer(
     bb_source: str = 'test',
     reaction_tags: List[str] = None,
     sim_threshold: float = 0.15,
     max_bbs_per_frag: int = -1,
-    max_evals_per_comp: Optional[int] = None,
-    n_compositions: int = 10,
     verbose: int = 1,
     shuffle_bb_order: bool = False,
     use_fragment_healer: bool = False
@@ -111,25 +57,15 @@ def create_molecule_healer(
     if reaction_tags is None:
         reaction_tags = ["amide coupling", "amide", "C-N bond formation", "C-N",
                         "alkylation", "N-arylation", "azole", "amination"]
-    
-    params = {
-        'reaction_tags': reaction_tags,
-        'sim_threshold': sim_threshold,
-        'max_bbs_per_frag': max_bbs_per_frag,
-        'max_evals_per_comp': max_evals_per_comp,
-        'n_compositions': n_compositions
-    }
-    healer_type = "fragment" if use_fragment_healer else "molecule"
-    validated_params = validate_server_parameters(params, healer_type)
-    
+
     bb_path = BB_PATHS.get(bb_source, bb_source)
     
     common_kwargs = {
         'bb_source': bb_path,
-        'reaction_tags': validated_params['reaction_tags'],
+        'reaction_tags': reaction_tags,
         'shuffle_bb_order': shuffle_bb_order,
-        'sim_threshold': validated_params['sim_threshold'],
-        'max_bbs_per_frag': validated_params['max_bbs_per_frag'],
+        'sim_threshold': sim_threshold,
+        'max_bbs_per_frag': max_bbs_per_frag,
         'verbose': verbose
     }
     
@@ -144,7 +80,6 @@ def create_site_healer(
     reaction_tags: List[str] = None,
     rules: Dict[str, Tuple[int, int]] = None,
     struct_rules: List[str] = None,
-    max_evals_per_comp: Optional[int] = None,
     verbose: int = 1,
     shuffle_bb_order: bool = False
 ) -> SiteHEALER:
@@ -155,23 +90,18 @@ def create_site_healer(
     
     if rules is None:
         rules = {
-            'MW': (0, 500), 'HBD': (0, 5), 'HBA': (0, 10), 'TPSA': (0, 200),
+            'MW': (0, 100), 'HBD': (0, 5), 'HBA': (0, 5), 'TPSA': (0, 100),
             'RotB': (0, 10), 'Rings': (0, 10), 'ArRings': (0, 5), 'Chiral': (0, 5),
         }
     
     if struct_rules is None:
         struct_rules = []
     
-    params = {
-        'reaction_tags': reaction_tags,
-        'max_evals_per_comp': max_evals_per_comp
-    }
-    validated_params = validate_server_parameters(params, "site")
     bb_path = BB_PATHS.get(bb_source, bb_source)
     
     return SiteHEALER(
         bb_source=bb_path,
-        reaction_tags=validated_params['reaction_tags'],
+        reaction_tags=reaction_tags,
         rules=rules,
         struct_rules=struct_rules,
         shuffle_bb_order=shuffle_bb_order,
@@ -208,8 +138,6 @@ def run_molecule_enumeration(
             reaction_tags=reaction_tags,
             sim_threshold=sim_threshold,
             max_bbs_per_frag=max_bbs_per_frag,
-            max_evals_per_comp=max_evals_per_comp,
-            n_compositions=n_compositions,
             verbose=1,
             shuffle_bb_order=shuffle_bb_order,
             use_fragment_healer=final_use_fragment_healer
@@ -227,18 +155,11 @@ def run_molecule_enumeration(
                 retro_tree_depth=retro_tree_depth,
                 min_frag_size=min_frag_size
             )
-        
-        # Validate limit parameters
-        limits = validate_server_parameters({
-            'max_evals_per_comp': max_evals_per_comp,
-            'max_products_per_comp': max_products_per_comp,
-            'max_total_products': max_total_products
-        }, "molecule")
 
         healer.enumerate(
-            max_evals_per_comp=limits.get('max_evals_per_comp'),
-            max_products_per_comp=limits.get('max_products_per_comp'),
-            max_total_products=limits.get('max_total_products')
+            max_evals_per_comp=max_evals_per_comp,
+            max_products_per_comp=max_products_per_comp,
+            max_total_products=max_total_products
         )
         return healer.get_results(as_dict=True, calc_similarity=True, calc_properties=True)
         
@@ -267,7 +188,6 @@ def run_site_enumeration(
             rules=rules,
             struct_rules=struct_rules,
             shuffle_bb_order=shuffle_bb_order,
-            max_evals_per_comp=max_evals_per_comp,
             verbose=1
         )
         
@@ -275,18 +195,11 @@ def run_site_enumeration(
             query_mol=molecule,
             reactive_sites=reactive_sites
         )
-        
-        # Validate limit parameters
-        limits = validate_server_parameters({
-            'max_evals_per_comp': max_evals_per_comp,
-            'max_products_per_comp': max_products_per_comp,
-            'max_total_products': max_total_products
-        }, "site")
 
         healer.enumerate(
-            max_evals_per_comp=limits.get('max_evals_per_comp'),
-            max_products_per_comp=limits.get('max_products_per_comp'),
-            max_total_products=limits.get('max_total_products')
+            max_evals_per_comp=max_evals_per_comp,
+            max_products_per_comp=max_products_per_comp,
+            max_total_products=max_total_products
         )
         return healer.get_results(as_dict=True, calc_similarity=True, calc_properties=True)
         
@@ -305,22 +218,29 @@ def format_enumeration_results(results: List[Dict[str, Any]], app_type: str) -> 
         display_result = {
             'Product': result.get('Product', ''),
             'Similarity_to_query': result.get('Similarity_to_query', 0.0),
-            'QED': result.get('QED', 0.0)
+            'QED': result.get('qed', 0.0)
         }
         
         if 'stoplight_color' in result:
             display_result['stoplight_color'] = result['stoplight_color']
         
-        bb_keys = [k for k in result.keys() if k.startswith('BB') and not k.endswith('_url') and not k.endswith('_id')]
+        bb_keys = [k for k in result.keys() if k.startswith('BB')]
         bb_keys.sort(key=lambda x: int(x[2:]))
         
         if app_type == 'molecule':
             for i, bb_key in enumerate(bb_keys, 1):
                 if result.get(bb_key):
                     display_result[f'BB{i}'] = result[bb_key]
+                    url_key = f'URL{i}'
+                    if result.get(url_key):
+                        display_result[url_key] = result[url_key]
         elif app_type == 'site':
             if bb_keys and result.get(bb_keys[0]):
                 display_result['BB'] = result[bb_keys[0]]
+                if result.get('URL'):
+                    display_result['URL'] = result['URL']
+                elif result.get('URL1'):
+                    display_result['URL'] = result['URL1']
         
         rxn_keys = [k for k in result.keys() if k.startswith('Reaction') and k.endswith('_name')]
         if rxn_keys:

@@ -28,6 +28,25 @@ rdColors = {
     'orange': (0.93, 0.69, 0.17)
 }
 
+def make_rgb_transparent(
+    rgb: Tuple[int, int, int], 
+    bg_rgb: Tuple[int, int, int], 
+    alpha: float
+) -> Tuple[int, int, int]:
+    '''
+        Makes an RGB color transparent over a background color.
+        Source: https://stackoverflow.com/questions/33371939/
+
+        Args:
+            rgb: Tuple[int, int, int], RGB color to make transparent.
+            bg_rgb: Tuple[int, int, int], background RGB color.
+            alpha: float, transparency level (0.0 to 1.0).
+
+        Returns:
+            Tuple[int, int, int], resulting RGB color.
+    '''
+    return tuple(alpha * c1 + (1 - alpha) * c2 for (c1, c2) in zip(rgb, bg_rgb))
+
 
 def get_sascore(mol: Chem.rdchem.Mol | str) -> float:
     '''
@@ -73,7 +92,7 @@ def read_cxsmiles_file(file_path: str, header: bool=True) -> list[str]:
 
     return smiles_list
 
-def load_reactions_from_json(file_path) -> list[ReactionTemplate21]:
+def load_reactions_from_json(file_path: str) -> list[ReactionTemplate21]:
     '''
         Loads reactions from a json file.
 
@@ -110,7 +129,12 @@ def sanitize_mol(mol: Chem.rdchem.Mol):
     flags = Chem.SanitizeMol(mol, catchErrors=True)
     return flags == Chem.SanitizeFlags.SANITIZE_NONE, flags
 
-def get_batch_tversky_sims(query_fps, stock_fps, query_factor=0.95, stock_factor=0.05):
+def get_batch_tversky_sims(
+    query_fps: List[DataStructs.ExplicitBitVect], 
+    stock_fps: List[DataStructs.ExplicitBitVect], 
+    query_factor: float = 0.95, 
+    stock_factor: float = 0.05
+) -> np.ndarray:
     '''
         Calculates the Tversky similarity between query fingerprints and
         stock fingerprints in batches.
@@ -137,7 +161,10 @@ def get_batch_tversky_sims(query_fps, stock_fps, query_factor=0.95, stock_factor
                                                     b=stock_factor)
     return sims
 
-def get_batch_tani_sims(query_fps, stock_fps):
+def get_batch_tani_sims(
+    query_fps: List[DataStructs.ExplicitBitVect], 
+    stock_fps: List[DataStructs.ExplicitBitVect]
+) -> np.ndarray:
     '''
         Calculates the Tanimoto similarity between query fingerprints and
         stock fingerprints in batches.
@@ -167,9 +194,31 @@ def get_tani_sim_fp(fp1, fp2):
     '''
     return DataStructs.TanimotoSimilarity(fp1, fp2)
 
-def get_svg_mol(mol, sub_mol=None, sub_mol_color='green', legend='', show_idx=False, return_drawing=False, width=350, height=150):
+def get_svg_mol(
+    mol: Union[Chem.Mol, str],
+    sub_mol: Union[Chem.Mol, str] = None, 
+    sub_mol_color: str = 'green', 
+    legend: str = '', 
+    show_idx: bool = False, 
+    return_drawing: bool = False, 
+    width: int = 350, 
+    height: int = 150
+) -> str:
     '''
         Get svg image of a molecule with a substructure highlighted.
+
+        Args:
+            mol: rdkit.Chem.rdchem.Mol or str, molecule to draw.
+            sub_mol: rdkit.Chem.rdchem.Mol or str, substructure to highlight.
+            sub_mol_color: str, color to use for highlighting.
+            legend: str, legend to display.
+            show_idx: bool, whether to show atom indices.
+            return_drawing: bool, whether to return the raw SVG drawing text.
+            width: int, width of the drawing.
+            height: int, height of the drawing.
+
+        Returns:
+            str, SVG representation of the molecule.
     '''
     sub_mol_color = rdColors[sub_mol_color]
     if isinstance(mol, str):
@@ -215,23 +264,28 @@ def get_svg_mol(mol, sub_mol=None, sub_mol_color='green', legend='', show_idx=Fa
     return f"data:image/svg+xml;base64,{svg}"
 
 def get_svg_mol_with_bbs(
-        mol: Union[Chem.Mol, str],
-        bbs: List[Union[Chem.Mol, str]],
-        bb_colors: List[Union[Tuple[int, int, int], str]] = None,
-        legend: str = '',
-        width: int = 350,
-        height: int = 150
-    ) -> str:
+    mol: Union[Chem.Mol, str],
+    bbs: List[Union[Chem.Mol, str]],
+    bb_colors: List[Union[Tuple[int, int, int], str]] = None,
+    legend: str = '',
+    width: int = 350,
+    height: int = 150,
+    alpha: float = 1.0,
+    bg_color_for_transparency: Tuple[float, float, float] = (1.0, 1.0, 1.0)
+) -> str:
     '''
         Draws a molecule with highlighted building blocks.
 
         Args:
             mol: The molecule to draw.
             bbs: The building blocks to highlight.
-            bb_colors: The colors to use for the building blocks.
+            bb_colors: The colors to use for the building blocks. 
+                Preset colors: 'blue', 'purple', 'pink', 'green', 'yellow', 'red', 'orange'.
             legend: The legend to display.
             width: The width of the drawing.
             height: The height of the drawing.
+            alpha: The transparency level for the building block colors (0.0 to 1.0).
+            bg_color_for_transparency: The background color to use when applying transparency.
 
         Returns:
             The SVG representation of the drawing.
@@ -239,12 +293,15 @@ def get_svg_mol_with_bbs(
     num_bbs = len(bbs)
     
     if bb_colors is None:
-        rd_color_names = list(rdColors.keys())
+        rd_color_names = sorted(rdColors.keys(), reverse=True)
         bb_colors = [rdColors[rd_color_names[i % len(rd_color_names)]] for i in range(num_bbs)]
     elif isinstance(bb_colors[0], tuple):
         bb_colors = bb_colors
     elif isinstance(bb_colors[0], str):
         bb_colors = [rdColors[c] for c in bb_colors]
+
+    if alpha < 1.0:
+        bb_colors = [make_rgb_transparent(c, bg_color_for_transparency, alpha) for c in bb_colors]
 
     if num_bbs != len(bb_colors):
         raise ValueError(f'Number of building blocks ({num_bbs}) does not match number of colors ({len(bb_colors)})')

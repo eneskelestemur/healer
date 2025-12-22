@@ -1,0 +1,116 @@
+4-hydroxyquinoline
+Barton-Zard
+Biginelli
+Bischler-Mohlau
+Buchwald-Hartwig
+C-C
+C-C bond formation
+C-N
+C-N bond formation
+C-O
+C-O bond formation
+C-S
+C-S bond formation
+CO insertion
+Castro-Stephens
+Chan-Lam
+Claisen
+Conrad-Limpach
+Curtius Rearrangement
+Erlenmeyer-Plochl
+Feist-Benary
+Fischer
+Friedel-Crafts
+Friedlander
+Goldberg
+Guareshi-Thorpe
+Hantzsch
+Heck
+Knorr
+Krohnke
+Mitsunobu
+N-arylation
+Negishi
+Niementowski
+O-arylation
+Paal-Knorr
+Pechmann
+Pictet-Spengler
+S-arylation
+Sonagashira
+Stille
+Suzuki
+Ullman
+Ullmann
+Williamson
+acetylene
+acylation
+alkylation
+alkyne
+all
+amide
+amide coupling
+amination
+amine
+aminothiophene
+arylation
+azlactone
+azole
+benzimidazole
+benzofuran
+benzothiazole
+benzothiophene
+benzoxazole
+beta-ketoester
+biaryl
+biginelli
+boronate
+boronic acid
+boronic ester
+carbamate
+carbamates
+chromanone
+click
+condensation
+coumarin
+cross coupling
+cyclization
+diaryl amine
+diketone
+diyne
+ester
+esterification
+ether
+etherification
+flavone
+furan
+heterocycle
+heterocycle formation
+imidazole
+indole
+organostannane
+oxadiazole
+oxazole
+phthalazinone
+pyrazole
+pyridine
+pyridone
+pyrimidine
+pyrimidinedione
+pyrimidone
+pyrrole
+quinazoline
+quinazolinone
+quinoline
+reductive amination
+spiro-chromanone
+sulfonamide
+tetrazole
+thiazole
+thioether
+thiophene
+thiourea
+triazole
+trifluoroborate
+urea
+ureas

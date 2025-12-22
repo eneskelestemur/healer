@@ -1,47 +1,69 @@
 '''
     FastAPI server entry point for the HEALER web application.
 '''
-import healer.utils.rdkit_monkey_patch  # noqa: F401
-
 import os
+from dotenv import load_dotenv
 
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
+# Load environment variables from the root directory
+root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+env_path = os.path.join(root_dir, ".env")
+if os.path.exists(env_path):
+    load_dotenv(env_path)
 
-from healer.web.routes import router
+# Check if web dependencies are available
+try:
+    from fastapi import FastAPI
+    from fastapi.staticfiles import StaticFiles
+    from fastapi.middleware.cors import CORSMiddleware
+    _WEB_AVAILABLE = True
+except ImportError:
+    _WEB_AVAILABLE = False
 
-# Create the FastAPI app
-app = FastAPI(title="HEALER Web API")
 
-# Enable CORS for development (allows frontend on port 3000 to talk to backend on 8000)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+def _create_app():
+    """Create and configure the FastAPI application."""
+    import healer.utils.rdkit_monkey_patch  # noqa: F401
+    from healer.web.routes import router
 
-# Include the API routes
-app.include_router(router)
+    app = FastAPI(title="HEALER Web API")
 
-# API Routes
-@app.get("/api/health")
-async def health_check():
-    return {"status": "ok", "message": "HEALER API is running"}
+    # Enable CORS for development
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5173"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
-# Mount static files (The compiled React app)
-# We only mount this if the directory exists (i.e., in production/installed mode)
-static_dir = os.path.join(os.path.dirname(__file__), "static")
-if os.path.exists(static_dir) and os.listdir(static_dir):
-    app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
+    app.include_router(router)
+
+    @app.get("/api/health")
+    async def health_check():
+        return {"status": "ok", "message": "HEALER API is running"}
+
+    # Mount static files if they exist
+    static_dir = os.path.join(os.path.dirname(__file__), "static")
+    if os.path.exists(static_dir) and os.listdir(static_dir):
+        app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
+
+    return app
+
+
+# Create app only if dependencies are available (for uvicorn import)
+app = _create_app() if _WEB_AVAILABLE else None
+
 
 def start():
-    """Entry point for the 'healer ui' command"""
+    """Entry point for the 'healer-ui' command."""
+    if not _WEB_AVAILABLE:
+        print("Error: Web dependencies not installed.")
+        print("Install with: pip install healer[web]")
+        raise SystemExit(1)
+    
     import uvicorn
-    # In development, we want reload=True, but for the installed CLI tool, defaults are fine
     uvicorn.run("healer.web.app:app", host="0.0.0.0", port=8000, reload=False)
+
 
 if __name__ == "__main__":
     start()

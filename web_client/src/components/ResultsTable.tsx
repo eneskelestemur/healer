@@ -139,12 +139,14 @@ export function ResultsTable({ results }: ResultsTableProps) {
                     <Group gap="xs"><ColorSwatch color="rgba(235, 64, 52, 0.6)" size={14} /> <Text size="sm">Low Drug-likeness (Red)</Text></Group>
                  </Group>
                  <Text size="xs" mt="xs">
-                    The table below displays the first {maxRows} enumeration results. Rows and columns are truncated for simplicity.
+                    The table below displays the first {maxRows} enumeration results at max. Columns are also truncated for simplicity.
                     To view the complete data, download the full results. Rows are colored based on{' '}
                     <Anchor href="https://doi.org/10.1021/acs.jcim.4c00412" target="_blank" inherit>
                         Stoplight Scores
                     </Anchor>
-                    , which is a drug-likeness indicator. Click on a row to visualize the molecule.
+                    , which is a drug-likeness indicator. Click on a row to visualize the molecule. The building blocks are highlighted 
+                    in the structure but may not be accurate always. You can also click on building block IDs to visit their source page 
+                    (if available).
                  </Text>
             </Alert>
             

@@ -5,18 +5,11 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconAlertCircle, IconInfoCircle } from '@tabler/icons-react';
-import { MoleculeRequest, getReactionTags } from '../api';
+import { MoleculeRequest, getReactionTags, getBuildingBlocks, getServerLimits, BuildingBlockOption, ServerLimits } from '../api';
 
 const DEFAULT_REACTION_TAGS = [
     "amide coupling", "amide", "C-N bond formation", "C-N",
     "alkylation", "N-arylation", "azole", "amination"
-];
-
-const BB_SOURCES = [
-    { value: 'test', label: 'Test Set (100 BBs)' },
-    { value: 'US_stock', label: 'US Stock' },
-    { value: 'EU_stock', label: 'EU Stock' },
-    { value: 'Global_stock', label: 'Global Stock' }
 ];
 
 const LabelWithTooltip = ({ label, tooltip }: { label: string, tooltip: string }) => (
@@ -37,16 +30,30 @@ interface MoleculeFormProps {
 export function MoleculeForm({ onSubmit, isLoading, isMultiFragment }: MoleculeFormProps) {
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [reactionTags, setReactionTags] = useState<string[]>(DEFAULT_REACTION_TAGS);
+    const [bbSources, setBbSources] = useState<BuildingBlockOption[]>([
+        { value: 'test_100_bb_processed.sdf', label: 'Test Set (100 BBs)' }
+    ]);
+    const [serverLimits, setServerLimits] = useState<ServerLimits | null>(null);
+    const [isServerMode, setIsServerMode] = useState(false);
 
     useEffect(() => {
         getReactionTags().then(tags => {
             if (tags && tags.length > 0) setReactionTags(tags);
         }).catch(err => console.error("Failed to fetch reaction tags", err));
+        
+        getBuildingBlocks().then(bbs => {
+            if (bbs && bbs.length > 0) setBbSources(bbs);
+        }).catch(err => console.error("Failed to fetch building blocks", err));
+        
+        getServerLimits().then(res => {
+            setServerLimits(res.limits);
+            setIsServerMode(res.server_mode);
+        }).catch(err => console.error("Failed to fetch server limits", err));
     }, []);
     
     const form = useForm({
         initialValues: {
-            bb_source: 'test',
+            bb_source: 'test_100_bb_processed.sdf',
             reaction_tags: DEFAULT_REACTION_TAGS as string[],
             sim_threshold: 0.50,
             n_compositions: 10,
@@ -56,12 +63,19 @@ export function MoleculeForm({ onSubmit, isLoading, isMultiFragment }: MoleculeF
             min_frag_size: 7,
             max_bbs_per_frag: 0,
             shuffle_bb_order: false,
-            max_evals_per_comp: 10000,
+            max_evals_per_comp: 1000,
             max_products_per_comp: 100,
             max_total_products: 1000,
             custom_sites_str: '',
         },
     });
+
+    // Update bb_source when bbSources changes (set first available)
+    useEffect(() => {
+        if (bbSources.length > 0 && !bbSources.find(b => b.value === form.values.bb_source)) {
+            form.setFieldValue('bb_source', bbSources[0].value);
+        }
+    }, [bbSources]);
 
     const handleSubmit = (values: typeof form.values) => {
         // Parse custom sites string "1-2, 3-4" -> [[1,2], [3,4]]
@@ -117,24 +131,29 @@ export function MoleculeForm({ onSubmit, isLoading, isMultiFragment }: MoleculeF
 
                 <Select
                     label={<LabelWithTooltip label="Building Block Source" tooltip="Choose the library of building blocks to use for enumeration." />}
-                    data={BB_SOURCES}
+                    data={bbSources}
                     {...form.getInputProps('bb_source')}
                 />
 
                 <MultiSelect
-                    label={<LabelWithTooltip label="Reaction Tags" tooltip="Select reaction tags to specify the reaction chemistry. One tag may point to multiple reaction." />}
+                    label={<LabelWithTooltip label="Reaction Tags" tooltip={`Select reaction tags to specify the reaction chemistry. One tag may point to multiple reaction.${isServerMode && serverLimits ? ` Server max: ${serverLimits.max_reaction_tags}` : ''}`} />}
                     data={reactionTags}
                     searchable
-                    maxValues={10}
+                    maxValues={isServerMode && serverLimits ? serverLimits.max_reaction_tags : 20}
                     {...form.getInputProps('reaction_tags')}
                 />
 
                 <Paper withBorder p="md" bg="var(--mantine-color-gray-0)">
                     <Group justify="space-between" mb="xs">
-                         <LabelWithTooltip label={`Similarity Threshold: ${form.values.sim_threshold}`} tooltip="Minimum Tanimoto similarity required between a fragment and a building block to consider it a match." />
+                         <LabelWithTooltip 
+                            label={`Similarity Threshold: ${form.values.sim_threshold}`} 
+                            tooltip={`Minimum Tanimoto similarity required between a fragment and a building block.${isServerMode && serverLimits ? ` Server limit: ${serverLimits.sim_threshold_min}-${serverLimits.sim_threshold_max}` : ''}`} 
+                         />
                     </Group>
                     <Slider 
-                        min={0} max={1} step={0.01} 
+                        min={isServerMode && serverLimits ? serverLimits.sim_threshold_min : 0} 
+                        max={isServerMode && serverLimits ? serverLimits.sim_threshold_max : 1} 
+                        step={0.01} 
                         label={val => val.toFixed(2)}
                         {...form.getInputProps('sim_threshold')}
                     />
@@ -167,44 +186,51 @@ export function MoleculeForm({ onSubmit, isLoading, isMultiFragment }: MoleculeF
                         </Group>
                         <Group grow>
                             <NumberInput
-                                label={<LabelWithTooltip label="N Compositions" tooltip="Number of different fragment compositions to explore." />}
-                                min={1} max={50}
+                                label={<LabelWithTooltip label="N Compositions" tooltip={`Number of different fragment compositions to explore.${isServerMode && serverLimits ? ` Server max: ${serverLimits.n_compositions_max}` : ''}`} />}
+                                min={1} 
+                                max={isServerMode && serverLimits ? serverLimits.n_compositions_max : 100}
                                 {...form.getInputProps('n_compositions')}
                             />
                             <NumberInput
-                                label={<LabelWithTooltip label="Max BBs per Fragment" tooltip="Use top N building blocks per fragment instead of similarity threshold. Set 0 to disable." />}
-                                min={0} max={100}
+                                label={<LabelWithTooltip label="Max BBs per Fragment" tooltip={`Use top N building blocks per fragment instead of similarity threshold. Set 0 to disable.${isServerMode && serverLimits ? ` Server max: ${serverLimits.max_bbs_per_frag}` : ''}`} />}
+                                min={0} 
+                                max={isServerMode && serverLimits ? serverLimits.max_bbs_per_frag : 100}
                                 {...form.getInputProps('max_bbs_per_frag')}
                             />
                         </Group>
                         <NumberInput
-                            label={<LabelWithTooltip label="Max Evals / Comp" tooltip="Maximum number of reaction attempts per composition." />}
-                            min={1} max={5000}
+                            label={<LabelWithTooltip label="Max Evals / Comp" tooltip={`Maximum number of reaction attempts per composition.${isServerMode && serverLimits ? ` Server max: ${serverLimits.max_evals_per_comp}` : ''}`} />}
+                            min={1} 
+                            max={isServerMode && serverLimits ? serverLimits.max_evals_per_comp : 100000}
                             {...form.getInputProps('max_evals_per_comp')}
                         />
                         <Group grow>
                             <NumberInput
-                                label={<LabelWithTooltip label="Max Products / Comp" tooltip="Maximum number of products to generate per composition." />}
+                                label={<LabelWithTooltip label="Max Products / Comp" tooltip={`Maximum number of products to generate per composition.${isServerMode && serverLimits ? ` Server max: ${serverLimits.max_products_per_comp}` : ''}`} />}
                                 min={1}
+                                max={isServerMode && serverLimits ? serverLimits.max_products_per_comp : undefined}
                                 placeholder="Unlimited"
                                 {...form.getInputProps('max_products_per_comp')}
                             />
                             <NumberInput
-                                label={<LabelWithTooltip label="Max Total Products" tooltip="Stop enumeration after generating this many products total." />}
+                                label={<LabelWithTooltip label="Max Total Products" tooltip={`Stop enumeration after generating this many products total.${isServerMode && serverLimits ? ` Server max: ${serverLimits.max_total_products}` : ''}`} />}
                                 min={1}
+                                max={isServerMode && serverLimits ? serverLimits.max_total_products : undefined}
                                 placeholder="Unlimited"
                                 {...form.getInputProps('max_total_products')}
                             />
                         </Group>
                         <Group grow>
                             <NumberInput 
-                                label={<LabelWithTooltip label="Retro Depth" tooltip="Depth of the retrosynthetic tree search." />}
-                                min={1} max={3} 
+                                label={<LabelWithTooltip label="Retro Depth" tooltip={`Depth of the retrosynthetic tree search.${isServerMode && serverLimits ? ` Server max: ${serverLimits.retro_depth_max}` : ''}`} />}
+                                min={1} 
+                                max={isServerMode && serverLimits ? serverLimits.retro_depth_max : 5} 
                                 {...form.getInputProps('retro_tree_depth')}
                             />
                             <NumberInput 
-                                label={<LabelWithTooltip label="Min Frag Size" tooltip="Minimum number of heavy atoms for a fragment to be valid." />}
-                                min={1} max={10} 
+                                label={<LabelWithTooltip label="Min Frag Size" tooltip={`Minimum number of heavy atoms for a fragment to be valid.${isServerMode && serverLimits ? ` Server min: ${serverLimits.min_frag_size_min}` : ''}`} />}
+                                min={isServerMode && serverLimits ? serverLimits.min_frag_size_min : 1} 
+                                max={15} 
                                 {...form.getInputProps('min_frag_size')}
                             />
                         </Group>

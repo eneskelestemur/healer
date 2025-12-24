@@ -53,4 +53,9 @@ include = ["healer*"]
 exclude = ["external*", "webserver*", "benchmark*", "notebooks*"]
 
 [tool.setuptools.package-data]
-healer = ["web/static/**/*"]
+healer = [
+    "web/static/**/*",
+    "data/reactions/*.json",
+    "data/buildingblocks/test_100_bb.sdf",
+    "data/buildingblocks/test_100_bb_processed.sdf",
+]

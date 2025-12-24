@@ -10,8 +10,8 @@ from healer.application.tree_builder import RetrosynthesisTree
 from healer.domain.composition import CompositionPath
 import healer.utils.utils as utils
 
-HEALER_ROOT = Path(__file__).parent.parent / 'healer'
-REACTIONS_PATH = HEALER_ROOT / 'data' / 'reactions' / 'reactions.json'
+HEALER_PKG = Path(__file__).parent.parent / 'healer'
+REACTIONS_PATH = HEALER_PKG / 'data' / 'reactions' / 'reactions.json'
 PEN_SMILES = "CC1(C)SC2C(NC(=O)Cc3ccccc3)C(=O)N2C1C(=O)O"
 
 @pytest.fixture(scope="module")

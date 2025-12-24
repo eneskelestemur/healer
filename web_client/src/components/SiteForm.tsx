@@ -5,18 +5,11 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconInfoCircle } from '@tabler/icons-react';
-import { SiteRequest, getReactionTags } from '../api';
+import { SiteRequest, getReactionTags, getBuildingBlocks, getServerLimits, BuildingBlockOption, ServerLimits } from '../api';
 
 const DEFAULT_REACTION_TAGS = [
     "amide coupling", "amide", "C-N bond formation", "C-N",
     "alkylation", "N-arylation", "azole", "amination"
-];
-
-const BB_SOURCES = [
-    { value: 'test', label: 'Test Set (100 BBs)' },
-    { value: 'US_stock', label: 'US Stock' },
-    { value: 'EU_stock', label: 'EU Stock' },
-    { value: 'Global_stock', label: 'Global Stock' }
 ];
 
 const LabelWithTooltip = ({ label, tooltip }: { label: string, tooltip: string }) => (
@@ -37,16 +30,30 @@ export function SiteForm({ onSubmit, isLoading }: SiteFormProps) {
     const [showFilters, setShowFilters] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [reactionTags, setReactionTags] = useState<string[]>(DEFAULT_REACTION_TAGS);
+    const [bbSources, setBbSources] = useState<BuildingBlockOption[]>([
+        { value: 'test_100_bb_processed.sdf', label: 'Test Set (100 BBs)' }
+    ]);
+    const [serverLimits, setServerLimits] = useState<ServerLimits | null>(null);
+    const [isServerMode, setIsServerMode] = useState(false);
 
     useEffect(() => {
         getReactionTags().then(tags => {
             if (tags && tags.length > 0) setReactionTags(tags);
         }).catch(err => console.error("Failed to fetch reaction tags", err));
+        
+        getBuildingBlocks().then(bbs => {
+            if (bbs && bbs.length > 0) setBbSources(bbs);
+        }).catch(err => console.error("Failed to fetch building blocks", err));
+        
+        getServerLimits().then(res => {
+            setServerLimits(res.limits);
+            setIsServerMode(res.server_mode);
+        }).catch(err => console.error("Failed to fetch server limits", err));
     }, []);
     
     const form = useForm({
         initialValues: {
-            bb_source: 'test',
+            bb_source: 'test_100_bb_processed.sdf',
             reaction_tags: DEFAULT_REACTION_TAGS,
             reactive_sites_str: '',
             struct_rules_str: '',
@@ -66,6 +73,13 @@ export function SiteForm({ onSubmit, isLoading }: SiteFormProps) {
             rule_Chiral: [0, 1] as [number, number],
         },
     });
+
+    // Update bb_source when bbSources changes
+    useEffect(() => {
+        if (bbSources.length > 0 && !bbSources.find(b => b.value === form.values.bb_source)) {
+            form.setFieldValue('bb_source', bbSources[0].value);
+        }
+    }, [bbSources]);
 
     useEffect(() => {
         form.setFieldValue('reaction_tags', DEFAULT_REACTION_TAGS);
@@ -137,15 +151,15 @@ export function SiteForm({ onSubmit, isLoading }: SiteFormProps) {
 
                 <Select
                     label={<LabelWithTooltip label="Building Block Source" tooltip="Choose the library of building blocks to use for enumeration." />}
-                    data={BB_SOURCES}
+                    data={bbSources}
                     {...form.getInputProps('bb_source')}
                 />
 
                 <MultiSelect
-                    label={<LabelWithTooltip label="Reaction Tags" tooltip="Select reaction tags to specify the reaction chemistry. One tag may point to multiple reaction." />}
+                    label={<LabelWithTooltip label="Reaction Tags" tooltip={`Select reaction tags to specify the reaction chemistry. One tag may point to multiple reaction.${isServerMode && serverLimits ? ` Server max: ${serverLimits.max_reaction_tags}` : ''}`} />}
                     data={reactionTags}
                     searchable
-                    maxValues={10}
+                    maxValues={isServerMode && serverLimits ? serverLimits.max_reaction_tags : 20}
                     {...form.getInputProps('reaction_tags')}
                 />
                 
@@ -188,20 +202,23 @@ export function SiteForm({ onSubmit, isLoading }: SiteFormProps) {
                             {...form.getInputProps('shuffle_bb_order', { type: 'checkbox' })}
                         />
                         <NumberInput
-                            label={<LabelWithTooltip label="Max Evals / Comp" tooltip="Maximum number of reaction attempts per composition." />}
-                            min={1} max={5000}
+                            label={<LabelWithTooltip label="Max Evals / Comp" tooltip={`Maximum number of reaction attempts per composition.${isServerMode && serverLimits ? ` Server max: ${serverLimits.max_evals_per_comp}` : ''}`} />}
+                            min={1} 
+                            max={isServerMode && serverLimits ? serverLimits.max_evals_per_comp : 100000}
                             {...form.getInputProps('max_evals_per_comp')}
                         />
                          <Group grow>
                             <NumberInput
-                                label={<LabelWithTooltip label="Max Products / Comp" tooltip="Maximum number of products to generate per composition." />}
+                                label={<LabelWithTooltip label="Max Products / Comp" tooltip={`Maximum number of products to generate per composition.${isServerMode && serverLimits ? ` Server max: ${serverLimits.max_products_per_comp}` : ''}`} />}
                                 min={1}
+                                max={isServerMode && serverLimits ? serverLimits.max_products_per_comp : undefined}
                                 placeholder="Unlimited"
                                 {...form.getInputProps('max_products_per_comp')}
                             />
                             <NumberInput
-                                label={<LabelWithTooltip label="Max Total Products" tooltip="Stop enumeration after generating this many products total." />}
+                                label={<LabelWithTooltip label="Max Total Products" tooltip={`Stop enumeration after generating this many products total.${isServerMode && serverLimits ? ` Server max: ${serverLimits.max_total_products}` : ''}`} />}
                                 min={1}
+                                max={isServerMode && serverLimits ? serverLimits.max_total_products : undefined}
                                 placeholder="Unlimited"
                                 {...form.getInputProps('max_total_products')}
                             />

@@ -186,7 +186,11 @@ function App() {
       {/* Header */}
       <Box mb="xl" pos="relative">
         <Stack align="center" gap={0}>
-          <Title order={2}>HEALER Dashboard</Title>
+          <Group gap="md" align="center">
+            <Image src="/healer_logo_no_text.png" alt="HEALER" h={36} w="auto" fit="contain" />
+            <Title order={2}>HEALER Dashboard</Title>
+            <Image src="/healer_logo_no_text.png" alt="HEALER" h={36} w="auto" fit="contain" />
+          </Group>
           <Text c="dimmed">Molecular enumeration using retrosynthetic analysis</Text>
         </Stack>
         <ActionIcon 

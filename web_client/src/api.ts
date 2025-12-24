@@ -94,6 +94,39 @@ export const getServerMode = async () => {
     return res.data.mode;
 };
 
+export interface ServerLimits {
+    max_evals_per_comp: number;
+    max_products_per_comp: number;
+    max_total_products: number;
+    sim_threshold_min: number;
+    sim_threshold_max: number;
+    max_bbs_per_frag: number;
+    n_compositions_max: number;
+    retro_depth_max: number;
+    min_frag_size_min: number;
+    max_reaction_tags: number;
+}
+
+export interface ServerLimitsResponse {
+    server_mode: boolean;
+    limits: ServerLimits;
+}
+
+export const getServerLimits = async () => {
+    const res = await api.get<ServerLimitsResponse>('/info/limits');
+    return res.data;
+};
+
+export interface BuildingBlockOption {
+    value: string;
+    label: string;
+}
+
+export const getBuildingBlocks = async () => {
+    const res = await api.get<{ building_blocks: BuildingBlockOption[] }>('/info/building-blocks');
+    return res.data.building_blocks;
+};
+
 export const convertSmilesToMol = async (smiles: string) => {
     const res = await api.post<{ molblock: string }>('/utils/smiles-to-mol', { smiles });
     return res.data.molblock;

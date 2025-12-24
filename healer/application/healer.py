@@ -34,8 +34,8 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 # Get the absolute path to the healer package data directory
-_HEALER_ROOT = Path(__file__).parent.parent.parent
-_DATA_DIR = _HEALER_ROOT / 'data'
+_HEALER_PKG = Path(__file__).parent.parent
+_DATA_DIR = _HEALER_PKG / 'data'
 _REACTIONS_FILE = _DATA_DIR / 'reactions' / 'reactions.json'
 
 

@@ -17,8 +17,8 @@ from healer.domain.reaction_template import ReactionTemplate21
 logger = logging.getLogger(__name__)
 
 
-_HEALER_ROOT = Path(__file__).parent.parent.parent
-_DATA_DIR = _HEALER_ROOT / "data"
+_HEALER_PKG = Path(__file__).parent.parent
+_DATA_DIR = _HEALER_PKG / "data"
 _BB_DIR = _DATA_DIR / "buildingblocks"
 
 BB_PATHS: Dict[str, str] = {

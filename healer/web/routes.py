@@ -22,6 +22,14 @@ from rdkit import Chem
 from rdkit.Chem import rdDepictor, Descriptors, QED
 
 from healer.web.models import MoleculeRequest, SiteRequest, JobSubmitResponse, JobStatusResponse
+from healer.web.interface import (
+    SERVER_MODE,
+    run_molecule_enumeration,
+    run_site_enumeration,
+    format_enumeration_results,
+    get_server_limits,
+    discover_building_blocks,
+)
 from healer.utils import utils
 
 router = APIRouter(prefix="/api")
@@ -30,7 +38,7 @@ router = APIRouter(prefix="/api")
 # Mode Detection
 # ============================================================================
 
-USE_CELERY = os.environ.get('HEALER_SERVER_MODE', 'false').lower() == 'true'
+USE_CELERY = SERVER_MODE
 
 # Try to import Celery components only if needed
 celery_app = None
@@ -67,12 +75,6 @@ _local_jobs: Dict[str, Dict[str, Any]] = {}
 
 def _run_job_sync(job_id: str, job_type: str, params: dict) -> None:
     """Run a job synchronously and store results."""
-    from healer.web.interface import (
-        run_molecule_enumeration, 
-        run_site_enumeration,
-        format_enumeration_results,
-    )
-    
     _local_jobs[job_id] = {"status": "STARTED", "result": None, "error": None}
     
     try:
@@ -181,6 +183,21 @@ async def get_server_mode():
     return {"mode": "celery" if USE_CELERY else "local"}
 
 
+@router.get("/info/limits")
+async def get_server_limits_endpoint():
+    """Return the server parameter limits for UI validation."""
+    return {
+        "server_mode": SERVER_MODE,
+        "limits": get_server_limits()
+    }
+
+
+@router.get("/info/building-blocks")
+async def get_available_building_blocks():
+    """Return list of available building block libraries."""
+    return {"building_blocks": discover_building_blocks()}
+
+
 @router.get("/jobs/{job_id}/download")
 async def download_job_results(job_id: str):
     if USE_CELERY:
@@ -226,12 +243,9 @@ class RenderRequest(BaseModel):
 async def get_reaction_tags():
     """Return a list of available reaction tags."""
     try:
-        _env_data_dir = os.environ.get('HEALER_DATA_DIR')
-        if _env_data_dir:
-            reaction_tags_path = Path(_env_data_dir) / 'reactions' / 'reaction_tags.txt'
-        else:
-            healer_root = Path(__file__).parent.parent.parent
-            reaction_tags_path = healer_root / 'data' / 'reactions' / 'reaction_tags.txt'
+        # Reaction tags always come from package data
+        healer_pkg = Path(__file__).parent.parent
+        reaction_tags_path = healer_pkg / 'data' / 'reactions' / 'reaction_tags.txt'
         
         if not reaction_tags_path.exists():
             return ["amide coupling", "amide", "C-N bond formation", "C-N",
@@ -239,6 +253,10 @@ async def get_reaction_tags():
 
         with open(reaction_tags_path, 'r') as f:
             tags = [line.strip() for line in f if line.strip()]
+        
+        # Exclude "all" in server mode
+        if SERVER_MODE:
+            tags = [tag for tag in tags if tag.lower() != 'all']
             
         return tags
             

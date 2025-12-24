@@ -13,7 +13,11 @@ from rdkit import Chem
 from rdkit.Chem.FastSDMolSupplier import FastSDMolSupplier
 from rdkit.Chem.rdmolfiles import SDWriter
 
-REACTIONS = utils.load_reactions_from_json('healer/data/reactions/reactions.json')
+# Get reactions path from package data
+_HEALER_PKG = Path(__file__).parent.parent
+_REACTIONS_FILE = _HEALER_PKG / 'data' / 'reactions' / 'reactions.json'
+
+REACTIONS = utils.load_reactions_from_json(str(_REACTIONS_FILE))
 REACTIONS = [rxn for rxn in REACTIONS if rxn.is_valid()]
 
 
@@ -94,19 +98,29 @@ def extract_zip_if_needed(input_file: str, verbose: bool = True) -> str:
     
     return input_file
 
-def main(input_file: str, verbose: bool=True) -> None:
+def main(input_file: str, output_dir: str = None, verbose: bool=True) -> None:
     """
         Process the building block file and add the 'rxn_annotations' property
         to each molecule. Automatically extracts ZIP files if needed.
 
         Args:
             input_file (str): Path to the input file (SDF or ZIP containing SDF).
+            output_dir (str): Directory to save the processed file. If None, saves
+                              in the same directory as the input file.
             verbose (bool): Whether to print progress information.
     """
     # Extract ZIP file if needed
     sdf_file = extract_zip_if_needed(input_file, verbose)
     
-    output_file = os.path.splitext(sdf_file)[0] + '_processed.sdf'
+    # Determine output path
+    sdf_path = Path(sdf_file)
+    if output_dir:
+        out_dir = Path(output_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        output_file = out_dir / (sdf_path.stem + '_processed.sdf')
+    else:
+        output_file = sdf_path.parent / (sdf_path.stem + '_processed.sdf')
+    
     suppl = FastSDMolSupplier(sdf_file)
     
     count = 0
@@ -133,9 +147,11 @@ def cli():
         description="Preprocess building block files for HEALER."
     )
     parser.add_argument("input_file", type=str, help="Path to the input SDF or ZIP file.")
+    parser.add_argument("-o", "--output-dir", type=str, default=None,
+                        help="Output directory for processed file. Defaults to same directory as input.")
     parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output.")
     args = parser.parse_args()
-    main(args.input_file, verbose=args.verbose)
+    main(args.input_file, output_dir=args.output_dir, verbose=args.verbose)
 
 
 if __name__ == "__main__":

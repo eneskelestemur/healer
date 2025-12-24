@@ -13,6 +13,10 @@ build/
 venv/
 ENV/
 
+# Environment files (keep .env.example, ignore .env)
+.env
+!.env.example
+
 # IDE / Editor
 .vscode/
 .idea/
@@ -20,10 +24,10 @@ ENV/
 *.swo
 *~
 
-# HEALER Data (Large Files)
-data/buildingblocks/*
-!data/buildingblocks/test_100_bb.sdf
-!data/buildingblocks/test_100_bb_processed.sdf
+# HEALER Data (Large Files - inside package)
+healer/data/buildingblocks/*
+!healer/data/buildingblocks/test_100_bb.sdf
+!healer/data/buildingblocks/test_100_bb_processed.sdf
 
 # Cache directories
 cache/
@@ -32,6 +36,7 @@ cache/
 *scratch*
 *.log
 *.tmp
+dump.rdb
 
 # Root-level output files (from CLI runs)
 /*.csv
@@ -48,6 +53,7 @@ benchmark/results/*/*.csv
 
 # Web Client (Node.js)
 web_client/node_modules/
+web_client/.vite/
 
 # External / Optional
 external/prop_profiler/

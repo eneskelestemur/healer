@@ -14,22 +14,127 @@ from healer.application.healer import MoleculeHEALER, SiteHEALER, FragmentHEALER
 
 logger = logging.getLogger(__name__)
 
-# Try to locate data directory
+# Reactions always come from package data
+HEALER_PKG = Path(__file__).parent.parent
+REACTIONS_PATH = HEALER_PKG / 'data' / 'reactions' / 'reactions.json'
+
+# Building blocks can be overridden via HEALER_DATA_DIR
 _env_data_dir = os.environ.get('HEALER_DATA_DIR')
 if _env_data_dir:
-    BB_BASE_PATH = Path(_env_data_dir) / 'buildingblocks'
-    REACTIONS_PATH = Path(_env_data_dir) / 'reactions' / 'reactions.json'
+    BB_BASE_PATH = Path(_env_data_dir)
 else:
-    HEALER_ROOT = Path(__file__).parent.parent.parent
-    BB_BASE_PATH = HEALER_ROOT / 'data' / 'buildingblocks'
-    REACTIONS_PATH = HEALER_ROOT / 'data' / 'reactions' / 'reactions.json'
+    BB_BASE_PATH = HEALER_PKG / 'data' / 'buildingblocks'
 
-BB_PATHS = {
-    "US_stock": str(BB_BASE_PATH / "Enamine_Rush-Delivery_Building_Blocks-US" / "*_processed.sdf"),
-    "EU_stock": str(BB_BASE_PATH / "Enamine_Rush-Delivery_Building_Blocks-EU" / "*_processed.sdf"),
-    "Global_stock": str(BB_BASE_PATH / "Enamine_Building_Blocks_Stock" / "*_processed.sdf"),
-    "test": str(BB_BASE_PATH / "test_100_bb_processed.sdf"),
+# Pretty names for known Enamine building block directories
+_ENAMINE_PRETTY_NAMES = {
+    "Enamine_Rush-Delivery_Building_Blocks-US": "Enamine US Stock",
+    "Enamine_Rush-Delivery_Building_Blocks-EU": "Enamine EU Stock",
+    "Enamine_Building_Blocks_Stock": "Enamine Global Stock",
+    "test_100_bb_processed": "Test Set (100 BBs)",
 }
+SERVER_MODE = os.environ.get('HEALER_SERVER_MODE', 'false').lower() == 'true'
+
+# Default limits for server mode (can be overridden via env vars)
+SERVER_LIMITS = {
+    'max_evals_per_comp': int(os.environ.get('HEALER_LIMIT_MAX_EVALS', 10000)),
+    'max_products_per_comp': int(os.environ.get('HEALER_LIMIT_MAX_PRODUCTS', 500)),
+    'max_total_products': int(os.environ.get('HEALER_LIMIT_MAX_TOTAL', 5000)),
+    'sim_threshold_min': float(os.environ.get('HEALER_LIMIT_SIM_MIN', 0.5)),
+    'sim_threshold_max': float(os.environ.get('HEALER_LIMIT_SIM_MAX', 1.0)),
+    'max_bbs_per_frag': int(os.environ.get('HEALER_LIMIT_MAX_BBS', 10)),
+    'n_compositions_max': int(os.environ.get('HEALER_LIMIT_N_COMP', 50)),
+    'retro_depth_max': int(os.environ.get('HEALER_LIMIT_RETRO_DEPTH', 2)),
+    'min_frag_size_min': int(os.environ.get('HEALER_LIMIT_MIN_FRAG', 7)),
+    'max_reaction_tags': int(os.environ.get('HEALER_LIMIT_MAX_RXN_TAGS', 10)),
+}
+
+
+def get_server_limits() -> Dict[str, Any]:
+    """Return server limits configuration."""
+    return SERVER_LIMITS.copy()
+
+
+def apply_server_limits(params: Dict[str, Any], healer_type: str = "molecule") -> Dict[str, Any]:
+    """Apply server limits to parameters if in server mode."""
+    if not SERVER_MODE:
+        return params
+    
+    limited = params.copy()
+    
+    if 'max_evals_per_comp' in limited and limited['max_evals_per_comp']:
+        limited['max_evals_per_comp'] = min(limited['max_evals_per_comp'], SERVER_LIMITS['max_evals_per_comp'])
+    
+    if 'max_products_per_comp' in limited and limited['max_products_per_comp']:
+        limited['max_products_per_comp'] = min(limited['max_products_per_comp'], SERVER_LIMITS['max_products_per_comp'])
+    
+    if 'max_total_products' in limited and limited['max_total_products']:
+        limited['max_total_products'] = min(limited['max_total_products'], SERVER_LIMITS['max_total_products'])
+    
+    if healer_type in ('molecule', 'fragment'):
+        if 'sim_threshold' in limited:
+            limited['sim_threshold'] = max(SERVER_LIMITS['sim_threshold_min'], 
+                                           min(limited['sim_threshold'], SERVER_LIMITS['sim_threshold_max']))
+        
+        if 'max_bbs_per_frag' in limited:
+            if limited['max_bbs_per_frag'] < 0 or limited['max_bbs_per_frag'] > SERVER_LIMITS['max_bbs_per_frag']:
+                limited['max_bbs_per_frag'] = SERVER_LIMITS['max_bbs_per_frag']
+        
+        if 'n_compositions' in limited:
+            limited['n_compositions'] = min(limited['n_compositions'], SERVER_LIMITS['n_compositions_max'])
+        
+        if 'retro_tree_depth' in limited:
+            limited['retro_tree_depth'] = min(limited['retro_tree_depth'], SERVER_LIMITS['retro_depth_max'])
+        
+        if 'min_frag_size' in limited:
+            limited['min_frag_size'] = max(limited['min_frag_size'], SERVER_LIMITS['min_frag_size_min'])
+    
+    return limited
+
+
+def discover_building_blocks() -> List[Dict[str, str]]:
+    """
+        Discover available processed building block files.
+        
+        Returns:
+            List of dicts with 'value' (path/key) and 'label' (display name)
+    """
+    bb_options = []
+    
+    if not BB_BASE_PATH.exists():
+        logger.warning(f"Building blocks directory not found: {BB_BASE_PATH}")
+        return bb_options
+    
+    processed_files = list(BB_BASE_PATH.rglob("*_processed.sdf"))
+    
+    for sdf_path in sorted(processed_files):
+        rel_path = sdf_path.relative_to(BB_BASE_PATH)
+        value = str(rel_path)
+        
+        label = None
+        path_str = str(rel_path)
+        for key, pretty_name in _ENAMINE_PRETTY_NAMES.items():
+            if key in path_str:
+                label = pretty_name
+                break
+        
+        if label is None:
+            label = sdf_path.stem.replace('_processed', '')
+        
+        bb_options.append({'value': value, 'label': label})
+    
+    return bb_options
+
+
+def resolve_bb_path(bb_source: str) -> str:
+    """Resolve a building block source to an actual file path."""
+    if Path(bb_source).is_absolute() and Path(bb_source).exists():
+        return bb_source
+    
+    candidate = BB_BASE_PATH / bb_source
+    if candidate.exists():
+        return str(candidate)
+    
+    return bb_source
 
 
 def count_molecular_fragments(smiles: str) -> int:
@@ -58,7 +163,7 @@ def create_molecule_healer(
         reaction_tags = ["amide coupling", "amide", "C-N bond formation", "C-N",
                         "alkylation", "N-arylation", "azole", "amination"]
 
-    bb_path = BB_PATHS.get(bb_source, bb_source)
+    bb_path = resolve_bb_path(bb_source)
     
     common_kwargs = {
         'bb_source': bb_path,
@@ -97,7 +202,7 @@ def create_site_healer(
     if struct_rules is None:
         struct_rules = []
     
-    bb_path = BB_PATHS.get(bb_source, bb_source)
+    bb_path = resolve_bb_path(bb_source)
     
     return SiteHEALER(
         bb_source=bb_path,

@@ -26,28 +26,6 @@ HEALER generates synthetically accessible molecular analogs by combining retrosy
 - **Synthetically Accessible** — All products use validated reaction templates
 - **Flexible** — Works with any building block library in SDF format
 
-## Contributing Reactions
-
-We welcome contributions to expand our reaction library! Each reaction entry in `reactions.json` follows this format:
-
-```json
-{
-  "reaction-name": {
-    "description": "Brief description of the reaction mechanism",
-    "long_name": "Full reaction name",
-    "syn_smarts": "[reactant1].[reactant2]>>[product]",
-    "retro_smarts": "[product]>>[fragment1].[fragment2]",
-    "rhs_classes": ["bb-class-1", "bb-class-2"],
-    "tags": ["reaction-type", "functional-group"],
-    "tier": 1
-  }
-}
-```
-
-Key fields: `syn_smarts` (forward reaction), `retro_smarts` (retrosynthetic transform), `rhs_classes` (building block functional group classes), and `tags` (for filtering).
-
-To contribute a reaction, please open a [GitHub issue](https://github.com/eneskelestemur/healer/issues) with your proposed reaction SMARTS, or contact enes.kelestemur@ucsf.edu.
-
 ## Installation
 
 ### Prerequisites
@@ -153,6 +131,28 @@ healer fragment "c1ccccc1.CC(=O)O" --bb-source test
 # Parallel processing for batch inputs
 healer molecule input.csv --workers 4 -o results.csv
 ```
+
+## Contributing Reactions
+
+We welcome contributions to expand our reaction library! Each reaction entry in `reactions.json` follows this format:
+
+```json
+{
+  "reaction-name": {
+    "description": "Brief description of the reaction mechanism",
+    "long_name": "Full reaction name",
+    "syn_smarts": "[reactant1].[reactant2]>>[product]",
+    "retro_smarts": "[product]>>[fragment1].[fragment2]",
+    "rhs_classes": ["bb-class-1", "bb-class-2"],
+    "tags": ["reaction-type", "functional-group"],
+    "tier": 1
+  }
+}
+```
+
+Key fields: `syn_smarts` (forward reaction), `retro_smarts` (retrosynthetic transform), `rhs_classes` (building block functional group classes), and `tags` (for filtering).
+
+To contribute a reaction, please open a [GitHub issue](https://github.com/eneskelestemur/healer/issues) with your proposed reaction SMARTS, or contact enes.kelestemur@ucsf.edu.
 
 ## Usage
 

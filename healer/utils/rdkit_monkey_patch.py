@@ -2,7 +2,6 @@
     Monkey patch used rdkit functions to handle BuildingBlock objects.
 '''
 from functools import wraps
-from collections.abc import Sequence
 
 from rdkit import Chem
 from rdkit.Chem import (
@@ -33,19 +32,29 @@ PATCH_TARGETS = [
         "NumAromaticRings"
     ]),
     (rdMolDescriptors, [
-        "CalcNumAtomStereoCenters"
-    ])
+        "CalcNumAtomStereoCenters", "_CalcMolWt"
+    ]),
 ]
+
+# Guard against double-patching on reimport
+_PATCHED = set()
 
 
 def _unwrap(obj):
     '''
         Recursively unwrap BuildingBlock -> raw Mol; leave everything else.
+        Optimized with fast paths for common types.
     '''
+    # Fast path: most common case
+    if type(obj) is BuildingBlock:
+        return obj._mol
+    if type(obj) is list:
+        return [_unwrap(x) for x in obj]
+    if type(obj) is tuple:
+        return tuple(_unwrap(x) for x in obj)
+    # Slow path: subclasses of BuildingBlock (if any)
     if isinstance(obj, BuildingBlock):
         return obj._mol
-    if isinstance(obj, Sequence) and not isinstance(obj, (str, bytes)):
-        return type(obj)(_unwrap(x) for x in obj)
     return obj
 
 def _wrap(fn):
@@ -60,9 +69,14 @@ def _wrap(fn):
         return fn(*new_args, **new_kwargs)
     return inner
 
+
 for target, names in PATCH_TARGETS:
     for name in names:
+        key = (id(target), name)
+        if key in _PATCHED:
+            continue
         orig = getattr(target, name, None)
         if orig:
             setattr(target, name, _wrap(orig))
+            _PATCHED.add(key)
 

@@ -1,345 +1,318 @@
-# HEALER: Hit Expansion to Advanced Leads Using Enumerated Reactions
+<p align="center">
+  <img src="assets/healer_logo.png" alt="HEALER Logo" width="400"/>
+</p>
 
-HEALER is a computational chemistry tool designed for **hit expansion** and **lead optimization** through systematic enumeration of chemical reactions. It enables researchers to explore chemical space by generating novel molecules from query structures using retrosynthetic analysis and building block databases.
+<h1 align="center">HEALER</h1>
+<h3 align="center">Hit Expansion to Advanced Leads Using Enumerated Reactions</h3>
 
-## 🎯 Overview
+<p align="center">
+  <a href="#installation">Installation</a> •
+  <a href="#building-blocks">Building Blocks</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#usage">Usage</a> •
+  <a href="#web-interface">Web Interface</a> •
+  <a href="#citation">Citation</a>
+</p>
 
-HEALER performs **retrosynthetic fragmentation** of query molecules and systematically **recombines** the fragments with commercially available building blocks to generate chemically feasible analogs. The tool supports three main enumeration strategies:
+---
 
-- **MoleculeHEALER**: Full retrosynthetic analysis and enumeration
-- **SiteHEALER**: Site-specific enumeration with property-based filtering  
-- **FragmentHEALER**: Fragment-based enumeration
+HEALER generates synthetically accessible molecular analogs by combining retrosynthetic fragmentation with commercially available building blocks and validated reaction templates. It bridges the gap between computational design and laboratory synthesis.
 
-## 🏗️ Repository Structure
+## Features
 
-```
-healer/
-├── healer/                    # Core package
-│   ├── application/           # Main HEALER classes
-│   ├── domain/               # Domain models (reactions, building blocks, etc.)
-│   ├── utils/                # Utility functions
-│   ├── data/                 # Data files
-│   │   ├── buildingblocks/   # Building block databases (ZIP files)
-│   │   └── reactions/        # Reaction templates
-│   └── cli.py               # Command-line interface
-├── scripts/                  # Preprocessing and utility scripts
-├── webserver/               # Dash web application
-├── benchmark/               # Benchmarking data and results
-├── external/                # External/optional dependencies
-├── tests/                   # Unit tests
-└── notebooks/               # Analysis and visualization notebook
-```
+- **Molecule HEALER** — Retrosynthetically fragment a molecule and re-enumerate with similar building blocks
+- **Fragment HEALER** — Enumerate from pre-fragmented molecules (multi-component SMILES)
+- **Site HEALER** — Targeted enumeration at specific reactive sites with property filters
+- **Synthetically Accessible** — All products use validated reaction templates
+- **Flexible** — Works with any building block library in SDF format
 
-## 🚀 Installation
+## Installation
 
 ### Prerequisites
 
 - Python ≥ 3.11
-- [Anaconda](https://www.anaconda.com/products/individual) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
+- [Conda](https://docs.conda.io/en/latest/miniconda.html) (recommended)
 
-### Quick Install
+### Option 1: pip install (recommended)
 
-1. **Clone the repository:**
+```bash
+pip install healer
+```
+
+### Option 2: From source
+
+```bash
+git clone https://github.com/eneskelestemur/healer.git
+cd healer
+
+# Create conda environment
+conda env create -f environment.yml
+conda activate healer
+
+# Install in development mode
+pip install -e .
+```
+
+### Optional: Web interface
+
+```bash
+pip install healer[web]
+```
+
+## Building Blocks
+
+HEALER includes a small test set for demos. For production use, you'll need to set up building block libraries.
+
+### Download & Process
+
+1. Download building blocks (e.g., from [Enamine](https://enamine.net/building-blocks/building-blocks-catalog))
+
+2. Preprocess to add reaction annotations:
    ```bash
-   git clone https://github.com/eneskelestemur/healer.git
-   cd healer
+   preprocess-bb ~/Downloads/Enamine_BBs.zip -o ~/.healer/buildingblocks/ --verbose
    ```
 
-2. **Create and activate the conda environment:**
+3. Set the data directory:
    ```bash
-   conda env create -f environment.yml
-   conda activate healer
+   export HEALER_DATA_DIR=~/.healer
    ```
 
-3. **Install HEALER in development mode:**
-   ```bash
-   pip install -e .
-   ```
+### Custom Libraries
 
-### Building Block Setup
+Any SDF file can be used as a building block source. Just preprocess it:
 
-HEALER needs a pre-processed building block database. You can use your own library of building blocks or use commercial building block databases from **Enamine**, which are freely available:
+```bash
+preprocess-bb my_custom_library.sdf -o ~/.healer/buildingblocks/
+```
 
-1. **Download building blocks** from [Enamine Building Blocks Catalog](https://enamine.net/building-blocks/building-blocks-catalog)
-   - Download the SDF files for your desired catalog (US Stock, EU Stock, or Global Stock)
-   - Place the downloaded ZIP files in `healer/data/buildingblocks/`
+Then reference it by path:
+```python
+healer = MoleculeHEALER(bb_source='/path/to/my_custom_library_processed.sdf')
+```
 
-2. **Preprocess building blocks:**
-   
-   This step might take some time depending on the number of files and their sizes. For US Stock, it takes around 10-12 minutes. If you want to use your own library of building blocks, process the file as shown below; later when you use the Python API or CLI, pass the absolute path of the processed file to the `bb_supplier`/`bb_source` argument.
-
-   ```bash
-   # Process a single building block file (automatically extracts ZIP files)
-   # No need to rename the files here, HEALER will recognize the Enamine naming patterns.
-   python scripts/preprocess_bb_source.py healer/data/buildingblocks/Enamine_Rush-Delivery_Building_Blocks-US.zip --verbose
-   
-   # Process all building block files
-   for file in healer/data/buildingblocks/*.zip; do
-       python scripts/preprocess_bb_source.py "$file" --verbose
-   done
-   ```
-
-   The preprocessing script:
-   - Automatically extracts ZIP files
-   - Removes salt/solvent fragments
-   - Annotates molecules with compatible reactions
-   - Creates `*_processed.sdf` files ready for use
-
-## 💻 Usage
+## Quick Start
 
 ### Python API
 
-#### MoleculeHEALER - Full Retrosynthetic Enumeration
-
 ```python
-from healer.application.healer import MoleculeHEALER
+from healer import MoleculeHEALER
 
 # Initialize with building block source and reaction filters
 healer = MoleculeHEALER(
-    bb_supplier='US_stock',  # Options: 'US_stock', 'EU_stock', 'Global_stock'
-    reaction_tags=['amide coupling', 'N-arylation', 'alkylation'],  # or 'all'
-    max_evals_per_comp=1000,
-    shuffle_bbs=False,
-    sim_threshold=0.30,
-    max_bbs_per_comp=10,
-    verbose=1
+    bb_source='test',  # Use test set or path to processed SDF
+    reaction_tags=['amide coupling', 'N-arylation'],
+    sim_threshold=0.5,
 )
 
-# Set query molecule
-query_smiles = "CC1(C)SC2C(NC(=O)Cc3ccccc3)C(=O)N2C1C(=O)O"  # Penicillin G
-healer.set_query_mol(
-    query_mol=query_smiles,
-    n_compositions=10,              # Number of compositions to use
-    randomize_compositions=True,    # Select compositions randomly
-    random_seed=-1,                 # Seed for randomization
-    retro_tree_depth=2,             # Depth of retrosynthetic analysis
-    min_frag_size=3,                # Minimum fragment size
-    custom_split_sites=None         # Manual splits for the molecule
-)
-
-# Perform enumeration
-healer.enumerate()
+# Set query molecule and enumerate
+healer.set_query_mol("CC1(C)SC2C(NC(=O)Cc3ccccc3)C(=O)N2C1C(=O)O", n_compositions=10)
+healer.enumerate(max_evals_per_comp=500)
 
 # Get results
-results = healer.get_results(
-    calc_similarity=True,    # Calculate Tanimoto similarity to query
-    calc_stoplight=False,    # Calculate stoplight scores
-    calc_cns_mpo=False      # Calculate CNS-MPO scores
-)
-
+results = healer.get_results(calc_similarity=True, calc_properties=True)
 print(f"Generated {len(results)} analogs")
-print(results.head())
-
 ```
 
-#### SiteHEALER - Site-Specific Enumeration
-
-```python
-from healer.application.healer import SiteHEALER
-
-# Initialize with property-based filters
-healer = SiteHEALER(
-    bb_supplier='EU_stock',
-    reaction_tags=['amide coupling', 'C-N bond formation'],
-    max_evals_per_comp=500,
-    shuffle_bbs=False,
-    rules={
-        'MW': (100, 500),      # Molecular weight range
-        'HBD': (0, 5),         # H-bond donors
-        'HBA': (0, 10),        # H-bond acceptors  
-        'TPSA': (0, 140),      # Topological polar surface area
-        'RotB': (0, 10),       # Rotatable bonds
-        'Rings': (1, 4),       # Number of rings
-        'ArRings': (0, 3),     # Aromatic rings
-        'Chiral': (0, 2)       # Chiral centers
-    },
-    struct_rules=[],           # Optional SMARTS patterns
-    verbose=1
-)
-
-# Set query with specific reactive sites
-healer.set_query_mol(
-    query_mol=query_smiles,
-    reactive_sites=[5, 12, 18]  # Atom indices for reaction sites
-)
-
-healer.enumerate()
-results = healer.get_results(calc_similarity=True)
-```
-
-#### FragmentHEALER - Fragment-Based Enumeration
-
-```python
-from healer.application.healer import FragmentHEALER
-
-# Initialize for fragment-based enumeration
-healer = FragmentHEALER(
-    bb_supplier='Global_stock',
-    reaction_tags='all',
-    max_evals_per_comp=2000,
-    shuffle_bbs=False,
-    sim_threshold=0.25,
-    max_bbs_per_comp=15,
-    verbose=1
-)
-
-# Set query molecule containing multiple fragments
-query_smiles = "CC2(C)SC1C(N)C(=O)N1C2C(=O)O.O=C(O)Cc1ccccc1"
-healer.set_query_mol(query_mol=query_smiles)
-healer.enumerate()
-results = healer.get_results(calc_similarity=True)
-```
-
-### Command-Line Interface
-
-The CLI supports batch processing and parallel execution:
+### Command Line
 
 ```bash
-# Single molecule enumeration
-healer molecule "CC1(C)SC2C(NC(=O)Cc3ccccc3)C(=O)N2C1C(=O)O" \
-    --bb_source US_stock \
-    --reaction_tags "amide coupling,N-arylation" \
-    --max_evals_per_comp 1000 \
-    --calculate_similarity \
-    --output results.csv
+# Basic enumeration
+healer molecule "CCO" --bb-source test -o results.csv
 
-# Batch processing from file
-healer molecule molecules.smi \
-    --header \
-    --column_name smiles \
-    --bb_source EU_stock \
-    --workers 4 \
-    --output batch_results.csv
+# View molecule with atom indices (for site specification)
+healer view "c1ccccc1N"
 
-# Site enumeration with filters
-healer site "CN1C(=O)C2C(c3ccccc3)NNC2C1=O" \
-    --bb_source Global_stock \
-    --MW_range 150:400 \
-    --HBD_range 0:3 \
-    --TPSA_range 0:100 \
-    --output site_results.csv
+# Site-specific enumeration
+healer site "c1ccccc1N" --reactive-sites "[5]" --bb-source test
 
-# Fragment enumeration
-healer fragment "CC2(C)SC1C(N)C(=O)N1C2C(=O)O.O=C(O)Cc1ccccc1" \
-    --bb_source US_stock \
-    --sim_threshold 0.40 \
-    --output fragment_results.csv
+# Fragment-based enumeration
+healer fragment "c1ccccc1.CC(=O)O" --bb-source test
 
-# Available options
-healer --help
+# Parallel processing for batch inputs
+healer molecule input.csv --workers 4 -o results.csv
 ```
 
-### Web Application
+## Contributing Reactions
 
-Launch the interactive Dash web interface:
+We welcome contributions to expand our reaction library! Each reaction entry in `reactions.json` follows this format:
+
+```json
+{
+  "reaction-name": {
+    "description": "Brief description of the reaction mechanism",
+    "long_name": "Full reaction name",
+    "syn_smarts": "[reactant1].[reactant2]>>[product]",
+    "retro_smarts": "[product]>>[fragment1].[fragment2]",
+    "rhs_classes": ["bb-class-1", "bb-class-2"],
+    "tags": ["reaction-type", "functional-group"],
+    "tier": 1
+  }
+}
+```
+
+Key fields: `syn_smarts` (forward reaction), `retro_smarts` (retrosynthetic transform), `rhs_classes` (building block functional group classes), and `tags` (for filtering).
+
+To contribute a reaction, please open a [GitHub issue](https://github.com/eneskelestemur/healer/issues) with your proposed reaction SMARTS, or contact enes.kelestemur@ucsf.edu.
+
+## Usage
+
+### HEALER Classes
+
+| Class | Use Case | Input |
+|-------|----------|-------|
+| `MoleculeHEALER` | Full retrosynthetic enumeration | Single molecule SMILES |
+| `FragmentHEALER` | Enumeration from fragments | Dot-separated SMILES |
+| `SiteHEALER` | Site-specific enumeration | Molecule + atom indices |
+
+### Key Parameters
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| **Common (all modes)** | | |
+| `bb_source` | Building block library (path to processed SDF) | `'test'` |
+| `reaction_tags` | Filter reactions by tag (list or `'all'`) | `'all'` |
+| `shuffle_bb_order` | Randomize building block order | `False` |
+| `max_evals_per_comp` | Max reaction attempts per composition | `None` (unlimited) |
+| `max_products_per_comp` | Max products per composition | `None` (unlimited) |
+| `max_total_products` | Stop after this many total products | `None` (unlimited) |
+| | | |
+| **MoleculeHEALER / FragmentHEALER** | | |
+| `sim_threshold` | Minimum Tanimoto similarity for BB matching | `0.5` |
+| `max_bbs_per_frag` | Max BBs per fragment (`-1` = use threshold) | `-1` |
+| `n_compositions` | Number of fragment compositions to explore | `10` |
+| `retro_tree_depth` | Depth of retrosynthetic tree search | `1` |
+| `min_frag_size` | Minimum fragment size in heavy atoms | `3` |
+| `randomize_compositions` | Shuffle composition order | `False` |
+| `random_seed` | Seed for reproducibility (`-1` = random) | `-1` |
+| `custom_split_sites` | Manual bond indices to break (skips retro) | `None` |
+| | | |
+| **SiteHEALER** | | |
+| `reactive_sites` | Atom indices for enumeration (list of ints) | `None` (all sites) |
+| `rules` | Property filters, e.g., `{'MW': (0, 500)}` | `{}` |
+| `struct_rules` | Required SMARTS patterns in BBs | `[]` |
+
+### CLI Commands
 
 ```bash
-# Navigate to webserver directory
-cd webserver
-
-# Local Mode (default - unlimited parameters)
-python app.py
-
-# Server Mode (enforced limits for shared deployment) 
-export HEALER_SERVER_MODE=true && python app.py
+healer molecule <input> [options]   # Molecule-based enumeration
+healer site <input> [options]       # Site-specific enumeration  
+healer fragment <input> [options]   # Fragment-based enumeration
+healer view <smiles>                # Visualize with atom indices
 ```
 
-Then navigate to `http://localhost:8053` in your browser for the modern web interface featuring:
-- **Automatic Fragment Detection**: Smart switching between MoleculeHEALER and FragmentHEALER
-- **Server/Local Mode**: Configurable computational limits for deployment
-- **Enhanced UI**: Bootstrap Minty theme with comprehensive tooltips
-- **Tab-based Interface**: Separate Molecule HEALER and Site HEALER workflows
-- **Real-time Enumeration**: Background processing with progress indicators
-- **Results Export**: CSV download with building block URLs
-- **Parameter Validation**: Real-time validation with user feedback
+Run `healer <command> --help` for detailed options.
 
-## 🔧 Configuration
+## Web Interface
 
-### Building Block Sources
+HEALER includes a web UI for interactive use.
 
-- **US_stock**: US-available Enamine building blocks
-- **EU_stock**: EU-available Enamine building blocks  
-- **Global_stock**: Complete global Enamine catalog
-- **Custom path**: Path to your own processed SDF file
+### Local Mode (Simple)
 
-### Reaction Tags
-
-Available reaction types include:
-- `amide coupling`
-- `N-arylation` 
-- `alkylation`
-- `azole formation`
-- `C-C coupling`
-- `cyclization`
-- And many more... (use `'all'` for complete list)
-
-### Optimization (Still in development)
-
-HEALER supports integration with optimization algorithms for objective-driven enumeration:
-
-```python
-from healer.application.optimizers import BaseStagewiseOptimizer
-
-# Custom optimizer example
-class MyOptimizer(BaseStagewiseOptimizer):
-    def target_fn(self, mol):
-        # Your objective function (e.g., docking score, QSAR prediction)
-        return calculate_score(mol)
-    
-    def filter(self, candidates, depth):
-        # Filter candidates at each stage
-        return top_candidates
-
-healer.enumerate(optimizer=MyOptimizer())
+```bash
+# Start the server (no Redis needed)
+healer-ui
 ```
 
-## 📊 Output Format
+Open http://localhost:8000 in your browser.
 
-Results are returned as pandas DataFrames with the following columns:
+### Server Mode (Production)
 
-- **ID**: Unique identifier (HEAL_XXXXXX)
-- **Product**: SMILES of the enumerated molecule
-- **BB1, BB2, ...**: Building blocks used
-- **Reaction1_name, Reaction2_name, ...**: Reactions applied
-- **URL1, URL2, ...**: Enamine catalog URLs for building blocks
-- **Similarity_to_query**: Tanimoto similarity (if calculated)
-- **Additional properties**: Stoplight scores, CNS-MPO, custom metrics
+For deployments with multiple users, use Celery/Redis for async job processing:
 
-## 🧪 Examples
+```bash
+# Terminal 1: Redis
+redis-server
 
-See the `benchmark/` directory for comprehensive examples and the `figures.ipynb` notebook for analysis workflows.
+# Terminal 2: Celery worker
+celery -A healer.web.celery_worker worker --loglevel=info
 
-## 🤝 Contributing
+# Terminal 3: Backend
+HEALER_SERVER_MODE=true healer-ui
+```
+
+See [web_client/README.md](web_client/README.md) for development setup.
+
+## Configuration
+
+Copy `.env.example` to `.env` and customize:
+
+```bash
+cp .env.example .env
+```
+
+Key settings:
+- `HEALER_SERVER_MODE` — Enable async job processing
+- `HEALER_DATA_DIR` — Custom data directory
+- `HEALER_LIMIT_*` — Server parameter limits
+
+## Project Structure
+
+```
+healer/
+├── healer/                 # Core package
+│   ├── application/        # HEALER classes
+│   ├── domain/             # Data models
+│   ├── utils/              # Utilities
+│   ├── web/                # FastAPI backend
+│   ├── scripts/            # CLI scripts
+│   └── data/               # Bundled data (reactions, test BBs)
+├── web_client/             # React frontend
+├── tests/                  # Test suite
+└── benchmark/              # Benchmarking scripts
+```
+
+## Contributing
+
+Contributions are welcome! Please:
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📜 License
+### Development Setup
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+```bash
+git clone https://github.com/eneskelestemur/healer.git
+cd healer
+conda env create -f environment.yml
+conda activate healer
+pip install -e ".[web]"
 
-## 📚 Citation
+# Run tests
+pytest tests/
+
+# Start frontend dev server
+cd web_client && npm install && npm run dev
+```
+
+## Citation
 
 If you use HEALER in your research, please cite:
 
 ```bibtex
-@software{healer2024,
+@article{healer2025,
   title={HEALER: Hit Expansion to Advanced Leads Using Enumerated Reactions},
-  author={Kelestemur, Enes},
-  year={2024},
-  url={https://github.com/eneskelestemur/healer}
+  author={Kelestemur, Enes and ...},
+  journal={...},
+  year={2025}
 }
 ```
 
-## 🆘 Support
+## License
 
-- **Issues**: Report bugs and request features via [GitHub Issues](https://github.com/eneskelestemur/healer/issues)
-- **Documentation**: Additional examples in `figures.ipynb`
-- **Contact**: enesk@email.unc.edu
+This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
+
+## Acknowledgments
+
+- Reaction template formats mainly adapted from [datamol](https://github.com/datamol-io/datamol)
+- Building block preprocessing inspired by retrosynthesis literature
+- [Ketcher](https://github.com/epam/ketcher) for molecular drawing
 
 ---
 
-**Note**: HEALER uses freely available building block databases from Enamine. Please comply with Enamine's terms of use when downloading and using their catalogs.
+<p align="center">
+  <a href="https://github.com/eneskelestemur/healer/issues">Report Bug</a> •
+  <a href="https://github.com/eneskelestemur/healer/issues">Request Feature</a>
+</p>

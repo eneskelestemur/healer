@@ -1,0 +1,300 @@
+"""
+    Centralized repository for building blocks with lazy loading and caching.
+"""
+from __future__ import annotations
+
+import logging
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Dict, Iterator, List, Optional, Set
+
+from tqdm import tqdm
+from rdkit.Chem.FastSDMolSupplier import FastSDMolSupplier
+
+from healer.domain.building_block import BuildingBlock
+from healer.domain.reaction_template import ReactionTemplate21
+
+logger = logging.getLogger(__name__)
+
+
+_HEALER_PKG = Path(__file__).parent.parent
+_DATA_DIR = _HEALER_PKG / "data"
+_BB_DIR = _DATA_DIR / "buildingblocks"
+
+BB_PATHS: Dict[str, str] = {
+    "US_stock": str(_BB_DIR / "Enamine_Rush-Delivery_Building_Blocks-US" / "*_processed.sdf"),
+    "EU_stock": str(_BB_DIR / "Enamine_Rush-Delivery_Building_Blocks-EU" / "*_processed.sdf"),
+    "Global_stock": str(_BB_DIR / "Enamine_Building_Blocks_Stock" / "*_processed.sdf"),
+    "test": str(_BB_DIR / "test_100_bb_processed.sdf"),
+}
+
+
+def resolve_bb_path(bb_source: str) -> str:
+    """
+        Resolve a building block source name or pattern to an actual file path.
+        
+        Args:
+            bb_source: One of "US_stock", "EU_stock", "Global_stock", "test", 
+                    or a direct file path (optionally with glob patterns).
+        
+        Returns:
+            Resolved absolute file path.
+        
+        Raises:
+            FileNotFoundError: If no file matches the pattern.
+    """
+    pattern = BB_PATHS.get(bb_source, bb_source)
+    p = Path(pattern)
+
+    if any(ch in pattern for ch in ("*", "?", "[")):
+        search_dir = p.parent if p.parent != Path() else Path.cwd()
+        matches = list(search_dir.glob(p.name))
+        if not matches:
+            raise FileNotFoundError(f"No file matches {pattern!r}")
+        matches.sort(key=lambda f: f.stat().st_mtime, reverse=True)
+        chosen = matches[0]
+    else:
+        chosen = p
+
+    return str(chosen)
+
+
+@dataclass
+class BBRepository:
+    """
+        Centralized repository for building blocks with lazy loading and caching.
+        
+        Attributes:
+            source_path: Resolved path to the SDF file containing building blocks.
+        
+        Example:
+            >>> repo = BBRepository.from_source("US_stock")
+            >>> repo.load(reactions=my_reactions, show_progress=True)
+            >>> bbs = repo.get_bbs_for_reactions(my_reactions)
+    """
+
+    source_path: str
+    _supplier: FastSDMolSupplier = field(init=False, repr=False, default=None)
+    _all_bbs: List[BuildingBlock] = field(default_factory=list, init=False, repr=False)
+    _loaded: bool = field(default=False, init=False, repr=False)
+    
+    # Index mapping reaction names to sets of compatible BB indices
+    _reaction_bb_indices: Dict[str, Set[int]] = field(default_factory=dict, init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        self._supplier = FastSDMolSupplier(self.source_path, sanitize=True)
+
+    @classmethod
+    def from_source(cls, bb_source: str) -> "BBRepository":
+        """
+            Factory method to create a BBRepository from a source name or path.
+            
+            Args:
+                bb_source: One of "US_stock", "EU_stock", "Global_stock", "test",
+                        or a direct file path.
+            
+            Returns:
+                A new BBRepository instance.
+        """
+        resolved_path = resolve_bb_path(bb_source)
+        return cls(source_path=resolved_path)
+
+    @property
+    def total_count(self) -> int:
+        """Total number of BBs in source file (before filtering)."""
+        return len(self._supplier)
+
+    @property
+    def loaded_count(self) -> int:
+        """Number of BBs currently loaded in memory."""
+        return len(self._all_bbs)
+
+    @property
+    def is_loaded(self) -> bool:
+        """Whether BBs have been loaded from source."""
+        return self._loaded
+
+    def load(self, show_progress: bool = True) -> "BBRepository":
+        """
+            Load ALL building blocks from the source file.
+            
+            All BBs are loaded regardless of reaction compatibility. The reaction
+            index is built from the rxn_annotations property of each BB, allowing
+            efficient filtering later via get_bbs_for_reactions().
+            
+            Args:
+                show_progress: Whether to show a progress bar during loading.
+            
+            Returns:
+                self (for method chaining).
+        """
+        if self._loaded:
+            logger.debug("BBRepository already loaded, skipping reload")
+            return self
+
+        self._all_bbs = []
+        self._reaction_bb_indices = {}
+
+        for mol in tqdm(
+            self._supplier,
+            desc="Loading building blocks",
+            total=len(self._supplier),
+            disable=not show_progress,
+        ):
+            if mol is None:
+                continue
+                
+            bb = BuildingBlock(mol)
+            bb_rxn_annotations = bb.get_parsed_prop("rxn_annotations")
+            
+            if not isinstance(bb_rxn_annotations, dict):
+                bb_rxn_annotations = {}
+
+            # Store the BB
+            bb_idx = len(self._all_bbs)
+            self._all_bbs.append(bb)
+
+            # Index by all reactions this BB is compatible with
+            for rxn_name in bb_rxn_annotations.keys():
+                if rxn_name not in self._reaction_bb_indices:
+                    self._reaction_bb_indices[rxn_name] = set()
+                self._reaction_bb_indices[rxn_name].add(bb_idx)
+
+        self._loaded = True
+        logger.info(
+            "Loaded %d building blocks indexed for %d reaction types",
+            len(self._all_bbs),
+            len(self._reaction_bb_indices),
+        )
+        return self
+
+    def get_bbs_for_reactions(
+        self, reactions: List[ReactionTemplate21]
+    ) -> List[BuildingBlock]:
+        """
+            Get BBs compatible with ANY of the given reactions.
+            
+            Args:
+                reactions: List of reactions to filter by.
+            
+            Returns:
+                List of BuildingBlock objects (references, not copies).
+        """
+        if not self._loaded:
+            raise RuntimeError("BBRepository not loaded. Call load() first.")
+
+        indices: Set[int] = set()
+        for rxn in reactions:
+            indices |= self._reaction_bb_indices.get(rxn.name, set())
+
+        return [self._all_bbs[i] for i in sorted(indices)]
+
+    def iter_bbs_for_reactions(
+        self, reactions: List[ReactionTemplate21]
+    ) -> Iterator[BuildingBlock]:
+        """
+            Memory-efficient iterator over reaction-compatible BBs.
+            
+            Args:
+                reactions: List of reactions to filter by.
+            
+            Yields:
+                BuildingBlock objects compatible with any of the given reactions.
+        """
+        if not self._loaded:
+            raise RuntimeError("BBRepository not loaded. Call load() first.")
+
+        indices: Set[int] = set()
+        for rxn in reactions:
+            indices |= self._reaction_bb_indices.get(rxn.name, set())
+
+        for i in sorted(indices):
+            yield self._all_bbs[i]
+
+    def get_bb_by_index(self, idx: int) -> BuildingBlock:
+        """
+            Get a BB by its index in the loaded list.
+            
+            Args:
+                idx: Index of the BB.
+            
+            Returns:
+                The BuildingBlock at the given index.
+        """
+        if not self._loaded:
+            raise RuntimeError("BBRepository not loaded. Call load() first.")
+        return self._all_bbs[idx]
+
+    def get_all_bbs(self) -> List[BuildingBlock]:
+        """
+            Get all loaded BBs.
+            
+            Returns:
+                List of all loaded BuildingBlock objects.
+        """
+        if not self._loaded:
+            raise RuntimeError("BBRepository not loaded. Call load() first.")
+        return self._all_bbs
+
+    def __iter__(self) -> Iterator[BuildingBlock]:
+        """Iterate over all loaded BBs."""
+        if not self._loaded:
+            raise RuntimeError("BBRepository not loaded. Call load() first.")
+        return iter(self._all_bbs)
+
+    def __len__(self) -> int:
+        """Number of loaded BBs."""
+        return len(self._all_bbs)
+
+    def __contains__(self, bb: BuildingBlock) -> bool:
+        """Check if a BB is in the repository."""
+        return bb in self._all_bbs
+
+    def __getstate__(self) -> Dict[str, Any]:
+        """Exclude unpicklable FastSDMolSupplier."""
+        state = self.__dict__.copy()
+        state["_supplier"] = None
+        return state
+
+    def __setstate__(self, state: Dict[str, Any]) -> None:
+        """Restore FastSDMolSupplier on unpickle."""
+        self.__dict__.update(state)
+        self._supplier = FastSDMolSupplier(self.source_path, sanitize=True)
+
+
+##### Module-Level Cache for Session-Wide Sharing #####
+
+_REPOSITORY_CACHE: Dict[str, BBRepository] = {}
+
+
+def get_repository(bb_source: str) -> BBRepository:
+    """
+        Get or create a BBRepository for the given source.
+        
+        This enables automatic sharing of BBRepository instances across
+        multiple HEALER instances using the same BB source.
+        
+        Args:
+            bb_source: One of "US_stock", "EU_stock", "Global_stock", "test",
+                    or a direct file path.
+        
+        Returns:
+            A BBRepository instance (possibly cached).
+    """
+    resolved_path = resolve_bb_path(bb_source)
+    
+    if resolved_path not in _REPOSITORY_CACHE:
+        _REPOSITORY_CACHE[resolved_path] = BBRepository(source_path=resolved_path)
+    
+    return _REPOSITORY_CACHE[resolved_path]
+
+
+def clear_repository_cache() -> None:
+    """
+        Clear all cached repositories.
+        
+        Use this between batches or when switching to different BB sources
+        to free memory.
+    """
+    _REPOSITORY_CACHE.clear()
+

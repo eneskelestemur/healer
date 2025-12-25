@@ -1,26 +1,63 @@
-__pycache__
-.vscode
-*scratch*
-*.egg-info
-cache
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
 
-# data files
+# Virtual Environments
+.venv/
+venv/
+ENV/
+
+# Environment files (keep .env.example, ignore .env)
+.env
+!.env.example
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# HEALER Data (Large Files - inside package)
 healer/data/buildingblocks/*
+!healer/data/buildingblocks/test_100_bb.sdf
 !healer/data/buildingblocks/test_100_bb_processed.sdf
 
-# log or temporary files
+# Cache directories
+cache/
+
+# Temporary / Scratch Files
+*scratch*
+*.log
+*.tmp
+dump.rdb
+
+# Root-level output files (from CLI runs)
 /*.csv
 /*.tsv
 /*.smi
 /*.json
 /*.html
-/*.log
 /*.xlsx
 /*.out
 
-# large results files
+# Benchmark Results (Large)
 benchmark/results/*/*.csv
 !benchmark/results/*/*subset*
 
-# external/optional dependencies
-external/prop_profiler
+# Web Client (Node.js)
+web_client/node_modules/
+web_client/.vite/
+
+# External / Optional
+external/prop_profiler/
+
+# OS Generated
+.DS_Store
+Thumbs.db

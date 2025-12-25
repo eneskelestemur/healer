@@ -24,11 +24,11 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 dependencies = [
+  "prop-profiler>=0.1.0",
   "numpy",
   "pandas",
   "tqdm",
   "rdkit",
-  "prop-profiler>=0.1.0",
 ]
 
 [project.optional-dependencies]
@@ -50,7 +50,7 @@ preprocess-bb = "healer.scripts.preprocess_bb_source:cli"
 [tool.setuptools.packages.find]
 where   = ["."]
 include = ["healer*"]
-exclude = ["external*", "webserver*", "benchmark*", "notebooks*"]
+exclude = ["external*", "benchmark*", "notebooks*"]
 
 [tool.setuptools.package-data]
 healer = [

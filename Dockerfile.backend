@@ -2,9 +2,14 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install git if needed for some dependencies, or other tools
+# Install system dependencies including X11 libs for RDKit drawing
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    libxrender1 \
+    libxext6 \
+    libexpat1 \
+    libfontconfig1 \
+    libfreetype6 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy configuration

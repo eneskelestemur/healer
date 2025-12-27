@@ -28,6 +28,7 @@ dependencies = [
   "pandas",
   "tqdm",
   "rdkit",
+  "dotenv"
 ]
 
 [project.optional-dependencies]

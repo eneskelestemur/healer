@@ -58,7 +58,7 @@ def start():
     """Entry point for the 'healer-ui' command."""
     if not _WEB_AVAILABLE:
         print("Error: Web dependencies not installed.")
-        print("Install with: pip install healer[web]")
+        print("Install with: pip install mol-healer[web]")
         raise SystemExit(1)
     
     import uvicorn

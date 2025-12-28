@@ -36,7 +36,7 @@ HEALER generates synthetically accessible molecular analogs by combining retrosy
 ### Option 1: pip install (recommended)
 
 ```bash
-pip install healer
+pip install mol-healer
 ```
 
 ### Option 2: From source
@@ -56,7 +56,7 @@ pip install -e .
 ### Optional: Web interface
 
 ```bash
-pip install healer[web]
+pip install mol-healer[web]
 ```
 
 ## Building Blocks

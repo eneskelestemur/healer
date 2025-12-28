@@ -23,7 +23,7 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-  "prop-profiler>=0.2.0",
+  "prop-profiler>=0.2.1",
   "numpy",
   "pandas",
   "tqdm",
@@ -36,6 +36,9 @@ web = [
     "fastapi",
     "uvicorn[standard]",
     "celery[redis]",
+]
+dev = [
+    "pytest",
 ]
 
 [project.urls]

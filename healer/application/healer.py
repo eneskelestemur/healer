@@ -60,9 +60,9 @@ class _BaseHEALER(abc.ABC):
                 bb_repository: optional pre-loaded BBRepository for sharing across instances.
                 shuffle_bb_order: whether to shuffle the order of BBs after loading.
                 verbose: verbosity level.
-                    - 0: only errors
-                    - 1: warnings
-                    - 2: info
+                    - 0: WARNING
+                    - 1: INFO
+                    - 2: DEBUG
         '''
         # Set verbosity level (0=WARNING, 1=INFO, 2+=DEBUG)
         self.verbose: int = verbose
@@ -888,10 +888,23 @@ class MoleculeHEALER(_BaseHEALER):
         '''
             Return a loggable string representation of the compositions.
         '''
-        return '\n'.join(
-            f'Composition {i+1} fragments: {[Chem.MolToSmiles(frag) for frag in comp.fragments]}'
-            for i, comp in enumerate(self._compositions)
-        ) if self._compositions else 'No compositions found.'
+        if isinstance(self._compositions[0], CompositionPath):
+            return '\n'.join(
+                f'Composition {i+1} fragments: {[Chem.MolToSmiles(frag) for frag in comp.fragments]}'
+                for i, comp in enumerate(self._compositions)
+            ) if self._compositions else 'No compositions found.'
+        
+        elif isinstance(self._compositions[0], CompositionWithBBs):
+            return '\n'.join(
+                f'Composition {i+1} fragments: {[Chem.MolToSmiles(frag) for frag in comp.comp.fragments]}'
+                for i, comp in enumerate(self._compositions)
+            ) if self._compositions else 'No compositions found.'
+        
+        else:
+            raise TypeError(
+                f'Invalid type for compositions. Expected CompositionPath or CompositionWithBBs, '
+                f'got {type(self._compositions[0])}'
+            )
 
     def _process_building_blocks(self, bb_chunk_size: int=10000) -> None:
         '''

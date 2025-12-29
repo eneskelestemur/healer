@@ -3,6 +3,7 @@
 """
 from __future__ import annotations
 
+import os
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 _HEALER_PKG = Path(__file__).parent.parent
 _DATA_DIR = _HEALER_PKG / "data"
-_BB_DIR = _DATA_DIR / "buildingblocks"
+_BB_DIR = Path(os.getenv("HEALER_DATA_DIR", str(_DATA_DIR / "buildingblocks")))
 
 BB_PATHS: Dict[str, str] = {
     "US_stock": str(_BB_DIR / "Enamine_Rush-Delivery_Building_Blocks-US" / "*_processed.sdf"),

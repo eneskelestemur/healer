@@ -374,7 +374,8 @@ def add_common_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('--bb-source', default='US_stock',
                         help='Building block source: US_stock, EU_stock, Global_stock, or path')
     parser.add_argument('--reactions', default='all',
-                        help='Comma-separated reaction tags or "all" (default: all)')
+                        help=f'Comma-separated reaction tags or "all" (default: all). '
+                             f'Available tags: {", ".join(utils.get_reaction_tags())}')
     parser.add_argument('--shuffle', action='store_true',
                         help='Shuffle building block order')
     

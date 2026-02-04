@@ -340,12 +340,10 @@ def format_enumeration_results(results: List[Dict[str, Any]], app_type: str) -> 
                     if result.get(url_key):
                         display_result[url_key] = result[url_key]
         elif app_type == 'site':
-            if bb_keys and result.get(bb_keys[0]):
-                display_result['BB'] = result[bb_keys[0]]
-                if result.get('URL'):
-                    display_result['URL'] = result['URL']
-                elif result.get('URL1'):
-                    display_result['URL'] = result['URL1']
+            if bb_keys and result.get(bb_keys[1]):
+                display_result['BB'] = result[bb_keys[1]]
+                if result.get('URL2'):
+                    display_result['URL'] = result['URL2']
         
         rxn_keys = [k for k in result.keys() if k.startswith('Reaction') and k.endswith('_name')]
         if rxn_keys:

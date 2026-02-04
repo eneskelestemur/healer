@@ -6,6 +6,7 @@ import os
 import sys
 import json
 import base64
+from pathlib import Path
 from typing import List, Union, Tuple
 from itertools import chain
 
@@ -91,6 +92,21 @@ def read_cxsmiles_file(file_path: str, header: bool=True) -> list[str]:
             smiles_list.append(smi)
 
     return smiles_list
+
+def get_reaction_tags() -> list[str]:
+    '''
+        Retrieves available reaction tags from the reaction_tags.txt file.
+
+        Returns:
+            list of reaction tags as strings.
+    '''
+    healer_pkg = Path(__file__).parent.parent
+    reaction_tags_path = healer_pkg / 'data' / 'reactions' / 'reaction_tags.txt'
+    
+    with open(reaction_tags_path, 'r') as file:
+        tags = [line.strip() for line in file if line.strip()]
+    
+    return tags
 
 def load_reactions_from_json(file_path: str) -> list[ReactionTemplate21]:
     '''

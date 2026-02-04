@@ -248,6 +248,7 @@ async def get_reaction_tags():
         reaction_tags_path = healer_pkg / 'data' / 'reactions' / 'reaction_tags.txt'
         
         if not reaction_tags_path.exists():
+            print("Warning: reaction_tags.txt not found, returning default tags")
             return ["amide coupling", "amide", "C-N bond formation", "C-N",
                     "alkylation", "N-arylation", "azole", "amination"]
 

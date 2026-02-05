@@ -152,7 +152,7 @@ We welcome contributions to expand our reaction library! Each reaction entry in 
 
 Key fields: `syn_smarts` (forward reaction), `retro_smarts` (retrosynthetic transform), `rhs_classes` (building block functional group classes), and `tags` (for filtering).
 
-To contribute a reaction, please open a [GitHub issue](https://github.com/eneskelestemur/healer/issues) with your proposed reaction SMARTS, or contact enes.kelestemur@ucsf.edu.
+To contribute a reaction, please open a [GitHub issue](https://github.com/eneskelestemur/healer/issues) with your proposed reaction SMARTS, or contact enesk@email.unc.edu.
 
 ## Usage
 

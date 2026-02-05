@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mol-healer"
-version = "0.1.1"
+version = "0.1.2"
 description = "Hit Expansion to Advanced Leads Using Enumerated Reactions"
 readme = "README.md"
 license = "MIT"

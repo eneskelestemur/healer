@@ -3,7 +3,7 @@
 from healer.application.healer import MoleculeHEALER, SiteHEALER, FragmentHEALER
 from healer.domain.bb_repository import get_repository, clear_repository_cache, BB_PATHS
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 __all__ = [
     "MoleculeHEALER",

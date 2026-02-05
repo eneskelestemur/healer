@@ -241,8 +241,14 @@ function App() {
           </Text>
 
           <Text size="sm">
-            The reaction library is available at <Anchor href="#" target="_blank">[Reaction Library Placeholder]</Anchor>. 
-            Please reach out to us if you wish to add custom reaction SMARTS.
+            The reaction library is available <Anchor href="https://github.com/eneskelestemur/healer/blob/main/healer/data/reactions/reactions.json" target="_blank">here</Anchor>. 
+            Please reach out to us if you wish to add custom reaction SMARTS. You can learn more about the reaction library format 
+            at <Anchor href="https://github.com/eneskelestemur/healer?tab=readme-ov-file#contributing-reactions" target="_blank">Contributing Reactions</Anchor>.
+          </Text>
+
+          <Text size="sm">
+            To raise issues, suggest features, contribute to the project, or open discussions, please use 
+            the <Anchor href="https://github.com/eneskelestemur/healer/issues" target="_blank">GitHub Issues Page</Anchor>.
           </Text>
 
           <Divider variant="dashed" label="Usage & Privacy" labelPosition="center" />
@@ -261,7 +267,7 @@ function App() {
           <Group gap="xs" mt="xs">
             <Anchor href="#" size="xs" target="_blank" fw={700}>[Cite HEALER Paper]</Anchor>
             <Text size="xs" c="dimmed">|</Text>
-            <Anchor href="https://github.com/eneskelestemur/healer" size="xs" target="_blank" fw={700}>[GitHub Repository]</Anchor>
+            <Anchor href="https://github.com/eneskelestemur/healer" size="xs" target="_blank" fw={700}>HEALER GitHub Repo</Anchor>
           </Group>
         </Stack>
       </Paper>

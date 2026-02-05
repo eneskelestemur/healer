@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mol-healer"
-version = "0.1.2"
+version = "0.1.3"
 description = "Hit Expansion to Advanced Leads Using Enumerated Reactions"
 readme = "README.md"
 license = "MIT"
@@ -58,7 +58,8 @@ exclude = ["external*", "benchmark*", "notebooks*"]
 [tool.setuptools.package-data]
 healer = [
     "web/static/**/*",
-    "data/reactions/*.json",
+    "data/reactions/reactions.json",
+    "data/reactions/reaction_tags.txt",
     "data/buildingblocks/test_100_bb.sdf",
     "data/buildingblocks/test_100_bb_processed.sdf",
 ]

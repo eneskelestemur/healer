@@ -8,8 +8,9 @@ from tqdm import tqdm
 import pandas as pd
 import numpy as np
 from rdkit import Chem
-from rdkit.Chem import Descriptors, rdMolDescriptors, rdFingerprintGenerator
+from rdkit.Chem import Descriptors, rdMolDescriptors
 from prop_profiler import profile_molecules
+from healer.utils.fingerprints import get_fingerprint_generator
 
 from healer.application.tree_builder import CompositionPath, RetrosynthesisTree
 from healer.domain.composition import CompositionWithBBs
@@ -96,9 +97,7 @@ class _BaseHEALER(abc.ABC):
             self._bb_shuffle_indices = np.random.permutation(len(self._bb_repo))
 
         # Fingerprint generator
-        self._fp_generator = rdFingerprintGenerator.GetMorganGenerator(
-            radius=3, fpSize=2048, includeChirality=True
-        )
+        self._fp_generator = get_fingerprint_generator()
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -107,9 +106,7 @@ class _BaseHEALER(abc.ABC):
     
     def __setstate__(self, state):
         self.__dict__.update(state)
-        self._fp_generator = rdFingerprintGenerator.GetMorganGenerator(
-            radius=3, fpSize=2048, includeChirality=True
-        )
+        self._fp_generator = get_fingerprint_generator()
 
     @property
     def bb_mols(self) -> List[BuildingBlock]:
@@ -432,7 +429,7 @@ class _BaseHEALER(abc.ABC):
         '''
         return [
             EnumerationRecord(
-                product=bb.get_mol(), bbs=[bb], reaction_names=[], props={}
+                product=bb.mol, bbs=[bb], reaction_names=[], props={}
             ) for bb in bb0_pool
         ]
     
@@ -699,6 +696,7 @@ class SiteHEALER(_BaseHEALER):
         for bb in bb_mols:
             if self._check_rules(bb) and self._check_struct_rules(bb):
                 filtered_bbs.append(bb)
+            bb.evict()    # free mol memory after checking rules
         self._compositions = [
             CompositionWithBBs(
                 comp=comp,
@@ -913,8 +911,9 @@ class MoleculeHEALER(_BaseHEALER):
             if given.
         '''
         bb_mols = self.bb_mols
-        bb_sizes = np.array([bb.GetNumHeavyAtoms() for bb in bb_mols])
-        bb_fps = self._get_fingerprints(bb_mols)
+        bb_sizes = np.array([bb.num_heavy_atoms for bb in bb_mols])
+        bb_fps = [bb.fingerprint for bb in bb_mols]
+        n_bbs = len(bb_mols)
 
         frag_lists = [path.fragments for path in self._compositions]
         offsets = np.concatenate(([0], np.cumsum([len(frag_list) for frag_list in frag_lists])))
@@ -922,7 +921,6 @@ class MoleculeHEALER(_BaseHEALER):
         frag_sizes = np.array([frag.GetNumHeavyAtoms() for frag in frags_flatten])[:, None]
         frag_fps = self._get_fingerprints(frags_flatten)
         
-        n_bbs = len(bb_mols)
         sims = np.zeros((len(frags_flatten), n_bbs), dtype=np.float16)
         for start in range(0, n_bbs, bb_chunk_size):
             end = min(start + bb_chunk_size, n_bbs)

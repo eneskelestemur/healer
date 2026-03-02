@@ -47,14 +47,14 @@ def _unwrap(obj):
     '''
     # Fast path: most common case
     if type(obj) is BuildingBlock:
-        return obj._mol
+        return obj.mol
     if type(obj) is list:
         return [_unwrap(x) for x in obj]
     if type(obj) is tuple:
         return tuple(_unwrap(x) for x in obj)
     # Slow path: subclasses of BuildingBlock (if any)
     if isinstance(obj, BuildingBlock):
-        return obj._mol
+        return obj.mol
     return obj
 
 def _wrap(fn):

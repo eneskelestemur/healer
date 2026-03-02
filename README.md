@@ -128,8 +128,8 @@ healer site "c1ccccc1N" --reactive-sites "[5]" --bb-source test
 # Fragment-based enumeration
 healer fragment "c1ccccc1.CC(=O)O" --bb-source test
 
-# Parallel processing for batch inputs
-healer molecule input.csv --workers 4 -o results.csv
+# Parallel synthesis loop (uses all CPUs)
+healer molecule input.csv --n-jobs -1 -o results.csv
 ```
 
 ## Contributing Reactions

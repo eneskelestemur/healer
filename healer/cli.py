@@ -3,10 +3,6 @@
 '''
 import healer.utils.rdkit_monkey_patch  # noqa: F401 - must be first
 
-import os
-os.environ["OMP_NUM_THREADS"] = "1"
-os.environ["MKL_NUM_THREADS"] = "1"
-
 import json
 import logging
 import argparse
@@ -14,8 +10,6 @@ import tempfile
 import webbrowser
 import base64
 from pathlib import Path
-from multiprocessing import Pool
-from functools import partial
 
 import pandas as pd
 from tqdm import tqdm
@@ -23,13 +17,9 @@ from rdkit import Chem
 from rdkit.Chem import SDMolSupplier
 
 from healer.application.healer import MoleculeHEALER, SiteHEALER, FragmentHEALER
-from healer.domain.bb_repository import get_repository
 import healer.utils.utils as utils
 
 logger = logging.getLogger(__name__)
-
-# Global healer for worker processes
-_worker_healer = None
 
 
 ### Input Loading ###
@@ -115,51 +105,6 @@ def cmd_view(args: argparse.Namespace) -> None:
         webbrowser.open(f'file://{temp_path}')
 
 
-### Worker Initialization and Processing for Parallel Execution ###
-
-def _init_worker(healer_type: str, init_kwargs: dict, bb_source: str) -> None:
-    """Initialize healer in worker process."""
-    global _worker_healer
-    
-    # Get shared repository (will use cached if available)
-    bb_repo = get_repository(bb_source)
-    if not bb_repo.is_loaded:
-        bb_repo.load(show_progress=False)
-    
-    init_kwargs['bb_repository'] = bb_repo
-    init_kwargs['bb_source'] = bb_source
-    
-    if healer_type == 'molecule':
-        _worker_healer = MoleculeHEALER(**init_kwargs)
-    elif healer_type == 'site':
-        _worker_healer = SiteHEALER(**init_kwargs)
-    elif healer_type == 'fragment':
-        _worker_healer = FragmentHEALER(**init_kwargs)
-
-
-def _process_molecule(
-    smiles: str, 
-    query_kwargs: dict, 
-    enumerate_kwargs: dict,
-    results_kwargs: dict
-) -> pd.DataFrame:
-    """Process a single molecule in worker."""
-    global _worker_healer
-    
-    mol = Chem.MolFromSmiles(smiles)
-    if mol is None:
-        logger.warning("Skipping invalid SMILES: %s", smiles)
-        return pd.DataFrame()
-    
-    try:
-        _worker_healer.set_query_mol(query_mol=smiles, **query_kwargs)
-        _worker_healer.enumerate(**enumerate_kwargs)
-        return _worker_healer.get_results(**results_kwargs)
-    except Exception as e:
-        logger.error("Error processing %s: %s", smiles, e)
-        return pd.DataFrame()
-
-
 ### Enumeration Command Handlers ###
 
 def get_init_kwargs(args: argparse.Namespace, healer_type: str) -> dict:
@@ -206,6 +151,7 @@ def get_enumerate_kwargs(args: argparse.Namespace) -> dict:
         'max_evals_per_comp': args.max_evals,
         'max_products_per_comp': args.max_products,
         'max_total_products': args.max_total,
+        'n_jobs': args.n_jobs,
     }
 
 
@@ -228,7 +174,7 @@ def parse_rules(rules_str: str) -> dict:
     return rules
 
 
-def run_sequential(
+def run_enumeration(
     healer_type: str,
     smiles_list: list[str],
     init_kwargs: dict,
@@ -238,10 +184,18 @@ def run_sequential(
     output_path: str,
     verbose: int
 ) -> None:
-    """Run enumeration sequentially."""
-    logger.info("Starting sequential enumeration for %d molecule(s)", len(smiles_list))
+    """Run enumeration for one or more molecules.
     
-    # Initialize healer
+    Synthesis-level parallelism is controlled by ``n_jobs`` inside
+    *enumerate_kwargs* and handled by joblib inside the synthesis loop.
+    """
+    n_jobs = enumerate_kwargs.get('n_jobs', 1)
+    logger.info(
+        "Starting enumeration for %d molecule(s) (n_jobs=%s)",
+        len(smiles_list), n_jobs,
+    )
+    
+    # Initialize healer once — reused across all molecules
     if healer_type == 'molecule':
         healer = MoleculeHEALER(**init_kwargs)
     elif healer_type == 'site':
@@ -271,57 +225,6 @@ def run_sequential(
     logger.info("Results saved to %s", out)
 
 
-def run_parallel(
-    healer_type: str,
-    smiles_list: list[str],
-    init_kwargs: dict,
-    query_kwargs: dict,
-    enumerate_kwargs: dict,
-    results_kwargs: dict,
-    output_path: str,
-    workers: int,
-    verbose: int
-) -> None:
-    """Run enumeration in parallel."""
-    logger.info("Starting parallel enumeration with %d workers", workers)
-    
-    # Extract bb_source for worker init
-    bb_source = init_kwargs.get('bb_source')
-    
-    # Pre-load repository in main process
-    bb_repo = get_repository(bb_source)
-    if not bb_repo.is_loaded:
-        bb_repo.load(show_progress=verbose >= 1)
-    
-    out = Path(output_path)
-    first = True
-    
-    worker_fn = partial(
-        _process_molecule,
-        query_kwargs=query_kwargs,
-        enumerate_kwargs=enumerate_kwargs,
-        results_kwargs=results_kwargs
-    )
-    
-    with Pool(
-        processes=workers,
-        initializer=_init_worker,
-        initargs=(healer_type, init_kwargs, bb_source)
-    ) as pool:
-        for df in tqdm(
-            pool.imap(worker_fn, smiles_list),
-            total=len(smiles_list),
-            desc="Enumerating",
-            disable=verbose >= 2
-        ):
-            if df.empty:
-                continue
-            df.to_csv(str(out), mode='w' if first else 'a', header=first, index=False)
-            first = False
-    
-    logger.info("Results saved to %s", out)
-
-
 def cmd_enumerate(args: argparse.Namespace, healer_type: str) -> None:
     """Run enumeration for molecule/site/fragment commands."""
     # Load config if provided
@@ -346,16 +249,10 @@ def cmd_enumerate(args: argparse.Namespace, healer_type: str) -> None:
         json.dump(args_dict, f, indent=2)
     
     # Run enumeration
-    if args.workers > 1:
-        run_parallel(
-            healer_type, smiles_list, init_kwargs, query_kwargs,
-            enumerate_kwargs, results_kwargs, args.output, args.workers, args.verbose
-        )
-    else:
-        run_sequential(
-            healer_type, smiles_list, init_kwargs, query_kwargs,
-            enumerate_kwargs, results_kwargs, args.output, args.verbose
-        )
+    run_enumeration(
+        healer_type, smiles_list, init_kwargs, query_kwargs,
+        enumerate_kwargs, results_kwargs, args.output, args.verbose
+    )
 
 
 ### Argument Parser Construction ###
@@ -394,8 +291,9 @@ def add_common_args(parser: argparse.ArgumentParser) -> None:
                         help='Calculate molecular properties')
     
     # Execution
-    parser.add_argument('--workers', type=int, default=1,
-                        help='Number of parallel workers (default: 1)')
+    parser.add_argument('--n-jobs', type=int, default=1,
+                        help='Parallel threads for synthesis loop: 1=sequential, '
+                             '-1=all CPUs (default: 1)')
     parser.add_argument('-v', '--verbose', action='count', default=1,
                         help='Increase verbosity (-v for info, -vv for debug)')
 

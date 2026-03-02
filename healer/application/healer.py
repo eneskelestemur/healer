@@ -7,6 +7,7 @@ from itertools import chain, islice
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
+from joblib import Parallel, delayed
 from rdkit import Chem
 from rdkit.Chem import Descriptors, rdMolDescriptors
 from prop_profiler import profile_molecules
@@ -38,6 +39,42 @@ logger = logging.getLogger(__name__)
 _HEALER_PKG = Path(__file__).parent.parent
 _DATA_DIR = _HEALER_PKG / 'data'
 _REACTIONS_FILE = _DATA_DIR / 'reactions' / 'reactions.json'
+
+
+def _chunked(iterable, size: int):
+    '''Yield successive chunks from an iterable without materialising it fully.'''
+    it = iter(iterable)
+    while True:
+        chunk = list(islice(it, size))
+        if not chunk:
+            break
+        yield chunk
+
+
+def _apply_candidate_chunk(
+    chunk: list,
+) -> list:
+    '''
+        Process a chunk of (EnumerationRecord, BuildingBlock, ReactionTemplate21)
+        tuples. Top-level function so it is picklable by loky workers.
+    '''
+    import healer.utils.rdkit_monkey_patch  # noqa: F401 – ensure patch in worker
+    results = []
+    for rec, bb, rxn in chunk:
+        mol0 = rec.product
+        for product in rxn.run_syn(mol0, bb):
+            flags = Chem.SanitizeMol(product, catchErrors=True)
+            if flags != Chem.rdmolops.SanitizeFlags.SANITIZE_NONE:
+                continue
+            results.append(
+                EnumerationRecord(
+                    product=product,
+                    bbs=rec.bbs + [bb],
+                    reaction_names=rec.reaction_names + [rxn.name],
+                    props=dict(rec.props),
+                )
+            )
+    return results
 
 
 class _BaseHEALER(abc.ABC):
@@ -188,7 +225,8 @@ class _BaseHEALER(abc.ABC):
         optimizer: Optional[Union[BaseStagewiseOptimizer, BaseSequenceOptimizer]] = None,
         max_evals_per_comp: Optional[int] = None,
         max_products_per_comp: Optional[int] = None,
-        max_total_products: Optional[int] = None
+        max_total_products: Optional[int] = None,
+        n_jobs: int = 1,
     ) -> None:
         '''
             Enumerate the molecule with building blocks based on the reactions. An optimizer
@@ -199,6 +237,8 @@ class _BaseHEALER(abc.ABC):
                 max_evals_per_comp: maximum number of evaluations for each composition.
                 max_products_per_comp: maximum number of products per composition.
                 max_total_products: maximum number of total products.
+                n_jobs: number of parallel threads for synthesis. 1 = sequential (default),
+                    -1 = use all CPUs.
 
             Raises:
                 TypeError: if the optimizer is not of a supported type.
@@ -219,15 +259,15 @@ class _BaseHEALER(abc.ABC):
 
         if optimizer is None:
             self.enumerated_molecules += self._enumerate_base(
-                max_evals_per_comp, max_products_per_comp, max_total_products
+                max_evals_per_comp, max_products_per_comp, max_total_products, n_jobs
             )
         elif isinstance(optimizer, BaseStagewiseOptimizer):
             self.enumerated_molecules += self._enumerate_stagewise(
-                optimizer, max_evals_per_comp, max_products_per_comp, max_total_products
+                optimizer, max_evals_per_comp, max_products_per_comp, max_total_products, n_jobs
             )
         elif isinstance(optimizer, BaseSequenceOptimizer):
             self.enumerated_molecules += self._enumerate_sequence(
-                optimizer, max_evals_per_comp, max_products_per_comp, max_total_products
+                optimizer, max_evals_per_comp, max_products_per_comp, max_total_products, n_jobs
             )
         else:
             raise TypeError(f"Unsupported optimizer type: {type(optimizer)}. ")
@@ -261,7 +301,8 @@ class _BaseHEALER(abc.ABC):
         self,
         max_evals_per_comp: Optional[int] = None,
         max_products_per_comp: Optional[int] = None,
-        max_total_products: Optional[int] = None
+        max_total_products: Optional[int] = None,
+        n_jobs: int = 1,
     ) -> List[EnumerationRecord]:
         '''
             Exhaustive enumeration without optimization.
@@ -283,7 +324,7 @@ class _BaseHEALER(abc.ABC):
                 # Note: eval_count becomes approximate since we don't know exact count
                 # without consuming the generator. We count applied candidates instead.
                 prev_count = len(stage_records)
-                stage_records = self._apply_candidates(cands)
+                stage_records = self._apply_candidates(cands, n_jobs=n_jobs)
                 eval_count += len(stage_records) - prev_count if prev_count else len(stage_records)
 
             # Soft limit: truncate products per composition
@@ -305,7 +346,8 @@ class _BaseHEALER(abc.ABC):
         optimizer: BaseStagewiseOptimizer, 
         max_evals_per_comp: Optional[int] = None,
         max_products_per_comp: Optional[int] = None,
-        max_total_products: Optional[int] = None
+        max_total_products: Optional[int] = None,
+        n_jobs: int = 1,
     ) -> List[EnumerationRecord]:
         '''
             Stagewise enumeration with optimizer.filter() hook.
@@ -327,7 +369,7 @@ class _BaseHEALER(abc.ABC):
                     cands = islice(cands, remaining)
                 # Count based on results since generator length is unknown
                 prev_count = len(stage_records)
-                stage_records = self._apply_candidates(cands)
+                stage_records = self._apply_candidates(cands, n_jobs=n_jobs)
                 eval_count += len(stage_records) - prev_count if prev_count else len(stage_records)
 
             # Score and collect products
@@ -355,6 +397,7 @@ class _BaseHEALER(abc.ABC):
         max_evals_per_comp: Optional[int] = None,
         max_products_per_comp: Optional[int] = None,
         max_total_products: Optional[int] = None,
+        n_jobs: int = 1,
     ) -> List[EnumerationRecord]:
         '''
             Sequence-based enumeration using optimizer.ask() and optimizer.tell().
@@ -387,7 +430,7 @@ class _BaseHEALER(abc.ABC):
                             cands = islice(cands, remaining)
                     # Count based on results since generator length is unknown
                     prev_count = len(stage_records)
-                    stage_records = self._apply_candidates(cands)
+                    stage_records = self._apply_candidates(cands, n_jobs=n_jobs)
                     eval_count += len(stage_records) - prev_count if prev_count else len(stage_records)
 
                 # Collect feedback and products
@@ -463,16 +506,29 @@ class _BaseHEALER(abc.ABC):
     
     def _apply_candidates(
         self,
-        candidates: Iterable[Tuple[EnumerationRecord, BuildingBlock, ReactionTemplate21]]
+        candidates: Iterable[Tuple[EnumerationRecord, BuildingBlock, ReactionTemplate21]],
+        n_jobs: int = 1,
     ) -> List[EnumerationRecord]:
         '''
-            Batch-apply all candidates via _apply_candidate.            
-            Accepts any iterable (list, generator, islice, etc.) for flexibility.
+            Batch-apply all candidates via _apply_candidate.
+            Accepts any iterable (list, generator, islice, etc.).
         '''
-        next_stage_records: List[EnumerationRecord] = []
-        for rec, bb, rxn in candidates:
-            next_stage_records += self._apply_candidate(rec, bb, rxn)
-        return next_stage_records    
+        if n_jobs == 1:
+            next_stage_records: List[EnumerationRecord] = []
+            for rec, bb, rxn in candidates:
+                next_stage_records += self._apply_candidate(rec, bb, rxn)
+            return next_stage_records
+
+        chunk_size = 1000
+        nested: List[List[EnumerationRecord]] = Parallel(
+            n_jobs=n_jobs,
+            backend='loky',
+            pre_dispatch='2*n_jobs',
+        )(
+            delayed(_apply_candidate_chunk)(chunk)
+            for chunk in _chunked(candidates, chunk_size)
+        )
+        return [rec for batch in nested for rec in batch]    
     
     def _apply_candidate(
         self,
@@ -516,8 +572,15 @@ class _BaseHEALER(abc.ABC):
                 calc_properties (bool): if True, calculate additional properties.
                 skip_cns_mpo (bool): if True, skip calculating CNS MPO scores when calculating properties.
         '''
-        max_bb = max(len(r.bbs) for r in self.enumerated_molecules)
-        max_rxn = max(len(r.reaction_names) for r in self.enumerated_molecules)
+        max_bb = None
+        if isinstance(self, MoleculeHEALER):
+            max_bb = 2 ** self.retro_tree_depth
+        elif isinstance(self, SiteHEALER):
+            max_bb = 2    
+        else:
+            max_bb = max(len(r.bbs) for r in self.enumerated_molecules)
+        
+        max_rxn = max_bb - 1
 
         # Build each row as a dict
         rows = []

@@ -14,6 +14,7 @@ from rdkit.Chem.FastSDMolSupplier import FastSDMolSupplier
 
 from healer.domain.building_block import BuildingBlock
 from healer.domain.reaction_template import ReactionTemplate21
+from healer.utils.fingerprints import get_fingerprint_generator
 
 logger = logging.getLogger(__name__)
 
@@ -136,6 +137,7 @@ class BBRepository:
         self._all_bbs = []
         self._reaction_bb_indices = {}
 
+        fp_gen = get_fingerprint_generator()
         for mol in tqdm(
             self._supplier,
             desc="Loading building blocks",
@@ -146,6 +148,7 @@ class BBRepository:
                 continue
                 
             bb = BuildingBlock(mol)
+            bb.fingerprint = fp_gen.GetFingerprint(bb.mol)
             bb_rxn_annotations = bb.get_parsed_prop("rxn_annotations")
             
             if not isinstance(bb_rxn_annotations, dict):

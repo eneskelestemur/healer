@@ -4,6 +4,7 @@
 import json
 from typing import Any, Dict, Optional
 from rdkit import Chem
+from rdkit.DataStructs.cDataStructs import ExplicitBitVect
 
 
 class BuildingBlock:
@@ -14,6 +15,7 @@ class BuildingBlock:
         self._smiles: str = Chem.MolToSmiles(molecule)
         self._mol: Optional[Chem.Mol] = None      # lazy, reconstructed on demand
         self.num_heavy_atoms: int = molecule.GetNumHeavyAtoms()
+        self.fingerprint: Optional[ExplicitBitVect] = None
         self.props: Dict[str, Any] = {
             k: self._parse_value(v)
             for k, v in molecule.GetPropsAsDict().items()

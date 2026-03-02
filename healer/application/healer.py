@@ -8,8 +8,9 @@ from tqdm import tqdm
 import pandas as pd
 import numpy as np
 from rdkit import Chem
-from rdkit.Chem import Descriptors, rdMolDescriptors, rdFingerprintGenerator
+from rdkit.Chem import Descriptors, rdMolDescriptors
 from prop_profiler import profile_molecules
+from healer.utils.fingerprints import get_fingerprint_generator
 
 from healer.application.tree_builder import CompositionPath, RetrosynthesisTree
 from healer.domain.composition import CompositionWithBBs
@@ -96,9 +97,7 @@ class _BaseHEALER(abc.ABC):
             self._bb_shuffle_indices = np.random.permutation(len(self._bb_repo))
 
         # Fingerprint generator
-        self._fp_generator = rdFingerprintGenerator.GetMorganGenerator(
-            radius=3, fpSize=2048, includeChirality=True
-        )
+        self._fp_generator = get_fingerprint_generator()
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -107,9 +106,7 @@ class _BaseHEALER(abc.ABC):
     
     def __setstate__(self, state):
         self.__dict__.update(state)
-        self._fp_generator = rdFingerprintGenerator.GetMorganGenerator(
-            radius=3, fpSize=2048, includeChirality=True
-        )
+        self._fp_generator = get_fingerprint_generator()
 
     @property
     def bb_mols(self) -> List[BuildingBlock]:
@@ -915,16 +912,8 @@ class MoleculeHEALER(_BaseHEALER):
         '''
         bb_mols = self.bb_mols
         bb_sizes = np.array([bb.num_heavy_atoms for bb in bb_mols])
-
-        # Chunked fingerprint generation to limit Mol accumulation in memory
+        bb_fps = [bb.fingerprint for bb in bb_mols]
         n_bbs = len(bb_mols)
-        bb_fps = []
-        for start in range(0, n_bbs, bb_chunk_size):
-            end = min(start + bb_chunk_size, n_bbs)
-            chunk = bb_mols[start:end]
-            bb_fps.extend(self._get_fingerprints(chunk))
-            for bb in chunk:
-                bb.evict()    # free mol memory after fingerprinting
 
         frag_lists = [path.fragments for path in self._compositions]
         offsets = np.concatenate(([0], np.cumsum([len(frag_list) for frag_list in frag_lists])))

@@ -573,7 +573,7 @@ class _BaseHEALER(abc.ABC):
                 skip_cns_mpo (bool): if True, skip calculating CNS MPO scores when calculating properties.
         '''
         max_bb = None
-        if isinstance(self, MoleculeHEALER):
+        if isinstance(self, MoleculeHEALER) and not isinstance(self, FragmentHEALER):
             max_bb = 2 ** self.retro_tree_depth
         elif isinstance(self, SiteHEALER):
             max_bb = 2    

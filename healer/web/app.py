@@ -15,6 +15,8 @@ try:
     from fastapi import FastAPI
     from fastapi.staticfiles import StaticFiles
     from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.responses import JSONResponse
+    from fastapi.exceptions import HTTPException
     _WEB_AVAILABLE = True
 except ImportError:
     _WEB_AVAILABLE = False
@@ -27,10 +29,30 @@ def _create_app():
 
     app = FastAPI(title="HEALER Web API")
 
-    # Enable CORS for development
+    @app.exception_handler(HTTPException)
+    async def http_exception_handler(request, exc):
+        """Sanitize 5xx responses to avoid leaking internal error details."""
+        if exc.status_code >= 500:
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={"detail": "An internal error occurred. Please try again later."}
+            )
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail}
+        )
+
+    # Enable CORS - allow frontend and production domain
+    allowed_origins = [
+        "http://localhost:3000",      # Local React dev
+        "http://127.0.0.1:3000",      # Local IP
+        "http://localhost:5173",      # Vite dev server
+        "https://healer.mml.unc.edu", # Production domain
+    ]
+    
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5173"],
+        allow_origins=allowed_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

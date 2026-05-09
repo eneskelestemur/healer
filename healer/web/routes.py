@@ -105,7 +105,7 @@ def _run_job_sync(job_id: str, job_type: str, params: dict) -> None:
 @router.post("/enumerate/molecule", response_model=JobSubmitResponse)
 async def submit_molecule_enumeration(request: MoleculeRequest):
     params = request.model_dump() if hasattr(request, "model_dump") else request.dict()
-    
+
     if USE_CELERY:
         task = task_enumerate_molecule.delay(params)
         return JobSubmitResponse(job_id=task.id, status="submitted")
@@ -119,7 +119,7 @@ async def submit_molecule_enumeration(request: MoleculeRequest):
 @router.post("/enumerate/site", response_model=JobSubmitResponse)
 async def submit_site_enumeration(request: SiteRequest):
     params = request.model_dump() if hasattr(request, "model_dump") else request.dict()
-    
+
     if USE_CELERY:
         task = task_enumerate_site.delay(params)
         return JobSubmitResponse(job_id=task.id, status="submitted")
@@ -167,7 +167,8 @@ async def cancel_job(job_id: str):
             celery_app.control.revoke(job_id, terminate=True)
             return {"job_id": job_id, "status": "cancelled"}
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to cancel job: {str(e)}")
+            print(f"Failed to cancel job {job_id}: {e}")
+            raise HTTPException(status_code=500, detail="Failed to cancel job")
     else:
         # Local mode - can't really cancel synchronous jobs
         # But we can mark it as cancelled if it exists
@@ -281,9 +282,12 @@ async def smiles_to_molfile(request: SmilesRequest):
         molblock = Chem.MolToMolBlock(mol)
         
         return {"molblock": molblock}
-        
+
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error converting SMILES: {str(e)}")
+        print(f"Error converting SMILES: {e}")
+        raise HTTPException(status_code=500, detail="Error processing molecule")
 
 
 @router.post("/utils/render-mol-with-indices")
@@ -306,8 +310,11 @@ async def render_mol_with_indices(request: SmilesRequest):
 
         svg_data_uri = utils.get_svg_mol(mol, legend="", show_idx=True, width=250, height=125)
         return {"svg": svg_data_uri, "properties": props}
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error rendering molecule: {str(e)}")
+        print(f"Error rendering molecule: {e}")
+        raise HTTPException(status_code=500, detail="Error rendering molecule")
 
 
 @router.post("/utils/render-result")
@@ -336,6 +343,7 @@ async def render_result(request: RenderRequest):
         try:
             svg_data_uri = utils.get_svg_mol(request.smiles, legend="")
             return {"svg": svg_data_uri}
-        except:
-            raise HTTPException(status_code=500, detail=f"Error rendering result: {str(e)}")
+        except Exception:
+            print(f"Error rendering result: {e}")
+            raise HTTPException(status_code=500, detail="Error rendering result")
 

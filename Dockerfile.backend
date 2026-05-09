@@ -1,4 +1,31 @@
-FROM python:3.11-slim
+# --- Stage 1: Builder ---
+FROM python:3.11-slim AS builder
+
+# Suppress debconf warnings in Docker
+ENV DEBIAN_FRONTEND=noninteractive \
+    DEBCONF_NONINTERACTIVE_SEEN=true
+
+WORKDIR /build
+
+# Install build tools and system libs required to compile Python packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libxrender1 \
+    libxext6 \
+    libexpat1 \
+    libfontconfig1 \
+    libfreetype6 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY pyproject.toml .
+COPY . .
+
+# Non-editable install
+RUN pip install --no-cache-dir ".[web]"
+
+
+# --- Stage 2: Runtime ---
+FROM python:3.11-slim AS runtime
 
 # Optional build arg for Google Analytics ID
 ARG GA_ID=GA_ID_PLACEHOLDER
@@ -9,32 +36,30 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 WORKDIR /app
 
-# Install system dependencies including X11 libs for RDKit drawing
+# Runtime system libs only — no compilers
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
     libxrender1 \
     libxext6 \
     libexpat1 \
     libfontconfig1 \
     libfreetype6 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy configuration
-COPY pyproject.toml .
+# Copy installed Python packages and console scripts from builder
+COPY --from=builder /usr/local/lib /usr/local/lib
+COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Install python dependencies including the 'web' extras
-# We install in editable mode so changes in the volume are reflected
-# We need to copy the directory structure for pip to be happy finding 'healer' package
-# during install, even if empty initially, but here we copy everything.
-COPY . .
-
-# Replace GA ID placeholder if provided
+# Inject GA tracking ID into the installed static file if provided
 RUN if [ "$GA_ID" != "GA_ID_PLACEHOLDER" ]; then \
-      sed -i "s/GA_ID_PLACEHOLDER/$GA_ID/g" healer/web/static/index.html; \
+      find /usr/local/lib -name "index.html" -path "*/healer/web/static/*" \
+        -exec sed -i "s/GA_ID_PLACEHOLDER/$GA_ID/g" {} \; ; \
     fi
 
-RUN pip install --no-cache-dir -e ".[web]"
+# Create non-root user for security
+RUN useradd -m -u 1000 healer
 
-# The command is overridden by docker-compose
+USER healer
+
 CMD ["uvicorn", "healer.web.app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "8"]
 

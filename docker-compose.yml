@@ -8,7 +8,7 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile.backend
-    command: uvicorn healer.web.app:app --host 0.0.0.0 --port 8000 --reload --concurrency 4 --loglevel info
+    command: uvicorn healer.web.app:app --host 0.0.0.0 --port 8000 --reload --concurrency 8 --loglevel info
     environment:
       - HEALER_REDIS_URL=redis://redis:6379/0
     volumes:

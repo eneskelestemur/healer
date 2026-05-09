@@ -1,3 +1,16 @@
+# --- Stage 0: Frontend builder ---
+FROM node:20-slim AS frontend
+
+WORKDIR /web
+
+COPY web_client/package.json web_client/package-lock.json ./
+RUN npm ci --ignore-scripts
+
+COPY web_client/ ./
+# Override outDir so the build stays inside this stage
+RUN npm run build -- --outDir /frontend-dist
+
+
 # --- Stage 1: Builder ---
 FROM python:3.11-slim AS builder
 
@@ -20,7 +33,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY pyproject.toml .
 COPY . .
 
+# Replace the static dir with the freshly compiled frontend
+COPY --from=frontend /frontend-dist ./healer/web/static/
+
 # Non-editable install
+RUN pip install pip --upgrade
 RUN pip install --no-cache-dir ".[web]"
 
 

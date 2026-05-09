@@ -3,6 +3,10 @@ FROM python:3.11-slim
 # Optional build arg for Google Analytics ID
 ARG GA_ID=GA_ID_PLACEHOLDER
 
+# Suppress debconf warnings in Docker
+ENV DEBIAN_FRONTEND=noninteractive \
+    DEBCONF_NONINTERACTIVE_SEEN=true
+
 WORKDIR /app
 
 # Install system dependencies including X11 libs for RDKit drawing

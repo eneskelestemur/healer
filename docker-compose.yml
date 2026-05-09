@@ -27,7 +27,7 @@ services:
       - HEALER_REDIS_URL=redis://:${REDIS_PASSWORD:-redis_password_change_me}@redis:6379/0
       - HEALER_DATA_DIR=/buildingblocks
     volumes:
-      - ./healer/data/buildingblocks:/buildingblocks:ro
+      - ${BB_HOST_DIR:-./healer/data/buildingblocks}:/buildingblocks:ro
     ports:
       - "8000:8000"
     depends_on:
@@ -52,7 +52,7 @@ services:
       - HEALER_REDIS_URL=redis://:${REDIS_PASSWORD:-redis_password_change_me}@redis:6379/0
       - HEALER_DATA_DIR=/buildingblocks
     volumes:
-      - ./healer/data/buildingblocks:/buildingblocks:ro
+      - ${BB_HOST_DIR:-./healer/data/buildingblocks}:/buildingblocks:ro
     depends_on:
       redis:
         condition: service_healthy

@@ -40,6 +40,9 @@ web = [
 ]
 dev = [
     "pytest",
+    "pytest-cov",
+    "httpx",
+    "ruff",
 ]
 
 [project.urls]

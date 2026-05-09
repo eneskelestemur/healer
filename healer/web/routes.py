@@ -21,7 +21,7 @@ from pydantic import BaseModel
 from rdkit import Chem
 from rdkit.Chem import rdDepictor, Descriptors, QED
 
-from healer.web.models import MoleculeRequest, SiteRequest, JobSubmitResponse, JobStatusResponse
+from healer.web.models import MoleculeRequest, SiteRequest, JobSubmitResponse, JobStatusResponse, JobResult
 from healer.web.interface import (
     SERVER_MODE,
     run_molecule_enumeration,
@@ -137,7 +137,7 @@ async def get_job_status(job_id: str):
         response = JobStatusResponse(job_id=job_id, status=task_result.status)
         
         if task_result.status == 'SUCCESS':
-            response.result = task_result.result
+            response.result = JobResult(**task_result.result)
         elif task_result.status == 'FAILURE':
             response.error = str(task_result.result)
         
@@ -151,7 +151,7 @@ async def get_job_status(job_id: str):
         response = JobStatusResponse(job_id=job_id, status=job["status"])
         
         if job["status"] == "SUCCESS":
-            response.result = job["result"]
+            response.result = JobResult(**job["result"])
         elif job["status"] == "FAILURE":
             response.error = job["error"]
         

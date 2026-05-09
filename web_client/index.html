@@ -5,9 +5,51 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HEALER Web</title>
+    
+    <!-- Google Analytics with IP Anonymization -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_ID_PLACEHOLDER"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'GA_ID_PLACEHOLDER', { 'anonymize_ip': true });
+    </script>
+    
+    <!-- Cookie Consent Banner -->
+    <script>
+      const consent = localStorage.getItem('analytics-consent');
+      if (!consent) {
+        document.addEventListener('DOMContentLoaded', function() {
+          const banner = document.createElement('div');
+          banner.id = 'consent-banner';
+          banner.innerHTML = `
+            <div style="position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; color: #fff; padding: 16px 24px; text-align: center; z-index: 10000; box-shadow: 0 -2px 8px rgba(0,0,0,0.3);">
+              <p style="margin: 0 0 12px 0; font-size: 14px; line-height: 1.5;">
+                This website uses analytics to understand user experience in accordance with 
+                <a href="https://www.unc.edu/about/privacy-statement/" target="_blank" style="color: #64b5f6; text-decoration: underline;">UNC Chapel Hill's Privacy Notice</a>.
+              </p>
+              <button onclick="acceptAnalytics()" style="padding: 8px 20px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500;">I Accept</button>
+            </div>
+          `;
+          document.body.appendChild(banner);
+        });
+      }
+      
+      function acceptAnalytics() {
+        localStorage.setItem('analytics-consent', 'yes');
+        const banner = document.getElementById('consent-banner');
+        if (banner) banner.remove();
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <footer style="text-align: center; padding: 20px; color: #666; font-size: 12px; border-top: 1px solid #eee; margin-top: 40px;">
+      <p style="margin: 5px 0;">© 2026 HEALER. All rights reserved. | 
+        <a href="https://github.com/eneskelestemur/healer" target="_blank" style="color: #666; text-decoration: none;">GitHub</a> | 
+        <a href="https://www.unc.edu/about/privacy-statement/" target="_blank" style="color: #666; text-decoration: none;">Privacy</a>
+      </p>
+    </footer>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

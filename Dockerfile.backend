@@ -1,5 +1,8 @@
 FROM python:3.11-slim
 
+# Optional build arg for Google Analytics ID
+ARG GA_ID=GA_ID_PLACEHOLDER
+
 WORKDIR /app
 
 # Install system dependencies including X11 libs for RDKit drawing
@@ -20,8 +23,14 @@ COPY pyproject.toml .
 # We need to copy the directory structure for pip to be happy finding 'healer' package
 # during install, even if empty initially, but here we copy everything.
 COPY . .
+
+# Replace GA ID placeholder if provided
+RUN if [ "$GA_ID" != "GA_ID_PLACEHOLDER" ]; then \
+      sed -i "s/GA_ID_PLACEHOLDER/$GA_ID/g" healer/web/static/index.html; \
+    fi
+
 RUN pip install --no-cache-dir -e ".[web]"
 
 # The command is overridden by docker-compose
-CMD ["uvicorn", "healer.web.app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "healer.web.app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "8"]
 

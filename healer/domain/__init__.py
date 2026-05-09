@@ -11,7 +11,7 @@ from healer.domain.bb_repository import (
     get_repository, 
     clear_repository_cache,
     resolve_bb_path,
-    BB_PATHS,
+    _build_bb_paths,
 )
 
 __all__ = [
@@ -24,5 +24,5 @@ __all__ = [
     "get_repository",
     "clear_repository_cache",
     "resolve_bb_path",
-    "BB_PATHS",
+    "_build_bb_paths",
 ]

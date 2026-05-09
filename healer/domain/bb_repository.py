@@ -23,12 +23,16 @@ _HEALER_PKG = Path(__file__).parent.parent
 _DATA_DIR = _HEALER_PKG / "data"
 _BB_DIR = Path(os.getenv("HEALER_DATA_DIR", str(_DATA_DIR / "buildingblocks")))
 
-BB_PATHS: Dict[str, str] = {
-    "US_stock": str(_BB_DIR / "Enamine_Rush-Delivery_Building_Blocks-US" / "*_processed.sdf"),
-    "EU_stock": str(_BB_DIR / "Enamine_Rush-Delivery_Building_Blocks-EU" / "*_processed.sdf"),
-    "Global_stock": str(_BB_DIR / "Enamine_Building_Blocks_Stock" / "*_processed.sdf"),
-    "test": str(_BB_DIR / "test_100_bb_processed.sdf"),
-}
+# Named short-keys → subdirectory patterns, resolved against _BB_DIR.
+# Keeping this here so the CLI (which calls resolve_bb_path directly) also
+# honours HEALER_DATA_DIR.
+def _build_bb_paths() -> Dict[str, str]:
+    return {
+        "US_stock":     str(_BB_DIR / "Enamine_Rush-Delivery_Building_Blocks-US" / "*_processed.sdf"),
+        "EU_stock":     str(_BB_DIR / "Enamine_Rush-Delivery_Building_Blocks-EU" / "*_processed.sdf"),
+        "Global_stock": str(_BB_DIR / "Enamine_Building_Blocks_Stock"            / "*_processed.sdf"),
+        "test":         str(_BB_DIR / "test_100_bb_processed.sdf"),
+    }
 
 
 def resolve_bb_path(bb_source: str) -> str:
@@ -45,7 +49,7 @@ def resolve_bb_path(bb_source: str) -> str:
         Raises:
             FileNotFoundError: If no file matches the pattern.
     """
-    pattern = BB_PATHS.get(bb_source, bb_source)
+    pattern = _build_bb_paths().get(bb_source, bb_source)
     p = Path(pattern)
 
     if any(ch in pattern for ch in ("*", "?", "[")):
@@ -57,6 +61,8 @@ def resolve_bb_path(bb_source: str) -> str:
         chosen = matches[0]
     else:
         chosen = p
+        if not chosen.exists():
+            raise FileNotFoundError(f"Building block file not found: {chosen}")
 
     return str(chosen)
 

@@ -25,13 +25,19 @@ if _env_data_dir:
 else:
     BB_BASE_PATH = HEALER_PKG / 'data' / 'buildingblocks'
 
-# Pretty names for known Enamine building block directories
-_ENAMINE_PRETTY_NAMES = {
-    "Enamine_Rush-Delivery_Building_Blocks-US": "Enamine US Stock",
-    "Enamine_Rush-Delivery_Building_Blocks-EU": "Enamine EU Stock",
-    "Enamine_Building_Blocks_Stock": "Enamine Global Stock",
-    "test_100_bb_processed": "Test Set (100 BBs)",
+# Named short-keys usable in both CLI and the web dropdown.
+# Keys match bb_repository.py; subdirectory names are the actual dir names on disk.
+_BB_NAMED_SOURCES: Dict[str, Dict[str, str]] = {
+    "US_stock":     {"subdir": "Enamine_Rush-Delivery_Building_Blocks-US", "label": "Enamine US Stock"},
+    "EU_stock":     {"subdir": "Enamine_Rush-Delivery_Building_Blocks-EU", "label": "Enamine EU Stock"},
+    "Global_stock": {"subdir": "Enamine_Building_Blocks_Stock",            "label": "Enamine Global Stock"},
+    "test":         {"subdir": None,                                        "label": "Test Set (100 BBs)"},
 }
+
+# Fallback pretty-name lookup for any extra SDF files found by rglob
+# (keyed on the stem without "_processed")
+_EXTRA_PRETTY_NAMES: Dict[str, str] = {}
+
 SERVER_MODE = os.environ.get('HEALER_SERVER_MODE', 'false').lower() == 'true'
 
 # Default limits for server mode (can be overridden via env vars)
@@ -93,48 +99,83 @@ def apply_server_limits(params: Dict[str, Any], healer_type: str = "molecule") -
 
 def discover_building_blocks() -> List[Dict[str, str]]:
     """
-        Discover available processed building block files.
-        
-        Returns:
-            List of dicts with 'value' (path/key) and 'label' (display name)
+    Discover available processed building block files under BB_BASE_PATH.
+
+    Returns:
+        List of dicts with:
+          'value' — absolute path to the SDF file (passed as bb_source to enumeration)
+          'label' — human-readable display name
+          'key'   — short named key (e.g. "US_stock"), present only for known sources
     """
-    bb_options = []
-    
     if not BB_BASE_PATH.exists():
         logger.warning(f"Building blocks directory not found: {BB_BASE_PATH}")
-        return bb_options
-    
-    processed_files = list(BB_BASE_PATH.rglob("*_processed.sdf"))
-    
-    for sdf_path in sorted(processed_files):
-        rel_path = sdf_path.relative_to(BB_BASE_PATH)
-        value = str(rel_path)
-        
-        label = None
-        path_str = str(rel_path)
-        for key, pretty_name in _ENAMINE_PRETTY_NAMES.items():
-            if key in path_str:
-                label = pretty_name
-                break
-        
-        if label is None:
-            label = sdf_path.stem.replace('_processed', '')
-        
-        bb_options.append({'value': value, 'label': label})
-    
-    return bb_options
+        return []
+
+    seen_paths: set = set()
+    options: List[Dict[str, str]] = []
+
+    # 1. Walk named sources first so they appear at the top with their pretty labels
+    for key, info in _BB_NAMED_SOURCES.items():
+        subdir = info["subdir"]
+        if subdir is None:
+            # e.g. "test" — look for *_processed.sdf directly in BB_BASE_PATH
+            matches = sorted(BB_BASE_PATH.glob("*_processed.sdf"))
+        else:
+            target_dir = BB_BASE_PATH / subdir
+            if not target_dir.exists():
+                continue
+            matches = sorted(target_dir.glob("*_processed.sdf"))
+
+        for sdf_path in matches:
+            abs_path = str(sdf_path.resolve())
+            if abs_path in seen_paths:
+                continue
+            seen_paths.add(abs_path)
+            options.append({"value": abs_path, "label": info["label"], "key": key})
+
+    # 2. Catch any remaining *_processed.sdf files not covered by named sources
+    for sdf_path in sorted(BB_BASE_PATH.rglob("*_processed.sdf")):
+        abs_path = str(sdf_path.resolve())
+        if abs_path in seen_paths:
+            continue
+        seen_paths.add(abs_path)
+        stem = sdf_path.stem.replace("_processed", "")
+        label = _EXTRA_PRETTY_NAMES.get(stem, stem.replace("_", " "))
+        options.append({"value": abs_path, "label": label})
+
+    return options
 
 
 def resolve_bb_path(bb_source: str) -> str:
-    """Resolve a building block source to an actual file path."""
-    if Path(bb_source).is_absolute() and Path(bb_source).exists():
-        return bb_source
-    
+    """
+    Resolve a bb_source to an absolute SDF file path.
+
+    Accepts:
+      - A named short-key ("US_stock", "EU_stock", "Global_stock", "test")
+      - An absolute path (returned as-is after existence check)
+      - A path relative to BB_BASE_PATH
+    """
+    # Named key → delegate to bb_repository which already handles glob resolution
+    if bb_source in _BB_NAMED_SOURCES:
+        from healer.domain.bb_repository import resolve_bb_path as _repo_resolve
+        return _repo_resolve(bb_source)
+
+    # Absolute path
+    p = Path(bb_source)
+    if p.is_absolute():
+        if not p.exists():
+            raise FileNotFoundError(f"Building block file not found: {p}")
+        return str(p)
+
+    # Relative path — resolve against BB_BASE_PATH
     candidate = BB_BASE_PATH / bb_source
     if candidate.exists():
         return str(candidate)
-    
-    return bb_source
+
+    raise FileNotFoundError(
+        f"Building block source not found: {bb_source!r} "
+        f"(looked in {BB_BASE_PATH})"
+    )
 
 
 def count_molecular_fragments(smiles: str) -> int:

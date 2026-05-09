@@ -2,16 +2,15 @@
     This script implements the preprocessing of the Building Block datasets.
 '''
 
-import os
 import json
 import zipfile
 from pathlib import Path
+from joblib import Parallel, delayed
 import healer.utils.utils as utils
 
 from tqdm import tqdm
 from rdkit import Chem
-from rdkit.Chem.FastSDMolSupplier import FastSDMolSupplier
-from rdkit.Chem.rdmolfiles import SDWriter
+from rdkit.Chem import SDMolSupplier, SDWriter
 
 # Get reactions path from package data
 _HEALER_PKG = Path(__file__).parent.parent
@@ -98,7 +97,18 @@ def extract_zip_if_needed(input_file: str, verbose: bool = True) -> str:
     
     return input_file
 
-def main(input_file: str, output_dir: str = None, verbose: bool=True) -> None:
+def _process_mol(mol: Chem.Mol) -> Chem.Mol | None:
+    """Process a single molecule: remove smaller fragments and add reaction annotations."""
+    mol = remove_smaller_fragments(mol)
+    mol = add_rxn_annotations(mol)
+    annotations = mol.GetProp('rxn_annotations')
+    if annotations:
+        return mol
+    return None
+
+
+def main(input_file: str, output_dir: str = None, verbose: bool = True,
+         n_workers: int = 1) -> None:
     """
         Process the building block file and add the 'rxn_annotations' property
         to each molecule. Automatically extracts ZIP files if needed.
@@ -108,6 +118,7 @@ def main(input_file: str, output_dir: str = None, verbose: bool=True) -> None:
             output_dir (str): Directory to save the processed file. If None, saves
                               in the same directory as the input file.
             verbose (bool): Whether to print progress information.
+            n_workers (int): Number of worker processes. Default 1 (sequential).
     """
     # Extract ZIP file if needed
     sdf_file = extract_zip_if_needed(input_file, verbose)
@@ -121,21 +132,22 @@ def main(input_file: str, output_dir: str = None, verbose: bool=True) -> None:
     else:
         output_file = sdf_path.parent / (sdf_path.stem + '_processed.sdf')
     
-    suppl = FastSDMolSupplier(sdf_file)
-    
-    count = 0
-    with SDWriter(output_file) as writer:
-        for mol in tqdm(suppl, desc="Processing BBs", unit="molecule", total=len(suppl), disable=not verbose):
-            if mol is None:
-                continue
-            mol = remove_smaller_fragments(mol)
-            mol = add_rxn_annotations(mol)
-            annotations = mol.GetProp('rxn_annotations')
-            if annotations:
-                count += 1
-                writer.write(mol)
+    suppl = SDMolSupplier(sdf_file)
+    total = len(suppl)
 
-    print(f"Processed {len(suppl)} molecules, annotated {count} with reactions.")
+    count = 0
+    with SDWriter(str(output_file)) as writer:
+        valid_mols = (mol for mol in suppl if mol is not None)
+        results = Parallel(n_jobs=n_workers, return_as='generator')(
+            delayed(_process_mol)(mol) for mol in valid_mols
+        )
+        for result in tqdm(results, desc="Processing BBs", unit="molecule",
+                           total=total, disable=not verbose):
+            if result is not None:
+                count += 1
+                writer.write(result)
+
+    print(f"Processed {total} molecules, annotated {count} with reactions.")
     print(f"Output written to {output_file}")
 
 
@@ -150,8 +162,11 @@ def cli():
     parser.add_argument("-o", "--output-dir", type=str, default=None,
                         help="Output directory for processed file. Defaults to same directory as input.")
     parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output.")
+    parser.add_argument("--workers", "-w", type=int, default=1,
+                        help="Number of worker processes (default: 1). Use -1 for all cores.")
     args = parser.parse_args()
-    main(args.input_file, output_dir=args.output_dir, verbose=args.verbose)
+    main(args.input_file, output_dir=args.output_dir, verbose=args.verbose,
+         n_workers=args.workers)
 
 
 if __name__ == "__main__":

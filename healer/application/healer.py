@@ -782,30 +782,32 @@ class SiteHEALER(_BaseHEALER):
         '''
             Check if the building block satisfies the rules.
         '''
+        mol = building_block.mol if isinstance(building_block, BuildingBlock) else building_block
+
         for key, value in self.rules.items():
             if key == 'MW':
-                if not value[0] <= Descriptors.MolWt(building_block) <= value[1]:
+                if not value[0] <= Descriptors.MolWt(mol) <= value[1]:
                     return False
             elif key == 'HBD':
-                if not value[0] <= Descriptors.NumHDonors(building_block) <= value[1]:
+                if not value[0] <= Descriptors.NumHDonors(mol) <= value[1]:
                     return False
             elif key == 'HBA':
-                if not value[0] <= Descriptors.NumHAcceptors(building_block) <= value[1]:
+                if not value[0] <= Descriptors.NumHAcceptors(mol) <= value[1]:
                     return False
             elif key == 'TPSA':
-                if not value[0] <= Descriptors.TPSA(building_block) <= value[1]:
+                if not value[0] <= Descriptors.TPSA(mol) <= value[1]:
                     return False
             elif key == 'RotB':
-                if not value[0] <= Descriptors.NumRotatableBonds(building_block) <= value[1]:
+                if not value[0] <= Descriptors.NumRotatableBonds(mol) <= value[1]:
                     return False
             elif key == 'Rings':
-                if not value[0] <= Descriptors.RingCount(building_block) <= value[1]:
+                if not value[0] <= Descriptors.RingCount(mol) <= value[1]:
                     return False
             elif key == 'ArRings':
-                if not value[0] <= Descriptors.NumAromaticRings(building_block) <= value[1]:
+                if not value[0] <= Descriptors.NumAromaticRings(mol) <= value[1]:
                     return False
             elif key == 'Chiral':
-                if not value[0] <= rdMolDescriptors.CalcNumAtomStereoCenters(building_block) <= value[1]:
+                if not value[0] <= rdMolDescriptors.CalcNumAtomStereoCenters(mol) <= value[1]:
                     return False
             else:
                 raise ValueError(f'Invalid rule: {key}')

@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Set
 
 from tqdm import tqdm
-from rdkit.Chem.FastSDMolSupplier import FastSDMolSupplier
+from rdkit.Chem import SDMolSupplier
 
 from healer.domain.building_block import BuildingBlock
 from healer.domain.reaction_template import ReactionTemplate21
@@ -76,7 +76,7 @@ class BBRepository:
     """
 
     source_path: str
-    _supplier: FastSDMolSupplier = field(init=False, repr=False, default=None)
+    _supplier: SDMolSupplier = field(init=False, repr=False, default=None)
     _all_bbs: List[BuildingBlock] = field(default_factory=list, init=False, repr=False)
     _loaded: bool = field(default=False, init=False, repr=False)
     
@@ -84,7 +84,7 @@ class BBRepository:
     _reaction_bb_indices: Dict[str, Set[int]] = field(default_factory=dict, init=False, repr=False)
 
     def __post_init__(self) -> None:
-        self._supplier = FastSDMolSupplier(self.source_path, sanitize=True)
+        self._supplier = SDMolSupplier(self.source_path, sanitize=True)
 
     @classmethod
     def from_source(cls, bb_source: str) -> "BBRepository":
@@ -255,15 +255,15 @@ class BBRepository:
         return bb in self._all_bbs
 
     def __getstate__(self) -> Dict[str, Any]:
-        """Exclude unpicklable FastSDMolSupplier."""
+        """Exclude unpicklable SDMolSupplier."""
         state = self.__dict__.copy()
         state["_supplier"] = None
         return state
 
     def __setstate__(self, state: Dict[str, Any]) -> None:
-        """Restore FastSDMolSupplier on unpickle."""
+        """Restore SDMolSupplier on unpickle."""
         self.__dict__.update(state)
-        self._supplier = FastSDMolSupplier(self.source_path, sanitize=True)
+        self._supplier = SDMolSupplier(self.source_path, sanitize=True)
 
 
 ##### Module-Level Cache for Session-Wide Sharing #####

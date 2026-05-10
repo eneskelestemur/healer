@@ -21,7 +21,7 @@ _REACTIONS_FILE = _HEALER_PKG / 'data' / 'reactions' / 'reactions.json'
 REACTIONS = utils.load_reactions_from_json(str(_REACTIONS_FILE))
 REACTIONS = [rxn for rxn in REACTIONS if rxn.is_valid()]
 
-_CHUNK_SIZE = 200  # mols per worker call — balances IPC overhead vs memory
+_CHUNK_SIZE = 200  # mols per worker call - balances IPC overhead vs memory
 
 
 def _ichunk(iterable, size: int):

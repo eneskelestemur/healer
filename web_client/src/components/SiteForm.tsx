@@ -204,7 +204,7 @@ export function SiteForm({ onSubmit, isLoading }: SiteFormProps) {
                         <NumberInput
                             label={<LabelWithTooltip label="Max Evals / Comp" tooltip={`Maximum number of reaction attempts per composition.${isServerMode && serverLimits ? ` Server max: ${serverLimits.max_evals_per_comp}` : ''}`} />}
                             min={1} 
-                            max={isServerMode && serverLimits ? serverLimits.max_evals_per_comp : 100000}
+                            max={isServerMode && serverLimits ? serverLimits.max_evals_per_comp : undefined}
                             {...form.getInputProps('max_evals_per_comp')}
                         />
                          <Group grow>

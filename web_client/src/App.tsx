@@ -265,7 +265,7 @@ function App() {
           </Text>
 
           <Group gap="xs" mt="xs">
-            <Anchor href="10.26434/chemrxiv.15003011/v1" size="xs" target="_blank" fw={700}>HEALER Paper</Anchor>
+            <Anchor href="https://doi.org/10.26434/chemrxiv.15003011/v1" size="xs" target="_blank" fw={700}>HEALER Paper</Anchor>
             <Text size="xs" c="dimmed">|</Text>
             <Anchor href="https://github.com/eneskelestemur/healer" size="xs" target="_blank" fw={700}>HEALER GitHub Repo</Anchor>
           </Group>

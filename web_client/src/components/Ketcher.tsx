@@ -84,6 +84,7 @@ export const Ketcher = forwardRef<KetcherRef, KetcherProps>(({ onStructChange, i
                 height="100%"
                 style={{ border: 'none' }}
                 title="Ketcher"
+                onLoad={() => window.scrollTo({ top: 0, behavior: 'instant' })}
             />
         </Box>
     );

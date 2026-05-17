@@ -265,7 +265,7 @@ function App() {
           </Text>
 
           <Group gap="xs" mt="xs">
-            <Anchor href="#" size="xs" target="_blank" fw={700}>[Cite HEALER Paper]</Anchor>
+            <Anchor href="10.26434/chemrxiv.15003011/v1" size="xs" target="_blank" fw={700}>HEALER Paper</Anchor>
             <Text size="xs" c="dimmed">|</Text>
             <Anchor href="https://github.com/eneskelestemur/healer" size="xs" target="_blank" fw={700}>HEALER GitHub Repo</Anchor>
           </Group>
@@ -400,6 +400,13 @@ function App() {
           </Grid>
       </Tabs>
       
+      {/* Footer */}
+      <Box mt="xl" pt="md" style={{ borderTop: '1px solid #eee', textAlign: 'center', color: '#666', fontSize: '12px' }}>
+        <Text size="xs" c="dimmed">© 2026 HEALER. All rights reserved. | 
+          <Anchor href="https://github.com/eneskelestemur/healer" target="_blank" inherit style={{ color: '#666', textDecoration: 'none' }}> GitHub</Anchor> | 
+          <Anchor href="https://www.unc.edu/about/privacy-statement/" target="_blank" inherit style={{ color: '#666', textDecoration: 'none' }}> Privacy</Anchor>
+        </Text>
+      </Box>
     </Container>
   );
 }

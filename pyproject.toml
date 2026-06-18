@@ -38,6 +38,10 @@ web = [
     "uvicorn[standard]",
     "celery[redis]",
 ]
+opt = [
+    "pygad",
+    "baybe[chem]",
+]
 dev = [
     "pytest",
     "pytest-cov",

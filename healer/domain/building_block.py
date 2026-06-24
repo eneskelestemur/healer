@@ -21,6 +21,10 @@ class BuildingBlock:
             for k, v in molecule.GetPropsAsDict().items()
         }
 
+        # Preserve the original Mol if atoms carry properties that SMILES cannot round-trip.
+        has_atom_props = any(atom.GetPropsAsDict() for atom in molecule.GetAtoms())
+        self._mol_with_atom_props: Optional[Chem.Mol] = molecule if has_atom_props else None
+
     def __hash__(self) -> int:
         '''
             Hash the building block based on its SMILES representation.
@@ -49,6 +53,8 @@ class BuildingBlock:
             RDKit molecule object. Lazily reconstructed from SMILES
             if it has been evicted or not yet created.
         '''
+        if self._mol_with_atom_props is not None:
+            return self._mol_with_atom_props
         if self._mol is None:
             self._mol = Chem.MolFromSmiles(self._smiles)
         return self._mol
@@ -59,6 +65,8 @@ class BuildingBlock:
             It will be lazily reconstructed on next access of ``mol``.
         '''
         self._mol = None
+        # _mol_with_atom_props is intentionally retained — atom properties
+        # cannot be reconstructed from SMILES.
 
     def get_smiles(self) -> str:
         '''

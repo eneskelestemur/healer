@@ -131,9 +131,8 @@ export function SiteForm({ onSubmit, isLoading }: SiteFormProps) {
         return (
             <Paper withBorder p="xs" bg="var(--mantine-color-gray-0)">
                 <Text size="xs" fw={500} mb={4}>{label}: {value[0]} - {value[1]}</Text>
-                <RangeSlider 
-                    min={min} max={max} step={step}
-                    minRange={step}
+                <RangeSlider
+                    min={min} max={max} step={step} minRange={0}
                     {...form.getInputProps(field)}
                 />
             </Paper>

@@ -83,8 +83,25 @@ def start():
         print("Install with: pip install mol-healer[web]")
         raise SystemExit(1)
     
+    import argparse
     import uvicorn
-    uvicorn.run("healer.web.app:app", host="0.0.0.0", port=8000, reload=False)
+
+    parser = argparse.ArgumentParser(description="Start the HEALER web UI server")
+    parser.add_argument(
+        "--host",
+        type=str,
+        default="0.0.0.0",
+        help="Host to bind the server to (default: 0.0.0.0)",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8000,
+        help="Port to bind the server to (default: 8000)",
+    )
+    args = parser.parse_args()
+
+    uvicorn.run("healer.web.app:app", host=args.host, port=args.port, reload=False)
 
 
 if __name__ == "__main__":

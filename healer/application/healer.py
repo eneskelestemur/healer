@@ -269,12 +269,13 @@ class _BaseHEALER(abc.ABC):
             Raises:
                 TypeError: if the optimizer is not of a supported type.
         '''
+        _init_score = optimizer._evaluate(self.query_mol) if optimizer else None
         self.enumerated_molecules = [
             EnumerationRecord(
                 product=self.query_mol,
                 bbs=[],
                 reaction_names=[],
-                props={'optimization_score': optimizer.target_fn(self.query_mol)} if optimizer else {}
+                props={'optimization_score': _init_score} if _init_score is not None else {}
             )
         ]
 
@@ -345,13 +346,11 @@ class _BaseHEALER(abc.ABC):
                 if max_evals_per_comp:
                     remaining = max_evals_per_comp - eval_count
                     if remaining <= 0:
+                        logger.debug("Stopping base enumeration: max_evals_per_comp=%d reached.", max_evals_per_comp)
                         break
                     cands = islice(cands, remaining)
-                # Note: eval_count becomes approximate since we don't know exact count
-                # without consuming the generator. We count applied candidates instead.
-                prev_count = len(stage_records)
                 stage_records = self._apply_candidates(cands, n_jobs=n_jobs)
-                eval_count += len(stage_records) - prev_count if prev_count else len(stage_records)
+                eval_count += len(stage_records)
 
             # Soft limit: truncate products per composition
             if max_products_per_comp:
@@ -386,31 +385,38 @@ class _BaseHEALER(abc.ABC):
             
             for depth, bb_pool in enumerate(bb_lists[1:], start=1):
                 cands = self._generate_candidates(stage_records, bb_pool)
-                cands = optimizer.filter(cands, depth)  # filter can return generator or list
                 # Soft limit: truncate candidates if we'd exceed max_evals_per_comp
                 if max_evals_per_comp:
                     remaining = max_evals_per_comp - eval_count
                     if remaining <= 0:
+                        logger.debug("Stopping stagewise: max_evals_per_comp=%d reached at depth %d.", max_evals_per_comp, depth)
                         break
                     cands = islice(cands, remaining)
-                # Count based on results since generator length is unknown
-                prev_count = len(stage_records)
+                # Apply reactions first, then filter the assembled products
                 stage_records = self._apply_candidates(cands, n_jobs=n_jobs)
-                eval_count += len(stage_records) - prev_count if prev_count else len(stage_records)
+                eval_count += len(stage_records)
+                # Prune to beam_width before passing to the next reaction stage
+                if stage_records:
+                    stage_records = optimizer.filter(stage_records, depth)
 
             # Score and collect products
+            mols = [rec.product for rec in stage_records]
+            scores = optimizer._evaluate_batch(mols)
             comp_products = []
-            for rec in stage_records:
-                rec.props.update({'optimization_score': optimizer.target_fn(rec.product)})
+            for rec, score in zip(stage_records, scores):
+                if score is not None:
+                    rec.props['optimization_score'] = score
                 comp_products.append(rec)
                 # Soft limit: stop collecting from this composition
                 if max_products_per_comp and len(comp_products) >= max_products_per_comp:
+                    logger.debug("Stopping stagewise: max_products_per_comp=%d reached.", max_products_per_comp)
                     break
-            
+
             results.extend(comp_products)
-            
+
             # Hard limit: stop if total products reached
             if max_total_products and len(results) >= max_total_products:
+                logger.debug("Stopping stagewise: max_total_products=%d reached.", max_total_products)
                 results = results[:max_total_products]
                 break
 
@@ -427,64 +433,78 @@ class _BaseHEALER(abc.ABC):
     ) -> List[EnumerationRecord]:
         '''
             Sequence-based enumeration using optimizer.ask() and optimizer.tell().
-        '''     
+        '''
+        opt_name = type(optimizer).__name__
+        if max_evals_per_comp is None and max_products_per_comp is None and max_total_products is None:
+            logger.warning(
+                "%s: no budget limits set — the optimizer may run indefinitely. "
+                "Consider setting max_evals_per_comp.",
+                opt_name,
+            )
+
         results: List[EnumerationRecord] = []
-        for comp_bb in self._compositions:
+
+        comp_pbar = tqdm(self._compositions, desc="Enumerating compositions", disable=self.verbose >= 2)
+        for comp_idx, comp_bb in enumerate(comp_pbar):
             eval_count = 0
             prod_count = 0
-            optimizer.init_search(
-                domain=comp_bb.fragment_bbs, 
-                budget=max_evals_per_comp or 0
-            )
-            
+            optimizer.init_search(domain=comp_bb.fragment_bbs, budget=max_evals_per_comp or 0)
+
             while True:
                 bb_tuples = optimizer.ask()
                 if not bb_tuples:
+                    logger.debug("%s composition %d: search space exhausted.", opt_name, comp_idx + 1)
                     break
 
-                bb_pools = [list(bb_tuple) for bb_tuple in zip(*bb_tuples)]
-                stage_records = self._make_seed_records(bb_pools[0])  
-                
+                # Deduplicate proposed BB combinations before synthesis.
+                # Optimizers (especially GA after convergence) may propose the same (BB1, BB2)
+                # tuple multiple times in one population, which would generate identical products.
+                seen_keys: set = set()
+                unique_bb_tuples = []
+                for bb_tuple in bb_tuples:
+                    key = tuple(bb.get_smiles() for bb in bb_tuple)
+                    if key not in seen_keys:
+                        seen_keys.add(key)
+                        unique_bb_tuples.append(bb_tuple)
+
+                round_size = len(bb_tuples)   # count original for budget tracking
+                eval_count += round_size
+                comp_pbar.set_postfix(evals=eval_count, products=prod_count, refresh=False)
+
+                bb_pools = [list(bb_tuple) for bb_tuple in zip(*unique_bb_tuples)]
+                stage_records = self._make_seed_records(bb_pools[0])
+
                 for bb_pool in bb_pools[1:]:
                     cands = self._generate_candidates_positionwise(stage_records, bb_pool)
-                    # Soft limit: truncate candidates
-                    if max_evals_per_comp:
-                        remaining = max_evals_per_comp - eval_count
-                        if remaining <= 0:
-                            cands = iter([])  # empty iterator
-                        else:
-                            cands = islice(cands, remaining)
-                    # Count based on results since generator length is unknown
-                    prev_count = len(stage_records)
                     stage_records = self._apply_candidates(cands, n_jobs=n_jobs)
-                    eval_count += len(stage_records) - prev_count if prev_count else len(stage_records)
 
-                # Collect feedback and products
+                # Score batch and collect feedback
+                mols = [rec.product for rec in stage_records]
+                scores = optimizer._evaluate_batch(mols)
                 feedback: List[Tuple[Tuple[BuildingBlock, ...], float]] = []
-                for rec in stage_records:
-                    score = optimizer.target_fn(rec.product)
-                    rec.props.update({'optimization_score': score})
-                    feedback.append((tuple(rec.bbs), score))
+                for rec, score in zip(stage_records, scores):
+                    if score is not None:
+                        rec.props['optimization_score'] = score
+                        feedback.append((tuple(rec.bbs), score))
                     results.append(rec)
                     prod_count += 1
-                    # Soft limit: stop collecting from this composition
                     if max_products_per_comp and prod_count >= max_products_per_comp:
                         break
-                    # Hard limit: stop completely
                     if max_total_products and len(results) >= max_total_products:
                         break
 
                 optimizer.tell(feedback)
-                
-                # Check all limits to break ask/tell loop
+
                 if max_evals_per_comp and eval_count >= max_evals_per_comp:
+                    logger.debug("%s composition %d: max_evals_per_comp=%d reached.", opt_name, comp_idx + 1, max_evals_per_comp)
                     break
                 if max_products_per_comp and prod_count >= max_products_per_comp:
+                    logger.debug("%s composition %d: max_products_per_comp=%d reached.", opt_name, comp_idx + 1, max_products_per_comp)
                     break
                 if max_total_products and len(results) >= max_total_products:
+                    logger.debug("%s: max_total_products=%d reached.", opt_name, max_total_products)
                     break
 
-            # Hard limit: stop enumeration entirely
             if max_total_products and len(results) >= max_total_products:
                 results = results[:max_total_products]
                 break

@@ -14,6 +14,7 @@ Design philosophy:
     >1 rows to confirm actual enumeration happened (penicillin has amide bonds
     that are well-covered by the default reaction set).
 """
+import logging
 import pytest
 from rdkit import Chem
 
@@ -207,3 +208,28 @@ def test_site_healer_id_column(site_healer: SiteHEALER):
     for row in results:
         assert "ID" in row
         assert row["ID"].startswith("HEAL_")
+
+
+def test_unfragmentable_query_warns_instead_of_raising(
+    test_bb_repository: BBRepository, caplog
+):
+    """
+    A query with no valid retrosynthetic split must return just the query rather
+    than raising, so a batch run is not derailed by one molecule.
+    """
+    healer = MoleculeHEALER(
+        bb_source="test",
+        reaction_tags="all",
+        bb_repository=test_bb_repository,
+        sim_threshold=0.0,
+        max_bbs_per_frag=5,
+        verbose=0,
+    )
+    healer.set_query_mol("c1ccc(cc1)C(=O)NC", n_compositions=2)
+
+    with caplog.at_level(logging.WARNING, logger="healer.application.healer"):
+        healer.enumerate(max_total_products=10)
+
+    assert "No valid fragmentation" in caplog.text
+    assert len(healer.enumerated_molecules) == 1
+    assert len(healer.get_results(calc_similarity=False, calc_properties=False)) == 1

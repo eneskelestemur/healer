@@ -340,7 +340,7 @@ class _BaseHEALER(abc.ABC):
             filter() hooks.
         '''
         results: List[EnumerationRecord] = []
-        for comp_bb in tqdm(self._compositions, desc="Enumerating compositions", disable=self.verbose >= 2):
+        for comp_bb in tqdm(self._compositions, desc="Enumerating compositions", disable=self.verbose < 1):
             bb_lists = comp_bb.fragment_bbs
             stage_records = self._make_seed_records(bb_lists[0])
             eval_count = 0
@@ -407,7 +407,7 @@ class _BaseHEALER(abc.ABC):
 
         results: List[EnumerationRecord] = []
 
-        comp_pbar = tqdm(self._compositions, desc="Enumerating compositions", disable=self.verbose >= 2)
+        comp_pbar = tqdm(self._compositions, desc="Enumerating compositions", disable=self.verbose < 1)
         for comp_idx, comp_bb in enumerate(comp_pbar):
             eval_count = 0
             prod_count = 0
@@ -986,6 +986,12 @@ class MoleculeHEALER(_BaseHEALER):
         # Log compositions at debug level
         logger.debug("Generated %d composition(s):\n%s", len(self._compositions), self._composition_prints())
 
+        if not self._compositions:
+            logger.warning(
+                "No valid fragmentation found for the query molecule. Try a lower "
+                "min_frag_size, a greater retro_tree_depth, or more reaction tags."
+            )
+
         if len(self._compositions) > self.n_compositions:
             self._compositions = self._compositions[:self.n_compositions]
         
@@ -1004,18 +1010,21 @@ class MoleculeHEALER(_BaseHEALER):
         '''
             Return a loggable string representation of the compositions.
         '''
+        if not self._compositions:
+            return 'No compositions found.'
+
         if isinstance(self._compositions[0], CompositionPath):
             return '\n'.join(
                 f'Composition {i+1} fragments: {[Chem.MolToSmiles(frag) for frag in comp.fragments]}'
                 for i, comp in enumerate(self._compositions)
-            ) if self._compositions else 'No compositions found.'
-        
+            )
+
         elif isinstance(self._compositions[0], CompositionWithBBs):
             return '\n'.join(
                 f'Composition {i+1} fragments: {[Chem.MolToSmiles(frag) for frag in comp.comp.fragments]}'
                 for i, comp in enumerate(self._compositions)
-            ) if self._compositions else 'No compositions found.'
-        
+            )
+
         else:
             raise TypeError(
                 f'Invalid type for compositions. Expected CompositionPath or CompositionWithBBs, '

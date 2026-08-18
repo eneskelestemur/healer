@@ -2,12 +2,15 @@
     Reaction class to define chemical reacitons using rdkit.
 '''
 import inspect
+import logging
 from itertools import chain
 
 from rdkit import Chem
 from rdkit.Chem import Descriptors, rdChemReactions
 
 from healer.domain.building_block import BuildingBlock
+
+logger = logging.getLogger(__name__)
 
 
 class ReactionTemplate21:
@@ -54,19 +57,8 @@ class ReactionTemplate21:
         self.long_name = long_name
         self.tier = tier
 
-        self.sanitized_ = False
         self._reaction = rdChemReactions.ReactionFromSmarts(reaction_smarts)
-        self._reaction.Initialize()
-
-        # check if a reaction is valid
-        try:
-            _ = rdChemReactions.SanitizeRxn(self._reaction)
-            self._reaction.RemoveUnmappedReactantTemplates(0.1)
-            self._reaction.RemoveUnmappedProductTemplates(0.1)
-            if len(self.get_reactants()) == 2 and len(self.get_products()) == 1:
-                self.sanitized_ = True
-        except:
-            self.sanitized_ = False
+        self._sanitize_reaction()
 
     def __str__(self):
         return self.name
@@ -95,26 +87,41 @@ class ReactionTemplate21:
 
         return ReactionTemplate21(**valid_params)
 
+    def _sanitize_reaction(self):
+        '''
+            Validate the current reaction and set `sanitized_` accordingly.
+            Only 2 reactant -> 1 product templates are usable.
+        '''
+        self.sanitized_ = False
+        try:
+            self._reaction.Initialize()
+            _ = rdChemReactions.SanitizeRxn(self._reaction)
+            self._reaction.RemoveUnmappedReactantTemplates(0.1)
+            self._reaction.RemoveUnmappedProductTemplates(0.1)
+            n_reactants, n_products = len(self.get_reactants()), len(self.get_products())
+            if n_reactants == 2 and n_products == 1:
+                self.sanitized_ = True
+            else:
+                logger.warning(
+                    "Reaction %r has %d reactant(s) and %d product(s), expected 2 and 1; "
+                    "it will be skipped.", self.name, n_reactants, n_products
+                )
+        except Exception as e:
+            logger.warning("Reaction %r failed to sanitize and will be skipped: %s", self.name, e)
+
     def get_reaction_smarts(self):
         '''
             Returns the reaction SMARTS string.
         '''
-        return self._reaction_smarts
-    
+        return self.reaction_smarts
+
     def set_reaction_smarts(self, reaction_smarts):
         '''
             Sets the reaction SMARTS string.
         '''
-        self._reaction_smarts = reaction_smarts
+        self.reaction_smarts = reaction_smarts
         self._reaction = rdChemReactions.ReactionFromSmarts(reaction_smarts)
-        try:
-            flags = rdChemReactions.SanitizeRxn(self._reaction)
-            self._reaction.RemoveUnmappedReactantTemplates(0.1)
-            self._reaction.RemoveUnmappedProductTemplates(0.1)
-            if len(self.get_reactants()) == 2 and len(self.get_products()) == 1:
-                self.sanitized_ = True
-        except:
-            self.sanitized_ = False
+        self._sanitize_reaction()
 
     def get_rdkit_reaction_object(self):
         return self._reaction

@@ -45,7 +45,7 @@ def test_base_optimizer_requires_fn():
 def test_evaluate_batch_with_target_fn():
     opt = BeamSearchOptimizer(beam_width=5, target_fn=qed_fn)
     mols = [Chem.MolFromSmiles("C"), Chem.MolFromSmiles("CC"), Chem.MolFromSmiles("CCC")]
-    scores = opt._evaluate_batch(mols)
+    scores = opt.evaluate_batch(mols)
     assert len(scores) == 3
     assert all(isinstance(s, float) for s in scores)
 
@@ -53,7 +53,7 @@ def test_evaluate_batch_with_target_fn():
 def test_evaluate_batch_with_batch_fn():
     opt = BeamSearchOptimizer(beam_width=5, batch_target_fn=batch_qed)
     mols = [Chem.MolFromSmiles("C"), Chem.MolFromSmiles("CC")]
-    scores = opt._evaluate_batch(mols)
+    scores = opt.evaluate_batch(mols)
     assert len(scores) == 2
     assert all(isinstance(s, float) for s in scores)
 
@@ -61,7 +61,7 @@ def test_evaluate_batch_with_batch_fn():
 def test_evaluate_batch_handles_failure():
     opt = BeamSearchOptimizer(beam_width=5, target_fn=failing_fn)
     mols = [Chem.MolFromSmiles("C")]
-    scores = opt._evaluate_batch(mols)
+    scores = opt.evaluate_batch(mols)
     assert scores == [None]
 
 

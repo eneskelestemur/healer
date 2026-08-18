@@ -270,7 +270,7 @@ class _BaseHEALER(abc.ABC):
             Raises:
                 TypeError: if the optimizer is not of a supported type.
         '''
-        _init_score = optimizer._evaluate(self.query_mol) if optimizer else None
+        _init_score = optimizer.evaluate(self.query_mol) if optimizer else None
         self.enumerated_molecules = [
             EnumerationRecord(
                 product=self.query_mol,
@@ -402,7 +402,7 @@ class _BaseHEALER(abc.ABC):
 
             # Score and collect products
             mols = [rec.product for rec in stage_records]
-            scores = optimizer._evaluate_batch(mols)
+            scores = optimizer.evaluate_batch(mols)
             comp_products = []
             for rec, score in zip(stage_records, scores):
                 if score is not None:
@@ -484,7 +484,7 @@ class _BaseHEALER(abc.ABC):
 
                 # Score batch and collect feedback
                 mols = [rec.product for rec in stage_records]
-                scores = optimizer._evaluate_batch(mols)
+                scores = optimizer.evaluate_batch(mols)
                 feedback: List[Tuple[Tuple[BuildingBlock, ...], float]] = []
                 for rec, score in zip(stage_records, scores):
                     if score is not None:

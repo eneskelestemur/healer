@@ -254,6 +254,85 @@ def test_capped_healer_retains_sims_uncapped_does_not(test_bb_repository: BBRepo
 
 
 # ---------------------------------------------------------------------------
+# Feedback contract
+# ---------------------------------------------------------------------------
+
+class _RecordingGA(GeneticAlgorithmOptimizer):
+    """GA that records the feedback it is given, one entry per tell()."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.rounds = []
+
+    def tell(self, results):
+        self.rounds.append({tuple(bb.get_smiles() for bb in t): s for t, s in results})
+        assert len(self.rounds[-1]) == len(results), "tell() received a repeated combination"
+        super().tell(results)
+
+
+def test_tell_reports_each_combination_once_at_its_best_score(test_bb_repository: BBRepository):
+    """
+    A combination can yield several products through different reactions. The
+    optimizer must see it once, scored by its best product, otherwise fitness
+    depends on which product happened to come last.
+    """
+    healer = MoleculeHEALER(
+        bb_source="test",
+        reaction_tags="all",
+        bb_repository=test_bb_repository,
+        sim_threshold=0.0,
+        max_bbs_per_frag=10,
+        verbose=0,
+    )
+    healer.set_query_mol(PENICILLIN_SMILES, n_compositions=1)
+    opt = _RecordingGA(population_size=10, random_seed=7, target_fn=logp_fn)
+    healer.enumerate(optimizer=opt, max_evals_per_comp=60, max_total_products=10000)
+
+    reported = {}
+    for round_scores in opt.rounds:
+        reported.update(round_scores)
+    assert reported, "optimizer never received feedback"
+
+    best_by_combo = {}
+    for rec in healer.enumerated_molecules:
+        score = rec.props.get("optimization_score")
+        if score is None or not rec.bbs:
+            continue
+        key = tuple(bb.get_smiles() for bb in rec.bbs)
+        best_by_combo[key] = max(best_by_combo.get(key, score), score)
+
+    for key, score in reported.items():
+        assert score == pytest.approx(best_by_combo[key])
+
+
+def test_ga_keeps_its_best_combination_across_generations(test_bb_repository: BBRepository):
+    """
+    The fitness cache accumulates, so elites carried into later generations keep
+    their score. Wiping it each round makes them score -1e9 and be discarded.
+    """
+    healer = MoleculeHEALER(
+        bb_source="test",
+        reaction_tags="all",
+        bb_repository=test_bb_repository,
+        sim_threshold=0.0,
+        max_bbs_per_frag=10,
+        verbose=0,
+    )
+    healer.set_query_mol(PENICILLIN_SMILES, n_compositions=1)
+    opt = _RecordingGA(population_size=10, mutation_percent_genes=20, random_seed=7, target_fn=logp_fn)
+    healer.enumerate(optimizer=opt, max_evals_per_comp=200, max_total_products=10000)
+
+    round_bests = [max(r.values()) for r in opt.rounds if r]
+    assert len(round_bests) > 2, "not enough generations to test retention"
+
+    running = round_bests[0]
+    for best in round_bests:
+        assert best >= running - 1e-9, "the best combination was lost between generations"
+        running = max(running, best)
+    assert round_bests[-1] == pytest.approx(max(round_bests))
+
+
+# ---------------------------------------------------------------------------
 # Exhausted search vs. failed optimizer
 # ---------------------------------------------------------------------------
 

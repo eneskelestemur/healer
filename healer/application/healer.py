@@ -451,14 +451,19 @@ class _BaseHEALER(abc.ABC):
                     )
                     stage_records = self._apply_candidates(cands, n_jobs=n_jobs)
 
-                # Score batch and collect feedback
+                # Score batch and collect feedback. One combination can yield several
+                # products through different reactions, so it is reported at the score
+                # of its best one.
                 mols = [rec.product for rec in stage_records]
                 scores = optimizer.evaluate_batch(mols)
-                feedback: List[Tuple[Tuple[BuildingBlock, ...], float]] = []
+                best_per_combo: Dict[Tuple[str, ...], Tuple[Tuple[BuildingBlock, ...], float]] = {}
                 for rec, score in zip(stage_records, scores):
                     if score is not None:
                         rec.props['optimization_score'] = score
-                        feedback.append((tuple(rec.bbs), score))
+                        key = tuple(bb.get_smiles() for bb in rec.bbs)
+                        best = best_per_combo.get(key)
+                        if best is None or score > best[1]:
+                            best_per_combo[key] = (tuple(rec.bbs), score)
                     results.append(rec)
                     prod_count += 1
                     if max_products_per_comp and prod_count >= max_products_per_comp:
@@ -466,7 +471,7 @@ class _BaseHEALER(abc.ABC):
                     if max_total_products and len(results) >= max_total_products:
                         break
 
-                optimizer.tell(feedback)
+                optimizer.tell(list(best_per_combo.values()))
 
                 if max_evals_per_comp and eval_count >= max_evals_per_comp:
                     logger.debug("%s composition %d: max_evals_per_comp=%d reached.", opt_name, comp_idx + 1, max_evals_per_comp)

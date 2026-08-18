@@ -444,13 +444,13 @@ class GeneticAlgorithmOptimizer(BaseSequenceOptimizer):
     def tell(self, results: List[Tuple[Tuple[BuildingBlock, ...], float]]) -> None:
         '''
             Load the reported scores into the fitness cache and advance the GA by
-            one generation. Combinations missing from the results score -1e9, so
-            unscored products are selected against.
+            one generation. The cache accumulates across generations so elites
+            carried over from earlier ones keep their fitness. Combinations that
+            have never been scored fall back to -1e9 and are selected against.
 
             Args:
                 results: (bb_tuple, score) pairs for the last proposed combinations.
         '''
-        self._score_cache = {}
         for bb_tuple, score in results:
             key = self._to_indices(bb_tuple)
             if key is not None:

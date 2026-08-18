@@ -38,8 +38,9 @@ cache/
 *.tmp
 dump.rdb
 
-# Root-level output files (from CLI runs)
+# Output files (from CLI runs and the demo notebook)
 /*.csv
+notebooks/*.csv
 /*.tsv
 /*.smi
 /*.json

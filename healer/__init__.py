@@ -6,6 +6,14 @@ from importlib.metadata import PackageNotFoundError, version as _pkg_version
 import healer.utils.rdkit_monkey_patch  # noqa: F401
 
 from healer.application.healer import MoleculeHEALER, SiteHEALER, FragmentHEALER
+from healer.application.optimizers import (
+    BaseOptimizer,
+    BaseStagewiseOptimizer,
+    BaseSequenceOptimizer,
+    BeamSearchOptimizer,
+    GeneticAlgorithmOptimizer,
+    BayesianSequenceOptimizer,
+)
 from healer.domain.bb_repository import get_repository, clear_repository_cache, _build_bb_paths
 
 try:
@@ -17,6 +25,12 @@ __all__ = [
     "MoleculeHEALER",
     "SiteHEALER",
     "FragmentHEALER",
+    "BaseOptimizer",
+    "BaseStagewiseOptimizer",
+    "BaseSequenceOptimizer",
+    "BeamSearchOptimizer",
+    "GeneticAlgorithmOptimizer",
+    "BayesianSequenceOptimizer",
     "get_repository",
     "clear_repository_cache",
     "_build_bb_paths",

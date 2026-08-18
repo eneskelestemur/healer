@@ -3,7 +3,7 @@ Smoke tests for optimizer classes.
 """
 import pytest
 from rdkit import Chem
-from rdkit.Chem import QED
+from rdkit.Chem import QED, Crippen
 
 from healer.application.healer import MoleculeHEALER, FragmentHEALER
 from healer.application.optimizers import (
@@ -11,8 +11,6 @@ from healer.application.optimizers import (
     BeamSearchOptimizer,
     GeneticAlgorithmOptimizer,
     BayesianSequenceOptimizer,
-    qed_batch_scorer,
-    stoplight_batch_scorer,
 )
 from healer.domain.bb_repository import BBRepository
 from healer.domain.building_block import BuildingBlock
@@ -23,12 +21,20 @@ def qed_fn(mol: Chem.Mol) -> float:
     return QED.qed(mol)
 
 
+def logp_fn(mol: Chem.Mol) -> float:
+    return Crippen.MolLogP(mol)
+
+
 def failing_fn(mol: Chem.Mol) -> float:
     raise RuntimeError("always fails")
 
 
 def batch_qed(mols):
     return [QED.qed(m) for m in mols]
+
+
+def batch_logp(mols):
+    return [Crippen.MolLogP(m) for m in mols]
 
 
 # ---------------------------------------------------------------------------
@@ -65,22 +71,16 @@ def test_evaluate_batch_handles_failure():
     assert scores == [None]
 
 
-# ---------------------------------------------------------------------------
-# qed_batch_scorer / stoplight_batch_scorer
-# ---------------------------------------------------------------------------
-
-def test_qed_batch_scorer():
-    mols = [Chem.MolFromSmiles("CC(=O)Oc1ccccc1C(=O)O"), Chem.MolFromSmiles("c1ccccc1")]
-    scores = qed_batch_scorer(mols)
-    assert len(scores) == 2
-    assert all(s is None or isinstance(s, float) for s in scores)
+def test_evaluate_batch_prefers_batch_fn_over_target_fn():
+    opt = BeamSearchOptimizer(beam_width=5, target_fn=failing_fn, batch_target_fn=batch_logp)
+    scores = opt.evaluate_batch([Chem.MolFromSmiles("CCO")])
+    assert scores == [pytest.approx(Crippen.MolLogP(Chem.MolFromSmiles("CCO")))]
 
 
-def test_stoplight_batch_scorer():
-    mols = [Chem.MolFromSmiles("CC(=O)Oc1ccccc1C(=O)O")]
-    scores = stoplight_batch_scorer(mols)
-    assert len(scores) == 1
-    assert scores[0] is None or isinstance(scores[0], float)
+def test_evaluate_single_molecule():
+    opt = BeamSearchOptimizer(beam_width=5, target_fn=logp_fn)
+    mol = Chem.MolFromSmiles("c1ccccc1")
+    assert opt.evaluate(mol) == pytest.approx(Crippen.MolLogP(mol))
 
 
 # ---------------------------------------------------------------------------
@@ -112,7 +112,7 @@ def test_beam_search_optimizer_pipeline(beam_healer: MoleculeHEALER):
 
 
 def test_beam_search_with_batch_fn(beam_healer: MoleculeHEALER):
-    opt = BeamSearchOptimizer(beam_width=5, batch_target_fn=qed_batch_scorer)
+    opt = BeamSearchOptimizer(beam_width=5, batch_target_fn=batch_qed)
     beam_healer.set_query_mol(PENICILLIN_SMILES, n_compositions=2, retro_tree_depth=1, min_frag_size=3)
     beam_healer.enumerate(optimizer=opt, max_total_products=5)
     assert len(beam_healer.enumerated_molecules) >= 1

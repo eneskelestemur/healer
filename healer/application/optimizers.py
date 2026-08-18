@@ -282,32 +282,6 @@ class BaseSequenceOptimizer(BaseOptimizer, ABC):
 
 
 
-##### Example batch scorers using prop_profiler #####
-# TODO: Remove these example batch scorers
-
-def _profile_batch(mols: List[Chem.Mol], column: str, skip_cns_mpo: bool) -> List[Optional[float]]:
-    from prop_profiler import profile_molecules
-    smiles_in = [Chem.MolToSmiles(m) for m in mols]
-    try:
-        df = profile_molecules(smiles_in, skip_cns_mpo=skip_cns_mpo, verbose=False)
-        score_map = dict(zip(df['smiles'], df[column], strict=False))
-        return [score_map.get(smi) for smi in smiles_in]
-    except Exception as e:
-        logger.warning("profile_molecules failed: %s", e)
-        return [None] * len(mols)
-
-
-def qed_batch_scorer(mols: List[Chem.Mol]) -> List[Optional[float]]:
-    '''Batch scorer that returns QED scores using prop_profiler.'''
-    return _profile_batch(mols, 'qed', skip_cns_mpo=True)
-
-
-def stoplight_batch_scorer(mols: List[Chem.Mol]) -> List[Optional[float]]:
-    '''Batch scorer that returns CNS STOPLIGHT scores using prop_profiler.'''
-    return _profile_batch(mols, 'stoplight_score', skip_cns_mpo=True)
-
-
-
 class BeamSearchOptimizer(BaseStagewiseOptimizer):
     '''
         Stagewise beam-search optimizer. At each fragment-assembly stage it scores

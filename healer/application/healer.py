@@ -16,7 +16,7 @@ from healer.utils.fingerprints import get_fingerprint_generator
 from healer.application.tree_builder import CompositionPath, RetrosynthesisTree
 from healer.domain.composition import CompositionWithBBs
 from healer.application.optimizers import (
-    BaseStagewiseOptimizer, BaseSequenceOptimizer, PassthroughOptimizer
+    BaseStagewiseOptimizer, BaseSequenceOptimizer, PassthroughOptimizer, OptimizerError
 )
 from healer.domain.building_block import BuildingBlock
 from healer.domain.reaction_template import ReactionTemplate21
@@ -415,7 +415,14 @@ class _BaseHEALER(abc.ABC):
             optimizer.init_search(domain=domain, budget=max_evals_per_comp or 0)
 
             while True:
-                bb_tuples = optimizer.ask()
+                try:
+                    bb_tuples = optimizer.ask()
+                except OptimizerError as e:
+                    logger.warning(
+                        "%s composition %d: %s. Moving on to the next composition.",
+                        opt_name, comp_idx + 1, e
+                    )
+                    break
                 if not bb_tuples:
                     logger.debug("%s composition %d: search space exhausted.", opt_name, comp_idx + 1)
                     break

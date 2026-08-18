@@ -17,6 +17,14 @@ logger = logging.getLogger(__name__)
 Candidate = Tuple[EnumerationRecord, BuildingBlock, ReactionTemplate21]
 
 
+class OptimizerError(RuntimeError):
+    '''
+        Raised when an optimizer cannot continue for reasons other than having
+        exhausted its search space. Enumeration stops for the current composition
+        and moves on to the next one.
+    '''
+
+
 class BaseOptimizer(ABC):
     '''Base class holding the scoring function(s) for all optimizers.'''
 
@@ -492,6 +500,7 @@ class BayesianSequenceOptimizer(BaseSequenceOptimizer):
         self.batch_size = batch_size
         self.encoding = encoding
         self._campaign = None
+        self._exhausted_errors: Tuple[type, ...] = ()
 
     def init_search(self, domain: List[List[BuildingBlock]], budget: int) -> None:
         '''
@@ -513,9 +522,15 @@ class BayesianSequenceOptimizer(BaseSequenceOptimizer):
             from baybe.parameters import SubstanceParameter
             from baybe.searchspace import SearchSpace
             from baybe.recommenders import TwoPhaseMetaRecommender, FPSRecommender, BotorchRecommender
+            from baybe.exceptions import (
+                EmptySearchSpaceError, NoRecommendersLeftError, NotEnoughPointsLeftError
+            )
         except ImportError:
             raise ImportError("Install baybe[chem]: pip install 'mol-healer[opt]'") from None
 
+        self._exhausted_errors = (
+            EmptySearchSpaceError, NoRecommendersLeftError, NotEnoughPointsLeftError
+        )
         self._set_domain(domain)
 
         params = [
@@ -540,13 +555,19 @@ class BayesianSequenceOptimizer(BaseSequenceOptimizer):
             Recommend the next combinations from the campaign.
 
             Returns:
-                `batch_size` tuples holding one building block per fragment.
+                `batch_size` tuples holding one building block per fragment, or an
+                empty list once the search space has been exhausted.
+
+            Raises:
+                OptimizerError: if the recommendation fails for any other reason.
         '''
         try:
             df = self._campaign.recommend(batch_size=self.batch_size)
-        except Exception as e:
-            logger.debug("BayesianSequenceOptimizer: recommendation failed (%s); stopping search for this composition.", e)
+        except self._exhausted_errors as e:
+            logger.debug("BayesianSequenceOptimizer: search space exhausted (%s).", e)
             return []
+        except Exception as e:
+            raise OptimizerError(f"BayBE recommendation failed: {e}") from e
         return [
             tuple(self._domain[j][int(df.at[idx, f'BB{j}'])] for j in range(len(self._domain)))
             for idx in df.index

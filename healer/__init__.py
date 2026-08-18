@@ -13,6 +13,7 @@ from healer.application.optimizers import (
     BeamSearchOptimizer,
     GeneticAlgorithmOptimizer,
     BayesianSequenceOptimizer,
+    OptimizerError,
 )
 from healer.domain.bb_repository import get_repository, clear_repository_cache, _build_bb_paths
 
@@ -31,6 +32,7 @@ __all__ = [
     "BeamSearchOptimizer",
     "GeneticAlgorithmOptimizer",
     "BayesianSequenceOptimizer",
+    "OptimizerError",
     "get_repository",
     "clear_repository_cache",
     "_build_bb_paths",

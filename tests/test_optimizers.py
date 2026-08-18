@@ -1,6 +1,8 @@
 """
 Smoke tests for optimizer classes.
 """
+import logging
+
 import pytest
 from rdkit import Chem
 from rdkit.Chem import QED, Crippen
@@ -11,6 +13,7 @@ from healer.application.optimizers import (
     BeamSearchOptimizer,
     GeneticAlgorithmOptimizer,
     BayesianSequenceOptimizer,
+    OptimizerError,
 )
 from healer.domain.bb_repository import BBRepository
 from healer.domain.building_block import BuildingBlock
@@ -248,6 +251,40 @@ def test_capped_healer_retains_sims_uncapped_does_not(test_bb_repository: BBRepo
             assert [len(s) for s in comp.fragment_sims] == [len(p) for p in comp.fragment_bbs]
         else:
             assert comp.fragment_sims is None
+
+
+# ---------------------------------------------------------------------------
+# Exhausted search vs. failed optimizer
+# ---------------------------------------------------------------------------
+
+def test_optimizer_error_does_not_abort_enumeration(ga_healer: MoleculeHEALER, caplog):
+    """A failing ask() should be reported and skipped, not propagated."""
+    class FailingAsk(GeneticAlgorithmOptimizer):
+        def ask(self):
+            raise OptimizerError("recommender exploded")
+
+    opt = FailingAsk(population_size=6, random_seed=0, target_fn=qed_fn)
+    ga_healer.set_query_mol(PENICILLIN_SMILES, n_compositions=1, retro_tree_depth=1, min_frag_size=3)
+    with caplog.at_level(logging.WARNING, logger="healer.application.healer"):
+        ga_healer.enumerate(optimizer=opt, max_evals_per_comp=12)
+    assert "recommender exploded" in caplog.text
+    assert len(ga_healer.enumerated_molecules) >= 1
+
+
+def test_exhausted_search_space_ends_cleanly(test_bb_repository: BBRepository):
+    """A domain smaller than the budget must terminate without raising."""
+    healer = MoleculeHEALER(
+        bb_source="test",
+        reaction_tags="all",
+        bb_repository=test_bb_repository,
+        sim_threshold=0.0,
+        max_bbs_per_frag=3,
+        verbose=0,
+    )
+    healer.set_query_mol(PENICILLIN_SMILES, n_compositions=1, retro_tree_depth=1, min_frag_size=3)
+    opt = BayesianSequenceOptimizer(batch_size=3, target_fn=qed_fn, max_domain_per_frag=3)
+    healer.enumerate(optimizer=opt, max_evals_per_comp=100, max_total_products=500)
+    assert len(healer.enumerated_molecules) >= 1
 
 
 # ---------------------------------------------------------------------------

@@ -15,6 +15,7 @@ from healer.application.optimizers import (
     stoplight_batch_scorer,
 )
 from healer.domain.bb_repository import BBRepository
+from healer.domain.building_block import BuildingBlock
 from tests.conftest import PENICILLIN_SMILES
 
 
@@ -197,6 +198,56 @@ def test_failing_scorer_does_not_crash_ga(ga_healer: MoleculeHEALER):
     ga_healer.set_query_mol(PENICILLIN_SMILES, n_compositions=1, retro_tree_depth=1, min_frag_size=3)
     ga_healer.enumerate(optimizer=opt, max_total_products=5)
     assert len(ga_healer.enumerated_molecules) >= 1
+
+
+# ---------------------------------------------------------------------------
+# Domain capping
+# ---------------------------------------------------------------------------
+
+def _dummy_pool(n: int):
+    return [BuildingBlock(Chem.MolFromSmiles("C" * (i + 1))) for i in range(n)]
+
+
+def test_prepare_domain_without_cap_returns_pools_unchanged():
+    pool = _dummy_pool(10)
+    opt = GeneticAlgorithmOptimizer(target_fn=qed_fn, max_domain_per_frag=None)
+    assert opt.prepare_domain([pool]) == [pool]
+
+
+def test_prepare_domain_keeps_most_similar_bbs():
+    pool = _dummy_pool(6)
+    sims = ([0.1, 0.9, 0.2, 0.8, 0.3, 0.95],)
+    opt = BayesianSequenceOptimizer(target_fn=qed_fn, max_domain_per_frag=3)
+    kept = opt.prepare_domain([pool], sims)[0]
+    assert [bb.get_smiles() for bb in kept] == ["CCCCCC", "CC", "CCCC"]
+
+
+def test_prepare_domain_falls_back_to_order_without_sims():
+    pool = _dummy_pool(6)
+    opt = BayesianSequenceOptimizer(target_fn=qed_fn, max_domain_per_frag=3)
+    kept = opt.prepare_domain([pool], None)[0]
+    assert kept == pool[:3]
+
+
+def test_capped_healer_retains_sims_uncapped_does_not(test_bb_repository: BBRepository):
+    for max_bbs, expect_sims in ((8, True), (-1, False)):
+        healer = MoleculeHEALER(
+            bb_source="test",
+            reaction_tags="all",
+            bb_repository=test_bb_repository,
+            sim_threshold=0.0,
+            max_bbs_per_frag=max_bbs,
+            verbose=0,
+        )
+        healer.set_query_mol(PENICILLIN_SMILES, n_compositions=2)
+        healer._process_query_mol()
+        healer._process_building_blocks()
+        comp = healer._compositions[0]
+        if expect_sims:
+            assert comp.fragment_sims is not None
+            assert [len(s) for s in comp.fragment_sims] == [len(p) for p in comp.fragment_bbs]
+        else:
+            assert comp.fragment_sims is None
 
 
 # ---------------------------------------------------------------------------

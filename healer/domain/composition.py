@@ -60,7 +60,11 @@ class CompositionPath:
 class CompositionWithBBs:
     '''
         Pairs a CompositionPath with a list of BuildingBlocks for each fragment.
+        `fragment_sims` holds the fragment-to-BB similarity behind each kept
+        building block, in the same order as `fragment_bbs`. It is only populated
+        when the pools were capped with `max_bbs_per_frag`.
     '''
     comp: CompositionPath
-    fragment_bbs: Tuple[List[BuildingBlock], ...] 
+    fragment_bbs: Tuple[List[BuildingBlock], ...]
+    fragment_sims: Optional[Tuple[List[float], ...]] = None
 

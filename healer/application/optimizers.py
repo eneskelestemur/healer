@@ -79,6 +79,64 @@ class BaseStagewiseOptimizer(BaseOptimizer, ABC):
 class BaseSequenceOptimizer(BaseOptimizer, ABC):
     '''Interface for full-sequence optimizers using ask/tell over BB tuples.'''
 
+    def __init__(
+        self,
+        target_fn: Optional[Callable[[Chem.Mol], float]] = None,
+        batch_target_fn: Optional[Callable[[List[Chem.Mol]], List[Optional[float]]]] = None,
+        max_domain_per_frag: Optional[int] = None,
+    ) -> None:
+        '''
+            Args:
+                target_fn: function that scores a single Mol.
+                batch_target_fn: function that scores a list of Mols in one call.
+                max_domain_per_frag: maximum building blocks per fragment to search
+                    over. None searches the full pools.
+        '''
+        super().__init__(target_fn=target_fn, batch_target_fn=batch_target_fn)
+        self.max_domain_per_frag = max_domain_per_frag
+
+    def prepare_domain(
+        self,
+        domain: List[List[BuildingBlock]],
+        sims: Optional[Tuple[List[float], ...]] = None,
+    ) -> List[List[BuildingBlock]]:
+        '''
+            Truncate each fragment's building block pool to `max_domain_per_frag`.
+            The search space is the product of the pool sizes, so uncapped pools can
+            grow past what a surrogate model can enumerate.
+
+            Args:
+                domain: building block pool for each fragment.
+                sims: fragment-to-BB similarity for each pool, used to keep the
+                    closest building blocks. Pools are truncated in their existing
+                    order when not available.
+
+            Returns:
+                The pools, each no longer than `max_domain_per_frag`.
+        '''
+        cap = self.max_domain_per_frag
+        if cap is None or all(len(pool) <= cap for pool in domain):
+            return domain
+
+        prepared: List[List[BuildingBlock]] = []
+        for i, pool in enumerate(domain):
+            if len(pool) <= cap:
+                prepared.append(pool)
+                continue
+            if sims is not None:
+                order = sorted(range(len(pool)), key=lambda j: sims[i][j], reverse=True)
+                prepared.append([pool[j] for j in order[:cap]])
+            else:
+                prepared.append(pool[:cap])
+
+        logger.info(
+            "%s: truncated building block pools from %s to %s (max_domain_per_frag=%d)%s.",
+            type(self).__name__,
+            [len(p) for p in domain], [len(p) for p in prepared], cap,
+            "" if sims is not None else "; set max_bbs_per_frag to truncate by similarity",
+        )
+        return prepared
+
     @abstractmethod
     def init_search(self, domain: List[List[BuildingBlock]], budget: int) -> None:
         '''Initialize search with the BB domain and evaluation budget.'''
@@ -170,8 +228,13 @@ class GeneticAlgorithmOptimizer(BaseSequenceOptimizer):
         random_seed: Optional[int] = None,
         target_fn: Optional[Callable[[Chem.Mol], float]] = None,
         batch_target_fn: Optional[Callable[[List[Chem.Mol]], List[Optional[float]]]] = None,
+        max_domain_per_frag: Optional[int] = None,
     ):
-        super().__init__(target_fn=target_fn, batch_target_fn=batch_target_fn)
+        super().__init__(
+            target_fn=target_fn,
+            batch_target_fn=batch_target_fn,
+            max_domain_per_frag=max_domain_per_frag,
+        )
         self.population_size = population_size
         self.mutation_percent_genes = mutation_percent_genes
         self.crossover_type = crossover_type
@@ -240,6 +303,11 @@ class BayesianSequenceOptimizer(BaseSequenceOptimizer):
 
         Starts with diversity-based random recommendations (FPS) and switches to
         Bayesian recommendations (BotorchRecommender) after initial measurements.
+
+        The search space is the product of the building block pools, which BayBE
+        enumerates up front, so pools are capped at `max_domain_per_frag` by default.
+        Setting `max_bbs_per_frag` on the HEALER lets that cap keep the building
+        blocks most similar to each fragment instead of an arbitrary subset.
     '''
 
     def __init__(
@@ -248,8 +316,13 @@ class BayesianSequenceOptimizer(BaseSequenceOptimizer):
         encoding: str = 'MORDRED',
         target_fn: Optional[Callable[[Chem.Mol], float]] = None,
         batch_target_fn: Optional[Callable[[List[Chem.Mol]], List[Optional[float]]]] = None,
+        max_domain_per_frag: Optional[int] = 200,
     ):
-        super().__init__(target_fn=target_fn, batch_target_fn=batch_target_fn)
+        super().__init__(
+            target_fn=target_fn,
+            batch_target_fn=batch_target_fn,
+            max_domain_per_frag=max_domain_per_frag,
+        )
         self.batch_size = batch_size
         self.encoding = encoding
         self._campaign = None

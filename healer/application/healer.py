@@ -449,7 +449,8 @@ class _BaseHEALER(abc.ABC):
         for comp_idx, comp_bb in enumerate(comp_pbar):
             eval_count = 0
             prod_count = 0
-            optimizer.init_search(domain=comp_bb.fragment_bbs, budget=max_evals_per_comp or 0)
+            domain = optimizer.prepare_domain(comp_bb.fragment_bbs, comp_bb.fragment_sims)
+            optimizer.init_search(domain=domain, budget=max_evals_per_comp or 0)
 
             while True:
                 bb_tuples = optimizer.ask()
@@ -1083,19 +1084,26 @@ class MoleculeHEALER(_BaseHEALER):
         else:
             mask = sims >= self.sim_threshold
 
-        masks_per_comp = [
-            mask[offsets[i]:offsets[i+1], :] for i in range(len(self._compositions))
-        ]
+        keep_sims = self.max_bbs_per_frag > 0
 
         orig_comps = self._compositions
-        self._compositions = [
-            CompositionWithBBs(
-                comp=comp,
-                fragment_bbs=tuple(
-                    [bb for bb, keep in zip(bb_mols, row) if keep] for row in comp_mask
-                ))
-            for comp, comp_mask in zip(orig_comps, masks_per_comp)
-        ]
+        comps: List[CompositionWithBBs] = []
+        for i, comp in enumerate(orig_comps):
+            frag_bbs: List[List[BuildingBlock]] = []
+            frag_sims: List[List[float]] = []
+            for row in range(offsets[i], offsets[i+1]):
+                kept = np.flatnonzero(mask[row])
+                frag_bbs.append([bb_mols[j] for j in kept])
+                if keep_sims:
+                    frag_sims.append(sims[row, kept].astype(np.float32).tolist())
+            comps.append(
+                CompositionWithBBs(
+                    comp=comp,
+                    fragment_bbs=tuple(frag_bbs),
+                    fragment_sims=tuple(frag_sims) if keep_sims else None,
+                )
+            )
+        self._compositions = comps
 
 
 class FragmentHEALER(MoleculeHEALER):

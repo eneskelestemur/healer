@@ -166,19 +166,37 @@ To contribute a reaction, please open a [GitHub issue](https://github.com/eneske
 
 ### Key Parameters
 
+Parameters are split across three calls, so a single HEALER instance can be reused
+across many query molecules without reloading the building block library:
+
+**Constructor** — `MoleculeHEALER(...)`, applies to all modes:
+
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| **Common (all modes)** | | |
-| `bb_source` | Building block library (path to processed SDF) | `'test'` |
-| `reaction_tags` | Filter reactions by tag (list or `'all'`) | `'all'` |
+| `bb_source` | Building block library (path to processed SDF) | `'US_stock'` |
+| `reaction_tags` | Filter reactions by tag (list or `'all'`) | see below |
+| `bb_repository` | Pre-loaded `BBRepository` to share across instances | `None` |
 | `shuffle_bb_order` | Randomize building block order | `False` |
-| `max_evals_per_comp` | Max reaction attempts per composition | `None` (unlimited) |
-| `max_products_per_comp` | Max products per composition | `None` (unlimited) |
-| `max_total_products` | Stop after this many total products | `None` (unlimited) |
+| `verbose` | 0 = WARNING, 1 = INFO, 2 = DEBUG | `1` |
 | | | |
-| **MoleculeHEALER / FragmentHEALER** | | |
-| `sim_threshold` | Minimum Tanimoto similarity for BB matching | `0.5` |
+| *MoleculeHEALER / FragmentHEALER only* | | |
+| `sim_threshold` | Minimum similarity for BB matching | `0.5` |
 | `max_bbs_per_frag` | Max BBs per fragment (`-1` = use threshold) | `-1` |
+| | | |
+| *SiteHEALER only* | | |
+| `rules` | Property filters, e.g. `{'MW': (0, 500)}` | see below |
+| `struct_rules` | Required SMARTS patterns in BBs | `[]` |
+
+`reaction_tags` defaults to `['amide coupling', 'amide', 'C-N bond formation', 'C-N',
+'alkylation', 'N-arylation', 'azole', 'amination']`. `rules` defaults to
+`MW (0, 500)`, `HBD (0, 5)`, `HBA (0, 10)`, `TPSA (0, 200)`, `RotB (0, 10)`,
+`Rings (0, 10)`, `ArRings (0, 5)`, `Chiral (0, 5)`.
+
+**`set_query_mol(...)`** — per query molecule:
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| *MoleculeHEALER* | | |
 | `n_compositions` | Number of fragment compositions to explore | `10` |
 | `retro_tree_depth` | Depth of retrosynthetic tree search | `1` |
 | `min_frag_size` | Minimum fragment size in heavy atoms | `3` |
@@ -186,10 +204,23 @@ To contribute a reaction, please open a [GitHub issue](https://github.com/eneske
 | `random_seed` | Seed for reproducibility (`-1` = random) | `-1` |
 | `custom_split_sites` | Manual bond indices to break (skips retro) | `None` |
 | | | |
-| **SiteHEALER** | | |
+| *SiteHEALER* | | |
 | `reactive_sites` | Atom indices for enumeration (list of ints) | `None` (all sites) |
-| `rules` | Property filters, e.g., `{'MW': (0, 500)}` | `{}` |
-| `struct_rules` | Required SMARTS patterns in BBs | `[]` |
+
+`FragmentHEALER.set_query_mol` takes only the query itself.
+
+**`enumerate(...)`** — per run:
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `max_evals_per_comp` | Max reaction attempts per composition | `None` (unlimited) |
+| `max_products_per_comp` | Max products per composition | `None` (unlimited) |
+| `max_total_products` | Stop after this many total products | `None` (unlimited) |
+| `n_jobs` | Parallel workers for synthesis (`-1` = all CPUs) | `1` |
+
+> The three limits are approximate. They exist to bound run time and avoid
+> combinatorial explosion, not to guarantee an exact count — a single reaction
+> attempt can yield several products, so the totals may overshoot slightly.
 
 ### CLI Commands
 

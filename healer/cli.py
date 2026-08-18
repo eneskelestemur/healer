@@ -276,13 +276,13 @@ def add_common_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('--shuffle', action='store_true',
                         help='Shuffle building block order')
     
-    # Enumeration limits
+    # Enumeration limits (approximate; bound run time rather than give exact counts)
     parser.add_argument('--max-evals', type=int, default=None,
-                        help='Max reaction attempts per composition')
+                        help='Max reaction attempts per composition (approximate)')
     parser.add_argument('--max-products', type=int, default=None,
-                        help='Max products per composition')
+                        help='Max products per composition (approximate)')
     parser.add_argument('--max-total', type=int, default=None,
-                        help='Max total products (stops enumeration)')
+                        help='Max total products, stops enumeration (approximate)')
     
     # Output options
     parser.add_argument('--similarity', action='store_true',

@@ -3,15 +3,18 @@
 '''
 import logging
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Callable, Optional
+from typing import List, Tuple, Callable, Iterable, Optional
 
 import pandas as pd
 from rdkit import Chem
 
 from healer.domain.enumeration_record import EnumerationRecord
 from healer.domain.building_block import BuildingBlock
+from healer.domain.reaction_template import ReactionTemplate21
 
 logger = logging.getLogger(__name__)
+
+Candidate = Tuple[EnumerationRecord, BuildingBlock, ReactionTemplate21]
 
 
 class BaseOptimizer(ABC):
@@ -80,9 +83,29 @@ class BaseOptimizer(ABC):
 
 class BaseStagewiseOptimizer(BaseOptimizer, ABC):
     '''
-        Interface for stagewise optimizers that prune or reorder assembled products
-        at each fragment-assembly stage.
+        Interface for stagewise optimizers that prune or reorder candidates at each
+        fragment-assembly stage. Pruning happens at two points: `select_candidates`
+        drops reactions before they are run, and `filter` drops assembled products
+        after. Scoring a molecule requires building it, so anything score-driven
+        belongs in `filter`, while cheap building block heuristics belong in
+        `select_candidates`, where they save the synthesis work entirely.
     '''
+
+    def select_candidates(self, candidates: Iterable[Candidate], depth: int) -> Iterable[Candidate]:
+        '''
+            Prune candidate reactions before they are applied. The default keeps
+            every candidate.
+
+            Args:
+                candidates: (record, building block, reaction) triples, streamed
+                    lazily. Return a generator to keep them from being materialized.
+                depth: index of the current fragment-assembly stage, starting at 1.
+
+            Returns:
+                the candidates to apply at this stage.
+        '''
+        return candidates
+
     @abstractmethod
     def filter(self, records: List[EnumerationRecord], depth: int) -> List[EnumerationRecord]:
         '''
@@ -97,6 +120,38 @@ class BaseStagewiseOptimizer(BaseOptimizer, ABC):
                 the records to carry forward as seeds for the next stage.
         '''
         ...
+
+
+class PassthroughOptimizer(BaseStagewiseOptimizer):
+    '''
+        Stagewise optimizer that prunes nothing and scores nothing. Used when
+        `enumerate` is called without an optimizer, so exhaustive enumeration and
+        guided enumeration share one code path.
+    '''
+
+    def __init__(self) -> None:
+        pass
+
+    def evaluate_batch(self, mols: List[Chem.Mol]) -> List[Optional[float]]:
+        '''
+            Args:
+                mols: molecules to score.
+
+            Returns:
+                None for every molecule, leaving records without a score.
+        '''
+        return [None] * len(mols)
+
+    def filter(self, records: List[EnumerationRecord], depth: int) -> List[EnumerationRecord]:
+        '''
+            Args:
+                records: products assembled at this stage.
+                depth: index of the current fragment-assembly stage.
+
+            Returns:
+                every record, unchanged.
+        '''
+        return records
 
 
 class BaseSequenceOptimizer(BaseOptimizer, ABC):

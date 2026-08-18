@@ -15,7 +15,9 @@ from healer.utils.fingerprints import get_fingerprint_generator
 
 from healer.application.tree_builder import CompositionPath, RetrosynthesisTree
 from healer.domain.composition import CompositionWithBBs
-from healer.application.optimizers import BaseStagewiseOptimizer, BaseSequenceOptimizer
+from healer.application.optimizers import (
+    BaseStagewiseOptimizer, BaseSequenceOptimizer, PassthroughOptimizer
+)
 from healer.domain.building_block import BuildingBlock
 from healer.domain.reaction_template import ReactionTemplate21
 from healer.domain.enumeration_record import EnumerationRecord
@@ -270,35 +272,35 @@ class _BaseHEALER(abc.ABC):
             Raises:
                 TypeError: if the optimizer is not of a supported type.
         '''
-        _init_score = optimizer.evaluate(self.query_mol) if optimizer else None
+        if not isinstance(self.query_mol, Chem.Mol):
+            raise ValueError("Query molecule must be set before enumeration. Use set_query_mol() method.")
+
+        if optimizer is None:
+            optimizer = PassthroughOptimizer()
+        if not isinstance(optimizer, (BaseStagewiseOptimizer, BaseSequenceOptimizer)):
+            raise TypeError(f"Unsupported optimizer type: {type(optimizer)}. ")
+
+        init_score = optimizer.evaluate(self.query_mol)
         self.enumerated_molecules = [
             EnumerationRecord(
                 product=self.query_mol,
                 bbs=[],
                 reaction_names=[],
-                props={'optimization_score': _init_score} if _init_score is not None else {}
+                props={'optimization_score': init_score} if init_score is not None else {}
             )
         ]
 
-        if not isinstance(self.query_mol, Chem.Mol):
-            raise ValueError("Query molecule must be set before enumeration. Use set_query_mol() method.")
         self._process_query_mol()
         self._process_building_blocks()
 
-        if optimizer is None:
-            self.enumerated_molecules += self._enumerate_base(
-                max_evals_per_comp, max_products_per_comp, max_total_products, n_jobs
-            )
-        elif isinstance(optimizer, BaseStagewiseOptimizer):
+        if isinstance(optimizer, BaseStagewiseOptimizer):
             self.enumerated_molecules += self._enumerate_stagewise(
                 optimizer, max_evals_per_comp, max_products_per_comp, max_total_products, n_jobs
             )
-        elif isinstance(optimizer, BaseSequenceOptimizer):
+        else:
             self.enumerated_molecules += self._enumerate_sequence(
                 optimizer, max_evals_per_comp, max_products_per_comp, max_total_products, n_jobs
             )
-        else:
-            raise TypeError(f"Unsupported optimizer type: {type(optimizer)}. ")
     
     @abc.abstractmethod
     def set_query_mol(self, molecule: Union[str, Chem.Mol]) -> None:
@@ -325,48 +327,6 @@ class _BaseHEALER(abc.ABC):
         '''
         ...
     
-    def _enumerate_base(
-        self,
-        max_evals_per_comp: Optional[int] = None,
-        max_products_per_comp: Optional[int] = None,
-        max_total_products: Optional[int] = None,
-        n_jobs: int = 1,
-    ) -> List[EnumerationRecord]:
-        '''
-            Exhaustive enumeration without optimization.
-        '''
-        results: List[EnumerationRecord] = []
-        for comp_bb in tqdm(self._compositions, desc="Enumerating compositions", disable=self.verbose >= 2):
-            bb_lists = comp_bb.fragment_bbs 
-            stage_records = self._make_seed_records(bb_lists[0])
-            eval_count = 0
-            
-            for bb_pool in bb_lists[1:]:
-                cands = self._generate_candidates(stage_records, bb_pool)
-                # Soft limit: truncate candidates if we'd exceed max_evals_per_comp
-                if max_evals_per_comp:
-                    remaining = max_evals_per_comp - eval_count
-                    if remaining <= 0:
-                        logger.debug("Stopping base enumeration: max_evals_per_comp=%d reached.", max_evals_per_comp)
-                        break
-                    cands = islice(cands, remaining)
-                stage_records = self._apply_candidates(cands, n_jobs=n_jobs)
-                eval_count += len(stage_records)
-
-            # Soft limit: truncate products per composition
-            if max_products_per_comp:
-                stage_records = stage_records[:max_products_per_comp]
-            
-            results.extend(stage_records)
-            
-            # Hard limit: stop if total products reached
-            if max_total_products and len(results) >= max_total_products:
-                results = results[:max_total_products]
-                break
-
-        logger.debug("Enumeration completed with %d results", len(results))
-        return results
-    
     def _enumerate_stagewise(
         self, 
         optimizer: BaseStagewiseOptimizer, 
@@ -376,16 +336,18 @@ class _BaseHEALER(abc.ABC):
         n_jobs: int = 1,
     ) -> List[EnumerationRecord]:
         '''
-            Stagewise enumeration with optimizer.filter() hook.
+            Stagewise enumeration with the optimizer's select_candidates() and
+            filter() hooks.
         '''
         results: List[EnumerationRecord] = []
         for comp_bb in tqdm(self._compositions, desc="Enumerating compositions", disable=self.verbose >= 2):
             bb_lists = comp_bb.fragment_bbs
             stage_records = self._make_seed_records(bb_lists[0])
             eval_count = 0
-            
+
             for depth, bb_pool in enumerate(bb_lists[1:], start=1):
                 cands = self._generate_candidates(stage_records, bb_pool)
+                cands = optimizer.select_candidates(cands, depth)
                 # Soft limit: truncate candidates if we'd exceed max_evals_per_comp
                 if max_evals_per_comp:
                     remaining = max_evals_per_comp - eval_count

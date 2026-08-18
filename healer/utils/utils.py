@@ -9,6 +9,7 @@ import base64
 from pathlib import Path
 from typing import List, Union, Tuple
 from itertools import chain
+from functools import lru_cache
 
 import numpy as np
 from rdkit import RDLogger, Chem
@@ -108,9 +109,14 @@ def get_reaction_tags() -> list[str]:
     
     return tags
 
+@lru_cache(maxsize=None)
 def load_reactions_from_json(file_path: str) -> list[ReactionTemplate21]:
     '''
         Loads reactions from a json file.
+
+        Results are cached per file path, so the returned templates are shared
+        between callers. Call `load_reactions_from_json.cache_clear()` to force 
+        a reload.
 
         Args:
             file_path: str, path to the json file.

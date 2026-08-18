@@ -86,6 +86,7 @@ def _apply_candidate_chunk(
                     bbs=rec.bbs + [bb],
                     reaction_names=rec.reaction_names + [rxn.name],
                     props=dict(rec.props),
+                    origin=rec.origin,
                 )
             )
     return results
@@ -471,11 +472,13 @@ class _BaseHEALER(abc.ABC):
                 eval_count += round_size
                 comp_pbar.set_postfix(evals=eval_count, products=prod_count, refresh=False)
 
-                bb_pools = [list(bb_tuple) for bb_tuple in zip(*unique_bb_tuples)]
-                stage_records = self._make_seed_records(bb_pools[0])
+                seed_bbs = [bb_tuple[0] for bb_tuple in unique_bb_tuples]
+                stage_records = self._make_seed_records(seed_bbs, tag_origin=True)
 
-                for bb_pool in bb_pools[1:]:
-                    cands = self._generate_candidates_positionwise(stage_records, bb_pool)
+                for stage_idx in range(1, len(unique_bb_tuples[0])):
+                    cands = self._generate_candidates_positionwise(
+                        stage_records, unique_bb_tuples, stage_idx
+                    )
                     stage_records = self._apply_candidates(cands, n_jobs=n_jobs)
 
                 # Score batch and collect feedback
@@ -512,29 +515,47 @@ class _BaseHEALER(abc.ABC):
         logger.debug("Sequence enumeration completed with %d results", len(results))
         return results
 
-    def _make_seed_records(self, bb0_pool: List[BuildingBlock]) -> List[EnumerationRecord]:
+    def _make_seed_records(
+        self,
+        bb0_pool: List[BuildingBlock],
+        tag_origin: bool = False,
+    ) -> List[EnumerationRecord]:
         '''
             Create initial enumeration records from the seed building blocks.
+
+            Args:
+                bb0_pool: building blocks to seed the records with.
+                tag_origin: if True, tag each record with its index in the pool so
+                    it can be paired with the right building block at later stages.
         '''
         return [
             EnumerationRecord(
-                product=bb.mol, bbs=[bb], reaction_names=[], props={}
-            ) for bb in bb0_pool
+                product=bb.mol, bbs=[bb], reaction_names=[], props={},
+                origin=i if tag_origin else None
+            ) for i, bb in enumerate(bb0_pool)
         ]
     
     def _generate_candidates_positionwise(
         self,
         stage_records: List[EnumerationRecord],
-        bb_pool: List[BuildingBlock]
+        bb_tuples: List[Tuple[BuildingBlock, ...]],
+        stage_idx: int,
     ) -> Iterator[Tuple[EnumerationRecord, BuildingBlock, ReactionTemplate21]]:
         '''
-            One-to-one mapping of enumeration records to building blocks. Pair 
-            each current record with the BB at the same index for each reaction.
-            Yields candidates lazily to avoid materializing large lists.
+            Pair each record with the building block its proposed tuple assigns to
+            this stage. Records are matched through their `origin` tag rather than
+            their position, since applying a reaction may produce several products
+            per candidate or none at all. Yields candidates lazily to avoid
+            materializing large lists.
+
+            Args:
+                stage_records: records assembled so far, each carrying an origin tag.
+                bb_tuples: building block tuples proposed by the optimizer.
+                stage_idx: position within each tuple to couple at this stage.
         '''
         for rxn in self.reactions:
-            for rec, bb in zip(stage_records, bb_pool):
-                yield (rec, bb, rxn)
+            for rec in stage_records:
+                yield (rec, bb_tuples[rec.origin][stage_idx], rxn)
 
     def _generate_candidates(
         self, 
@@ -597,7 +618,8 @@ class _BaseHEALER(abc.ABC):
                     product=product,
                     bbs=rec.bbs + [bb],
                     reaction_names=rec.reaction_names + [rxn.name],
-                    props=new_props
+                    props=new_props,
+                    origin=rec.origin
                 )
             )
         return results

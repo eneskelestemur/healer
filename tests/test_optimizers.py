@@ -5,7 +5,7 @@ import pytest
 from rdkit import Chem
 from rdkit.Chem import QED
 
-from healer.application.healer import MoleculeHEALER
+from healer.application.healer import MoleculeHEALER, FragmentHEALER
 from healer.application.optimizers import (
     BaseOptimizer,
     BeamSearchOptimizer,
@@ -197,3 +197,45 @@ def test_failing_scorer_does_not_crash_ga(ga_healer: MoleculeHEALER):
     ga_healer.set_query_mol(PENICILLIN_SMILES, n_compositions=1, retro_tree_depth=1, min_frag_size=3)
     ga_healer.enumerate(optimizer=opt, max_total_products=5)
     assert len(ga_healer.enumerated_molecules) >= 1
+
+
+# ---------------------------------------------------------------------------
+# Sequence optimizers must assemble exactly what they proposed
+# ---------------------------------------------------------------------------
+
+def test_sequence_optimizer_assembles_proposed_tuples(test_bb_repository: BBRepository):
+    """
+    With three or more fragments, records must be paired with building blocks
+    through their origin tag. Pairing by list position instead lets products
+    drift onto combinations the optimizer never asked for, because applying a
+    reaction can yield several products per candidate or none at all.
+    """
+    class SpyGA(GeneticAlgorithmOptimizer):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.proposed = set()
+
+        def ask(self):
+            bb_tuples = super().ask()
+            self.proposed.update(
+                tuple(bb.get_smiles() for bb in bb_tuple) for bb_tuple in bb_tuples
+            )
+            return bb_tuples
+
+    healer = FragmentHEALER(
+        bb_source="test",
+        reaction_tags="all",
+        bb_repository=test_bb_repository,
+        sim_threshold=0.0,
+        max_bbs_per_frag=6,
+        verbose=0,
+    )
+    healer.set_query_mol("c1ccccc1N.CC(=O)O.CCN")
+    opt = SpyGA(population_size=6, random_seed=0, target_fn=qed_fn)
+    healer.enumerate(optimizer=opt, max_evals_per_comp=18, max_total_products=25)
+
+    assembled = [r for r in healer.enumerated_molecules if r.origin is not None]
+    assert assembled, "no products were assembled"
+    assert all(len(r.bbs) == 3 for r in assembled)
+    for rec in assembled:
+        assert tuple(bb.get_smiles() for bb in rec.bbs) in opt.proposed

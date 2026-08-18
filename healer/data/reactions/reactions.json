@@ -1578,43 +1578,6 @@
         ],
         "tier": 1
     },
-    "stille": {
-        "description": "Stille Coupling: aryl C-C coupling from an aryl or vinyl halide and an organostannane.",
-        "display_smarts": "Br-[#6:201].[#6]-C-C-C-[Sn](-[#6:202])(-C-C-C-[#6])-C-C-C-[#6]>>[#6:202]-[#6:201] |$;Aryl_p;;;;;;Aryl_p;;;;;;;;;Aryl_p;Aryl_p$|",
-        "long_name": "Stille coupling",
-        "retro_smarts": "[#6;$(c),$(C=C):1]-!@[#6;$(C=C),$(c):2]>>[#6:1]-Br.[#6:2]-[#50](-CCCC)(-CCCC)-CCCC",
-        "rhs_classes": [
-            "halides-aryl-vinyl",
-            "organostannanes"
-        ],
-        "syn_smarts": "[#6;$(c),$(C=C):101]-[Cl,Br,I].[#6;$([#6]=[#6]),$(c):102]-[#50](-CCCC)(-CCCC)-CCCC>>[#6:101]-[#6:102]",
-        "tags": [
-            "Stille",
-            "organostannane",
-            "C-C bond formation",
-            "C-C"
-        ],
-        "tier": 2
-    },
-    "stille-2": {
-        "description": "Stille Carbonylative Coupling: aryl C-C coupling with CO insertion from an aryl or vinyl halide and an organostannane.",
-        "display_smarts": "Br-[#6:201].[#6]-C-C-C-[Sn](-[#6:202])(-C-C-C-[#6])-C-C-C-[#6]>>[#6:202]-C(=O)-[#6:201] |$;Aryl_p;;;;;;Aryl_p;;;;;;;;;Aryl_p;;;Aryl_p$|",
-        "long_name": "Stille carbonylative coupling",
-        "retro_smarts": "[#6;$(c),$(C=C):1]-!@C(=O)-[#6;$(C=C),$(c):2]>>[#6:1]-Br.[#6:2]-[#50](-CCCC)(-CCCC)-CCCC",
-        "rhs_classes": [
-            "halides-aryl-vinyl",
-            "organostannanes"
-        ],
-        "syn_smarts": "[#6;$(c),$(C=C):101]-[Cl,Br,I].[#6;$(C=C),$(c):102]-[#50](-CCCC)(-CCCC)-CCCC>>[#6:101]-C(=O)-[#6:102]",
-        "tags": [
-            "Stille",
-            "organostannane",
-            "C-C bond formation",
-            "C-C",
-            "CO insertion"
-        ],
-        "tier": 2
-    },
     "sulfonamide-1": {
         "description": "Sulfonamide synthesis from a sulfonyl chloride and a primary or secondary amine.",
         "display_smarts": "[#6:101]-[S](=O)(=O)-[Cl].[#7]-[#6:102]>>[#6:102]-N-S(=O)(=O)-[#6:101]",

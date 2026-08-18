@@ -10,6 +10,7 @@ from typing import List, Dict, Any, Optional, Union, Tuple
 from rdkit import Chem
 
 from healer.application.healer import MoleculeHEALER, SiteHEALER, FragmentHEALER
+from healer.domain.bb_repository import resolve_bb_path as _repo_resolve_bb_path
 
 
 logger = logging.getLogger(__name__)
@@ -155,27 +156,7 @@ def resolve_bb_path(bb_source: str) -> str:
       - An absolute path (returned as-is after existence check)
       - A path relative to BB_BASE_PATH
     """
-    # Named key → delegate to bb_repository which already handles glob resolution
-    if bb_source in _BB_NAMED_SOURCES:
-        from healer.domain.bb_repository import resolve_bb_path as _repo_resolve
-        return _repo_resolve(bb_source)
-
-    # Absolute path
-    p = Path(bb_source)
-    if p.is_absolute():
-        if not p.exists():
-            raise FileNotFoundError(f"Building block file not found: {p}")
-        return str(p)
-
-    # Relative path — resolve against BB_BASE_PATH
-    candidate = BB_BASE_PATH / bb_source
-    if candidate.exists():
-        return str(candidate)
-
-    raise FileNotFoundError(
-        f"Building block source not found: {bb_source!r} "
-        f"(looked in {BB_BASE_PATH})"
-    )
+    return _repo_resolve_bb_path(bb_source, base_dir=BB_BASE_PATH)
 
 
 def count_molecular_fragments(smiles: str) -> int:

@@ -35,17 +35,19 @@ def _build_bb_paths() -> Dict[str, str]:
     }
 
 
-def resolve_bb_path(bb_source: str) -> str:
+def resolve_bb_path(bb_source: str, base_dir: Optional[Path] = None) -> str:
     """
         Resolve a building block source name or pattern to an actual file path.
-        
+
         Args:
-            bb_source: One of "US_stock", "EU_stock", "Global_stock", "test", 
+            bb_source: One of "US_stock", "EU_stock", "Global_stock", "test",
                     or a direct file path (optionally with glob patterns).
-        
+            base_dir: Optional directory to resolve relative paths against when
+                    they are not found as given.
+
         Returns:
             Resolved absolute file path.
-        
+
         Raises:
             FileNotFoundError: If no file matches the pattern.
     """
@@ -62,6 +64,13 @@ def resolve_bb_path(bb_source: str) -> str:
     else:
         chosen = p
         if not chosen.exists():
+            if base_dir is not None and not p.is_absolute():
+                candidate = Path(base_dir) / bb_source
+                if candidate.exists():
+                    return str(candidate)
+                raise FileNotFoundError(
+                    f"Building block source not found: {bb_source!r} (looked in {base_dir})"
+                )
             raise FileNotFoundError(f"Building block file not found: {chosen}")
 
     return str(chosen)

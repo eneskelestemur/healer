@@ -40,6 +40,20 @@ _HEALER_PKG = Path(__file__).parent.parent
 _DATA_DIR = _HEALER_PKG / 'data'
 _REACTIONS_FILE = _DATA_DIR / 'reactions' / 'reactions.json'
 
+DEFAULT_REACTION_TAGS = ('amide coupling', 'amide', 'C-N bond formation', 'C-N',
+                         'alkylation', 'N-arylation', 'azole', 'amination')
+
+DEFAULT_BB_RULES = {
+    'MW': (0, 500),     # molecular weight
+    'HBD': (0, 5),      # hydrogen bond donors
+    'HBA': (0, 10),     # hydrogen bond acceptors
+    'TPSA': (0, 200),   # topological polar surface area
+    'RotB': (0, 10),    # rotatable bonds
+    'Rings': (0, 10),   # number of rings
+    'ArRings': (0, 5),  # number of aromatic rings
+    'Chiral': (0, 5),   # number of chiral centers
+}
+
 
 def _chunked(iterable, size: int):
     '''Yield successive chunks from an iterable without materialising it fully.'''
@@ -155,6 +169,14 @@ class _BaseHEALER(abc.ABC):
             return [bbs[i] for i in valid_indices]
         return bbs
 
+    @property
+    @abc.abstractmethod
+    def max_bbs(self) -> int:
+        '''
+            Maximum number of building blocks a product can be assembled from.
+        '''
+        ...
+
     def _load_reactions(self, reaction_tags: Union[List[str], str]) -> None:
         '''
             Load and filter reactions based on tags.
@@ -231,6 +253,10 @@ class _BaseHEALER(abc.ABC):
         '''
             Enumerate the molecule with building blocks based on the reactions. An optimizer
             can be provided to optimize an objective function during enumeration.
+
+            The three limits are approximate. They bound run time and guard against
+            combinatorial explosion rather than guaranteeing exact counts, since a
+            single reaction attempt can yield several products.
 
             Args:
                 optimizer: an optimizer object to use for enumeration.
@@ -572,14 +598,7 @@ class _BaseHEALER(abc.ABC):
                 calc_properties (bool): if True, calculate additional properties.
                 skip_cns_mpo (bool): if True, skip calculating CNS MPO scores when calculating properties.
         '''
-        max_bb = None
-        if isinstance(self, MoleculeHEALER) and not isinstance(self, FragmentHEALER):
-            max_bb = 2 ** self.retro_tree_depth
-        elif isinstance(self, SiteHEALER):
-            max_bb = 2    
-        else:
-            max_bb = max(len(r.bbs) for r in self.enumerated_molecules)
-        
+        max_bb = self.max_bbs
         max_rxn = max_bb - 1
 
         # Build each row as a dict
@@ -653,21 +672,11 @@ class SiteHEALER(_BaseHEALER):
     def __init__(
             self, 
             bb_source: str = 'US_stock',
-            reaction_tags: list[str] | str = ['amide coupling', 'amide', 'C-N bond formation', 'C-N',
-                                            'alkylation', 'N-arylation', 'azole', 'amination'],
+            reaction_tags: Optional[Union[list[str], str]] = None,
             bb_repository: Optional[BBRepository] = None,
             shuffle_bb_order: bool = False,
-            rules: dict[str, tuple[int, int]] = {
-                'MW': (0, 500), # molecular weight
-                'HBD': (0, 5), # hydrogen bond donors
-                'HBA': (0, 10), # hydrogen bond acceptors
-                'TPSA': (0, 200), # topological polar surface area
-                'RotB': (0, 10), # rotatable bonds
-                'Rings': (0, 10), # number of rings
-                'ArRings': (0, 5), # number of aromatic rings
-                'Chiral': (0, 5), # number of chiral centers
-            },
-            struct_rules: list[str]=[],
+            rules: Optional[dict[str, tuple[int, int]]] = None,
+            struct_rules: Optional[list[str]] = None,
             verbose: int=1,
     ):
         '''
@@ -675,16 +684,30 @@ class SiteHEALER(_BaseHEALER):
 
             Args:
                 bb_source: one of "US_stock", "EU_stock" or "Global_stock"; or path to an SDF file.
-                reaction_tags: list of tags or 'all'.
+                reaction_tags: list of tags or 'all'. If None, defaults to
+                    ['amide coupling', 'amide', 'C-N bond formation', 'C-N',
+                     'alkylation', 'N-arylation', 'azole', 'amination'].
                 bb_repository: optional pre-loaded BBRepository for sharing across instances.
                 shuffle_bb_order: whether to shuffle the order of building blocks.
-                rules: dictionary of rules for filtering molecules.
+                rules: dictionary of (min, max) property ranges for filtering building
+                    blocks. If None, defaults to MW (0, 500), HBD (0, 5), HBA (0, 10),
+                    TPSA (0, 200), RotB (0, 10), Rings (0, 10), ArRings (0, 5),
+                    Chiral (0, 5).
                 struct_rules: list of structural rules for filtering molecules.
                 verbose: verbosity level, 0 for errors, 1 for warnings, 2 for info.
         '''
+        if reaction_tags is None:
+            reaction_tags = list(DEFAULT_REACTION_TAGS)
         super().__init__(bb_source, reaction_tags, bb_repository, shuffle_bb_order, verbose)
-        self.rules = rules
-        self.struct_rules = struct_rules
+        self.rules = dict(DEFAULT_BB_RULES) if rules is None else dict(rules)
+        self.struct_rules = [] if struct_rules is None else list(struct_rules)
+
+    @property
+    def max_bbs(self) -> int:
+        '''
+            The query molecule is coupled with a single building block.
+        '''
+        return 2
     
     def set_rules(self, **kwargs):
         '''
@@ -733,8 +756,10 @@ class SiteHEALER(_BaseHEALER):
     def _process_query_mol(self, protect_neighbors: bool=False) -> None:
         if not isinstance(self.query_mol, Chem.Mol):
             raise ValueError('Query molecule must be an RDKit Mol object.')
-        
-        query_mol = self.query_mol
+
+        self._compositions = []
+
+        query_mol = Chem.Mol(self.query_mol)
         if self.reactive_sites:
             dont_protect = set()
             for atom in query_mol.GetAtoms():
@@ -823,9 +848,8 @@ class MoleculeHEALER(_BaseHEALER):
     '''
     def __init__(
         self, 
-        bb_source: str = 'US_stock', 
-        reaction_tags: list[str] = ['amide coupling', 'amide', 'C-N bond formation', 'C-N',
-                                    'alkylation', 'N-arylation', 'azole', 'amination'],
+        bb_source: str = 'US_stock',
+        reaction_tags: Optional[Union[list[str], str]] = None,
         bb_repository: Optional[BBRepository] = None,
         shuffle_bb_order: bool = False,
         sim_threshold: float = 0.5,
@@ -837,7 +861,9 @@ class MoleculeHEALER(_BaseHEALER):
 
             Args:
                 bb_source: one of "US_stock", "EU_stock" or "Global_stock"; or path to an SDF file.
-                reaction_tags: list of tags or 'all'.
+                reaction_tags: list of tags or 'all'. If None, defaults to
+                    ['amide coupling', 'amide', 'C-N bond formation', 'C-N',
+                     'alkylation', 'N-arylation', 'azole', 'amination'].
                 bb_repository: optional pre-loaded BBRepository for sharing across instances.
                 shuffle_bb_order: whether to shuffle the order of building blocks.
                 sim_threshold: similarity threshold for filtering building blocks.
@@ -846,13 +872,23 @@ class MoleculeHEALER(_BaseHEALER):
                     threshold will be adjusted to the number of building blocks.
                 verbose: verbosity level, 0 for errors, 1 for warnings, 2 for info.
         '''
+        if reaction_tags is None:
+            reaction_tags = list(DEFAULT_REACTION_TAGS)
         super().__init__(bb_source, reaction_tags, bb_repository, shuffle_bb_order, verbose)
         self.sim_threshold = sim_threshold
         self.max_bbs_per_frag = max_bbs_per_frag
 
+    @property
+    def max_bbs(self) -> int:
+        '''
+            A binary retrosynthesis tree of depth d yields at most 2**d fragments,
+            each replaced by one building block.
+        '''
+        return 2 ** self.retro_tree_depth
+
     def set_query_mol(
-        self, 
-        query_mol: Union[str, Chem.Mol], 
+        self,
+        query_mol: Union[str, Chem.Mol],
         n_compositions: int=10,
         randomize_compositions: bool=False,
         random_seed: int=-1,
@@ -1027,9 +1063,8 @@ class FragmentHEALER(MoleculeHEALER):
     '''
     def __init__(
             self, 
-            bb_source: str = 'US_stock', 
-            reaction_tags: list[str] = ['amide coupling', 'amide', 'C-N bond formation', 'C-N',
-                                      'alkylation', 'N-arylation', 'azole', 'amination'],
+            bb_source: str = 'US_stock',
+            reaction_tags: Optional[Union[list[str], str]] = None,
             bb_repository: Optional[BBRepository] = None,
             shuffle_bb_order: bool = False,
             sim_threshold: float = 0.5,
@@ -1041,7 +1076,9 @@ class FragmentHEALER(MoleculeHEALER):
 
             Args:
                 bb_source: one of "US_stock", "EU_stock" or "Global_stock"; or path to an SDF file.
-                reaction_tags: list of tags or 'all'.
+                reaction_tags: list of tags or 'all'. If None, defaults to
+                    ['amide coupling', 'amide', 'C-N bond formation', 'C-N',
+                     'alkylation', 'N-arylation', 'azole', 'amination'].
                 bb_repository: optional pre-loaded BBRepository for sharing across instances.
                 shuffle_bb_order: whether to shuffle the order of building blocks.
                 sim_threshold: similarity threshold for filtering building blocks.
@@ -1054,6 +1091,13 @@ class FragmentHEALER(MoleculeHEALER):
             bb_source, reaction_tags, bb_repository, shuffle_bb_order,
             sim_threshold, max_bbs_per_frag, verbose
         )
+
+    @property
+    def max_bbs(self) -> int:
+        '''
+            Each fragment of the query is replaced by one building block.
+        '''
+        return len(Chem.GetMolFrags(self.query_mol))
 
     def set_query_mol(
         self, query_mol: Union[str, Chem.Mol, tuple[Chem.Mol, ...], tuple[str, ...]], 
@@ -1092,11 +1136,9 @@ class FragmentHEALER(MoleculeHEALER):
         if not isinstance(self.query_mol, Chem.Mol):
             raise ValueError('Query molecule must be an RDKit Mol object. '
                              'Set it using set_query_mol() method.')
-        
+
         frags = Chem.GetMolFrags(self.query_mol, asMols=True, sanitizeFrags=True)
-        self._compositions.append(
-            CompositionPath(fragments=frags)
-        )
+        self._compositions = [CompositionPath(fragments=frags)]
 
         logger.debug("Generated %d composition(s):\n%s", len(self._compositions), self._composition_prints())
 

@@ -46,8 +46,10 @@ PATCH_TARGETS = [
     (rdMolDescriptors, ["CalcNumAtomStereoCenters", "_CalcMolWt"]),
 ]
 
-# Guard against double-patching on reimport
-_PATCHED = set()
+# Marks a wrapper so an already-patched function is never wrapped a second time.
+# Kept on the function rather than in module state, which a reload would reset
+# while RDKit stays patched.
+_PATCH_MARKER = "__healer_patched__"
 
 
 def _unwrap(obj):
@@ -80,15 +82,12 @@ def _wrap(fn):
         new_kwargs = {k: _unwrap(v) for k, v in kwargs.items()}
         return fn(*new_args, **new_kwargs)
 
+    setattr(inner, _PATCH_MARKER, True)
     return inner
 
 
 for target, names in PATCH_TARGETS:
     for name in names:
-        key = (id(target), name)
-        if key in _PATCHED:
-            continue
         orig = getattr(target, name, None)
-        if orig:
+        if orig and not getattr(orig, _PATCH_MARKER, False):
             setattr(target, name, _wrap(orig))
-            _PATCHED.add(key)

@@ -2,6 +2,7 @@
     CLI for HEALER application.
 '''
 import healer.utils.rdkit_monkey_patch  # noqa: F401 - must be first
+from healer.utils.progress import progress_bar
 
 import json
 import logging
@@ -10,9 +11,9 @@ import tempfile
 import webbrowser
 import base64
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
-from tqdm import tqdm
 from rdkit import Chem
 from rdkit.Chem import SDMolSupplier
 
@@ -113,7 +114,7 @@ def get_init_kwargs(args: argparse.Namespace, healer_type: str) -> dict:
         'bb_source': args.bb_source,
         'reaction_tags': args.reactions.split(',') if args.reactions != 'all' else 'all',
         'shuffle_bb_order': args.shuffle,
-        'verbose': args.verbose,
+        'show_progress': False if args.quiet else None,
     }
     
     if healer_type in ('molecule', 'fragment'):
@@ -182,7 +183,7 @@ def run_enumeration(
     enumerate_kwargs: dict,
     results_kwargs: dict,
     output_path: str,
-    verbose: int
+    show_progress: Optional[bool] = None,
 ) -> None:
     """Run enumeration for one or more molecules.
     
@@ -205,24 +206,34 @@ def run_enumeration(
     
     out = Path(output_path)
     first = True
-    
-    for smiles in tqdm(smiles_list, desc="Enumerating", disable=verbose >= 2):
-        mol = Chem.MolFromSmiles(smiles)
-        if mol is None:
-            logger.warning("Skipping invalid SMILES: %s", smiles)
-            continue
-        
-        try:
-            healer.set_query_mol(query_mol=smiles, **query_kwargs)
-            healer.enumerate(**enumerate_kwargs)
-            df = healer.get_results(**results_kwargs)
-            
-            df.to_csv(str(out), mode='w' if first else 'a', header=first, index=False)
-            first = False
-        except Exception as e:
-            logger.error("Error processing %s: %s", smiles, e)
-    
-    logger.info("Results saved to %s", out)
+    n_written = 0
+    n_failed = 0
+
+    with progress_bar(smiles_list, desc="Enumerating", unit="mol",
+                      show_progress=show_progress) as bar:
+        for i, smiles in enumerate(bar, start=1):
+            mol = Chem.MolFromSmiles(smiles)
+            if mol is None:
+                logger.warning("Skipping invalid SMILES: %s", smiles)
+                n_failed += 1
+                continue
+
+            logger.debug("[%d/%d] %s", i, len(smiles_list), smiles)
+            try:
+                healer.set_query_mol(query_mol=smiles, **query_kwargs)
+                healer.enumerate(**enumerate_kwargs)
+                df = healer.get_results(**results_kwargs)
+
+                df.to_csv(str(out), mode='w' if first else 'a', header=first, index=False)
+                first = False
+                n_written += len(df)
+            except Exception as e:
+                logger.error("Error processing %s: %s", smiles, e)
+                n_failed += 1
+
+    if n_failed:
+        logger.warning("%d of %d molecule(s) failed", n_failed, len(smiles_list))
+    logger.info("Wrote %d row(s) to %s", n_written, out)
 
 
 def cmd_enumerate(args: argparse.Namespace, healer_type: str) -> None:
@@ -251,7 +262,8 @@ def cmd_enumerate(args: argparse.Namespace, healer_type: str) -> None:
     # Run enumeration
     run_enumeration(
         healer_type, smiles_list, init_kwargs, query_kwargs,
-        enumerate_kwargs, results_kwargs, args.output, args.verbose
+        enumerate_kwargs, results_kwargs, args.output,
+        False if args.quiet else None,
     )
 
 
@@ -295,7 +307,9 @@ def add_common_args(parser: argparse.ArgumentParser) -> None:
                         help='Parallel threads for synthesis loop: 1=sequential, '
                              '-1=all CPUs (default: 1)')
     parser.add_argument('-v', '--verbose', action='count', default=1,
-                        help='Increase verbosity (-v for info, -vv for debug)')
+                        help='Increase verbosity (default: info, -v for debug)')
+    parser.add_argument('-q', '--quiet', action='store_true',
+                        help='Only report warnings and errors, and hide progress bars')
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -362,7 +376,12 @@ def main():
     
     # Configure logging based on verbosity
     if args.command != 'view':
-        level = logging.DEBUG if args.verbose >= 2 else logging.INFO if args.verbose == 1 else logging.WARNING
+        if args.quiet:
+            level = logging.WARNING
+        elif args.verbose >= 2:
+            level = logging.DEBUG
+        else:
+            level = logging.INFO
         logging.basicConfig(
             level=level,
             format="%(asctime)s [%(levelname)s] %(message)s",

@@ -100,7 +100,7 @@ _BASE_INIT = {
     "sim_threshold": 0.0,
     "max_bbs_per_frag": 10,
     "shuffle_bb_order": False,
-    "verbose": 0,
+    "show_progress": False,
 }
 
 _BASE_ENUMERATE = {
@@ -154,7 +154,7 @@ def test_run_enumeration_molecule(test_bb_repository: BBRepository, tmp_path: Pa
         enumerate_kwargs={**_BASE_ENUMERATE, "n_jobs": n_jobs},
         results_kwargs=_BASE_RESULTS,
         output_path=str(out),
-        verbose=2,  # suppress outer tqdm
+        show_progress=False,
     )
     assert out.exists(), "Output CSV was not created"
     df = pd.read_csv(out)
@@ -177,7 +177,7 @@ def test_run_enumeration_site(test_bb_repository: BBRepository, tmp_path: Path, 
         enumerate_kwargs={**_BASE_ENUMERATE, "n_jobs": n_jobs},
         results_kwargs=_BASE_RESULTS,
         output_path=str(out),
-        verbose=2,
+        show_progress=False,
     )
     assert out.exists(), "Output CSV was not created"
     df = pd.read_csv(out)
@@ -202,7 +202,7 @@ def test_run_enumeration_fragment(test_bb_repository: BBRepository, tmp_path: Pa
         enumerate_kwargs={**_BASE_ENUMERATE, "n_jobs": n_jobs},
         results_kwargs=_BASE_RESULTS,
         output_path=str(out),
-        verbose=2,
+        show_progress=False,
     )
     assert out.exists(), "Output CSV was not created"
     df = pd.read_csv(out)
@@ -235,7 +235,7 @@ def test_molecule_parallel_matches_sequential(test_bb_repository: BBRepository, 
         enumerate_kwargs={**enum_base, "n_jobs": 1},
         results_kwargs=_BASE_RESULTS,
         output_path=str(out1),
-        verbose=2,
+        show_progress=False,
     )
     run_enumeration(
         healer_type="molecule",
@@ -245,7 +245,7 @@ def test_molecule_parallel_matches_sequential(test_bb_repository: BBRepository, 
         enumerate_kwargs={**enum_base, "n_jobs": 2},
         results_kwargs=_BASE_RESULTS,
         output_path=str(out2),
-        verbose=2,
+        show_progress=False,
     )
 
     n_seq = len(pd.read_csv(out1))
@@ -292,7 +292,7 @@ def test_parallelization_speedup(test_bb_repository: BBRepository, tmp_path: Pat
             enumerate_kwargs={**enum_no_cap, "n_jobs": n_jobs},
             results_kwargs=_BASE_RESULTS,
             output_path=str(out),
-            verbose=2,
+            show_progress=False,
         )
         return time.perf_counter() - t0
 

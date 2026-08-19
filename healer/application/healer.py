@@ -1,10 +1,10 @@
 import abc
 import logging
+import time
 from pathlib import Path
 from typing import List, Union, Dict, Tuple, Any, Optional, Iterator, Iterable
 from itertools import chain, islice
 
-from tqdm import tqdm
 import pandas as pd
 import numpy as np
 from joblib import Parallel, delayed
@@ -12,6 +12,7 @@ from rdkit import Chem
 from rdkit.Chem import Descriptors, rdMolDescriptors
 from prop_profiler import profile_molecules
 from healer.utils.fingerprints import get_fingerprint_generator
+from healer.utils.progress import progress_bar, progress_enabled
 
 from healer.application.tree_builder import CompositionPath, RetrosynthesisTree
 from healer.domain.composition import CompositionWithBBs
@@ -104,7 +105,8 @@ class _BaseHEALER(abc.ABC):
         reaction_tags: Union[List[str], str],
         bb_repository: Optional[BBRepository] = None,
         shuffle_bb_order: bool = False,
-        verbose: int = 1,
+        show_progress: Optional[bool] = None,
+        verbose: Optional[int] = None,
     ) -> None:
         '''
             Initialize BaseHEALER.
@@ -114,13 +116,15 @@ class _BaseHEALER(abc.ABC):
                 reaction_tags: list of tags or 'all'.
                 bb_repository: optional pre-loaded BBRepository for sharing across instances.
                 shuffle_bb_order: whether to shuffle the order of BBs after loading.
-                verbose: verbosity level.
-                    - 0: WARNING
-                    - 1: INFO
-                    - 2: DEBUG
+                show_progress: whether to draw progress bars. None draws them when
+                    stderr is a terminal. Log verbosity is separate; see
+                    `healer.configure_logging`.
+                verbose: deprecated alias for show_progress, where >= 1 enables it.
         '''
-        # Set verbosity level (0=WARNING, 1=INFO, 2+=DEBUG)
-        self.verbose: int = verbose
+        if verbose is not None and show_progress is None:
+            show_progress = verbose >= 1
+        self._show_progress: Optional[bool] = show_progress
+        self.verbose: int = int(progress_enabled(show_progress))
 
         # Core attributes
         self.query_mol: Chem.Mol = None
@@ -143,7 +147,7 @@ class _BaseHEALER(abc.ABC):
         
         # Ensure BBs are loaded (reaction-agnostic, loads all BBs)
         if not self._bb_repo.is_loaded:
-            self._bb_repo.load(show_progress=verbose >= 1)
+            self._bb_repo.load(show_progress=self._show_progress)
 
         # Optional shuffling (creates a shuffled index, not a copy)
         self._bb_shuffle_indices: Optional[np.ndarray] = None
@@ -207,7 +211,8 @@ class _BaseHEALER(abc.ABC):
                 self.reaction_tags = [tag for tag in reaction_tags if tag in all_tags]
                 self.reactions = [r for r in self._reactions if any(tag in r.tags for tag in self.reaction_tags)]
         
-        logger.debug("Loaded %d reactions for tags: %s", len(self.reactions), self.reaction_tags)
+        logger.debug("Loaded %d of %d reaction template(s) for %d tag(s)",
+                     len(self.reactions), len(self._reactions), len(self.reaction_tags))
 
     def set_reactions(self, reaction_tags: Union[List[str], str]) -> None:
         '''
@@ -243,7 +248,8 @@ class _BaseHEALER(abc.ABC):
         # Reset compositions since they may depend on reactions
         self._compositions = []
         
-        logger.debug("Updated to %d reactions with tags: %s", len(self.reactions), self.reaction_tags)
+        logger.debug("Updated to %d of %d reaction template(s) for %d tag(s)",
+                     len(self.reactions), len(self._reactions), len(self.reaction_tags))
 
     def enumerate(
         self, 
@@ -339,51 +345,57 @@ class _BaseHEALER(abc.ABC):
             Stagewise enumeration with the optimizer's select_candidates() and
             filter() hooks.
         '''
+        started = time.perf_counter()
         results: List[EnumerationRecord] = []
-        for comp_bb in tqdm(self._compositions, desc="Enumerating compositions", disable=self.verbose < 1):
-            bb_lists = comp_bb.fragment_bbs
-            stage_records = self._make_seed_records(bb_lists[0])
-            eval_count = 0
+        with progress_bar(self._compositions, desc="Enumerating compositions",
+                          show_progress=self._show_progress, unit="comp") as comp_bar:
+            for comp_bb in comp_bar:
+                bb_lists = comp_bb.fragment_bbs
+                stage_records = self._make_seed_records(bb_lists[0])
+                eval_count = 0
 
-            for depth, bb_pool in enumerate(bb_lists[1:], start=1):
-                cands = self._generate_candidates(stage_records, bb_pool)
-                cands = optimizer.select_candidates(cands, depth)
-                # Soft limit: truncate candidates if we'd exceed max_evals_per_comp
-                if max_evals_per_comp:
-                    remaining = max_evals_per_comp - eval_count
-                    if remaining <= 0:
-                        logger.debug("Stopping stagewise: max_evals_per_comp=%d reached at depth %d.", max_evals_per_comp, depth)
+                for depth, bb_pool in enumerate(bb_lists[1:], start=1):
+                    cands = self._generate_candidates(stage_records, bb_pool)
+                    cands = optimizer.select_candidates(cands, depth)
+                    # Soft limit: truncate candidates if we'd exceed max_evals_per_comp
+                    if max_evals_per_comp:
+                        remaining = max_evals_per_comp - eval_count
+                        if remaining <= 0:
+                            logger.debug("Stopping stagewise: max_evals_per_comp=%d reached at depth %d.", max_evals_per_comp, depth)
+                            break
+                        cands = islice(cands, remaining)
+                    # Apply reactions first, then filter the assembled products
+                    stage_records = self._apply_candidates(cands, n_jobs=n_jobs)
+                    eval_count += len(stage_records)
+                    # Prune to beam_width before passing to the next reaction stage
+                    if stage_records:
+                        stage_records = optimizer.filter(stage_records, depth)
+
+                # Score and collect products
+                mols = [rec.product for rec in stage_records]
+                scores = optimizer.evaluate_batch(mols)
+                comp_products = []
+                for rec, score in zip(stage_records, scores):
+                    if score is not None:
+                        rec.props['optimization_score'] = score
+                    comp_products.append(rec)
+                    # Soft limit: stop collecting from this composition
+                    if max_products_per_comp and len(comp_products) >= max_products_per_comp:
+                        logger.debug("Stopping stagewise: max_products_per_comp=%d reached.", max_products_per_comp)
                         break
-                    cands = islice(cands, remaining)
-                # Apply reactions first, then filter the assembled products
-                stage_records = self._apply_candidates(cands, n_jobs=n_jobs)
-                eval_count += len(stage_records)
-                # Prune to beam_width before passing to the next reaction stage
-                if stage_records:
-                    stage_records = optimizer.filter(stage_records, depth)
 
-            # Score and collect products
-            mols = [rec.product for rec in stage_records]
-            scores = optimizer.evaluate_batch(mols)
-            comp_products = []
-            for rec, score in zip(stage_records, scores):
-                if score is not None:
-                    rec.props['optimization_score'] = score
-                comp_products.append(rec)
-                # Soft limit: stop collecting from this composition
-                if max_products_per_comp and len(comp_products) >= max_products_per_comp:
-                    logger.debug("Stopping stagewise: max_products_per_comp=%d reached.", max_products_per_comp)
+                results.extend(comp_products)
+
+                # Hard limit: stop if total products reached
+                if max_total_products and len(results) >= max_total_products:
+                    logger.debug("Stopping stagewise: max_total_products=%d reached.", max_total_products)
+                    results = results[:max_total_products]
                     break
 
-            results.extend(comp_products)
-
-            # Hard limit: stop if total products reached
-            if max_total_products and len(results) >= max_total_products:
-                logger.debug("Stopping stagewise: max_total_products=%d reached.", max_total_products)
-                results = results[:max_total_products]
-                break
-
-        logger.debug("Stagewise enumeration completed with %d results", len(results))
+        logger.info(
+            "Enumerated %d product(s) from %d composition(s) in %.1fs",
+            len(results), len(self._compositions), time.perf_counter() - started,
+        )
         return results
     
     def _enumerate_sequence(
@@ -405,89 +417,101 @@ class _BaseHEALER(abc.ABC):
                 opt_name,
             )
 
+        started = time.perf_counter()
         results: List[EnumerationRecord] = []
 
-        comp_pbar = tqdm(self._compositions, desc="Enumerating compositions", disable=self.verbose < 1)
-        for comp_idx, comp_bb in enumerate(comp_pbar):
-            eval_count = 0
-            prod_count = 0
-            domain = optimizer.prepare_domain(comp_bb.fragment_bbs, comp_bb.fragment_sims)
-            optimizer.init_search(domain=domain, budget=max_evals_per_comp or 0)
-
-            while True:
-                try:
-                    bb_tuples = optimizer.ask()
-                except OptimizerError as e:
-                    logger.warning(
-                        "%s composition %d: %s. Moving on to the next composition.",
-                        opt_name, comp_idx + 1, e
+        with progress_bar(self._compositions, desc="Enumerating compositions",
+                          show_progress=self._show_progress, unit="comp") as comp_pbar:
+            for comp_idx, comp_bb in enumerate(comp_pbar):
+                eval_count = 0
+                prod_count = 0
+                domain = optimizer.prepare_domain(comp_bb.fragment_bbs, comp_bb.fragment_sims)
+                if comp_idx == 0 and any(
+                    len(d) < len(p) for d, p in zip(domain, comp_bb.fragment_bbs)
+                ):
+                    logger.info(
+                        "Search domain capped to %s building block(s) per fragment.",
+                        [len(d) for d in domain],
                     )
-                    break
-                if not bb_tuples:
-                    logger.debug("%s composition %d: search space exhausted.", opt_name, comp_idx + 1)
-                    break
+                optimizer.init_search(domain=domain, budget=max_evals_per_comp or 0)
 
-                # Deduplicate proposed BB combinations before synthesis.
-                # Optimizers (especially GA after convergence) may propose the same (BB1, BB2)
-                # tuple multiple times in one population, which would generate identical products.
-                seen_keys: set = set()
-                unique_bb_tuples = []
-                for bb_tuple in bb_tuples:
-                    key = tuple(bb.get_smiles() for bb in bb_tuple)
-                    if key not in seen_keys:
-                        seen_keys.add(key)
-                        unique_bb_tuples.append(bb_tuple)
+                while True:
+                    try:
+                        bb_tuples = optimizer.ask()
+                    except OptimizerError as e:
+                        logger.warning(
+                            "%s composition %d: %s. Moving on to the next composition.",
+                            opt_name, comp_idx + 1, e
+                        )
+                        break
+                    if not bb_tuples:
+                        logger.debug("%s composition %d: search space exhausted.", opt_name, comp_idx + 1)
+                        break
 
-                round_size = len(bb_tuples)   # count original for budget tracking
-                eval_count += round_size
-                comp_pbar.set_postfix(evals=eval_count, products=prod_count, refresh=False)
+                    # Deduplicate proposed BB combinations before synthesis.
+                    # Optimizers (especially GA after convergence) may propose the same (BB1, BB2)
+                    # tuple multiple times in one population, which would generate identical products.
+                    seen_keys: set = set()
+                    unique_bb_tuples = []
+                    for bb_tuple in bb_tuples:
+                        key = tuple(bb.get_smiles() for bb in bb_tuple)
+                        if key not in seen_keys:
+                            seen_keys.add(key)
+                            unique_bb_tuples.append(bb_tuple)
 
-                seed_bbs = [bb_tuple[0] for bb_tuple in unique_bb_tuples]
-                stage_records = self._make_seed_records(seed_bbs, tag_origin=True)
+                    round_size = len(bb_tuples)   # count original for budget tracking
+                    eval_count += round_size
+                    comp_pbar.set_postfix(evals=eval_count, products=prod_count, refresh=False)
 
-                for stage_idx in range(1, len(unique_bb_tuples[0])):
-                    cands = self._generate_candidates_positionwise(
-                        stage_records, unique_bb_tuples, stage_idx
-                    )
-                    stage_records = self._apply_candidates(cands, n_jobs=n_jobs)
+                    seed_bbs = [bb_tuple[0] for bb_tuple in unique_bb_tuples]
+                    stage_records = self._make_seed_records(seed_bbs, tag_origin=True)
 
-                # Score batch and collect feedback. One combination can yield several
-                # products through different reactions, so it is reported at the score
-                # of its best one.
-                mols = [rec.product for rec in stage_records]
-                scores = optimizer.evaluate_batch(mols)
-                best_per_combo: Dict[Tuple[str, ...], Tuple[Tuple[BuildingBlock, ...], float]] = {}
-                for rec, score in zip(stage_records, scores):
-                    if score is not None:
-                        rec.props['optimization_score'] = score
-                        key = tuple(bb.get_smiles() for bb in rec.bbs)
-                        best = best_per_combo.get(key)
-                        if best is None or score > best[1]:
-                            best_per_combo[key] = (tuple(rec.bbs), score)
-                    results.append(rec)
-                    prod_count += 1
+                    for stage_idx in range(1, len(unique_bb_tuples[0])):
+                        cands = self._generate_candidates_positionwise(
+                            stage_records, unique_bb_tuples, stage_idx
+                        )
+                        stage_records = self._apply_candidates(cands, n_jobs=n_jobs)
+
+                    # Score batch and collect feedback. One combination can yield several
+                    # products through different reactions, so it is reported at the score
+                    # of its best one.
+                    mols = [rec.product for rec in stage_records]
+                    scores = optimizer.evaluate_batch(mols)
+                    best_per_combo: Dict[Tuple[str, ...], Tuple[Tuple[BuildingBlock, ...], float]] = {}
+                    for rec, score in zip(stage_records, scores):
+                        if score is not None:
+                            rec.props['optimization_score'] = score
+                            key = tuple(bb.get_smiles() for bb in rec.bbs)
+                            best = best_per_combo.get(key)
+                            if best is None or score > best[1]:
+                                best_per_combo[key] = (tuple(rec.bbs), score)
+                        results.append(rec)
+                        prod_count += 1
+                        if max_products_per_comp and prod_count >= max_products_per_comp:
+                            break
+                        if max_total_products and len(results) >= max_total_products:
+                            break
+
+                    optimizer.tell(list(best_per_combo.values()))
+
+                    if max_evals_per_comp and eval_count >= max_evals_per_comp:
+                        logger.debug("%s composition %d: max_evals_per_comp=%d reached.", opt_name, comp_idx + 1, max_evals_per_comp)
+                        break
                     if max_products_per_comp and prod_count >= max_products_per_comp:
+                        logger.debug("%s composition %d: max_products_per_comp=%d reached.", opt_name, comp_idx + 1, max_products_per_comp)
                         break
                     if max_total_products and len(results) >= max_total_products:
+                        logger.debug("%s: max_total_products=%d reached.", opt_name, max_total_products)
                         break
 
-                optimizer.tell(list(best_per_combo.values()))
-
-                if max_evals_per_comp and eval_count >= max_evals_per_comp:
-                    logger.debug("%s composition %d: max_evals_per_comp=%d reached.", opt_name, comp_idx + 1, max_evals_per_comp)
-                    break
-                if max_products_per_comp and prod_count >= max_products_per_comp:
-                    logger.debug("%s composition %d: max_products_per_comp=%d reached.", opt_name, comp_idx + 1, max_products_per_comp)
-                    break
                 if max_total_products and len(results) >= max_total_products:
-                    logger.debug("%s: max_total_products=%d reached.", opt_name, max_total_products)
+                    results = results[:max_total_products]
                     break
 
-            if max_total_products and len(results) >= max_total_products:
-                results = results[:max_total_products]
-                break
-
-        logger.debug("Sequence enumeration completed with %d results", len(results))
+        logger.info(
+            "%s enumerated %d product(s) from %d composition(s) in %.1fs",
+            opt_name, len(results), len(self._compositions), time.perf_counter() - started,
+        )
         return results
 
     def _make_seed_records(
@@ -694,7 +718,8 @@ class SiteHEALER(_BaseHEALER):
             shuffle_bb_order: bool = False,
             rules: Optional[dict[str, tuple[int, int]]] = None,
             struct_rules: Optional[list[str]] = None,
-            verbose: int=1,
+            show_progress: Optional[bool] = None,
+            verbose: Optional[int] = None,
     ):
         '''
             Initialize SiteHEALER.
@@ -711,11 +736,14 @@ class SiteHEALER(_BaseHEALER):
                     TPSA (0, 200), RotB (0, 10), Rings (0, 10), ArRings (0, 5),
                     Chiral (0, 5).
                 struct_rules: list of structural rules for filtering molecules.
-                verbose: verbosity level, 0 for errors, 1 for warnings, 2 for info.
+                show_progress: whether to draw progress bars. None draws them when
+                    stderr is a terminal.
+                verbose: deprecated alias for show_progress.
         '''
         if reaction_tags is None:
             reaction_tags = list(DEFAULT_REACTION_TAGS)
-        super().__init__(bb_source, reaction_tags, bb_repository, shuffle_bb_order, verbose)
+        super().__init__(bb_source, reaction_tags, bb_repository, shuffle_bb_order,
+                         show_progress, verbose)
         self.rules = dict(DEFAULT_BB_RULES) if rules is None else dict(rules)
         self.struct_rules = [] if struct_rules is None else list(struct_rules)
 
@@ -871,7 +899,8 @@ class MoleculeHEALER(_BaseHEALER):
         shuffle_bb_order: bool = False,
         sim_threshold: float = 0.5,
         max_bbs_per_frag: int = -1,
-        verbose: int = 1,
+        show_progress: Optional[bool] = None,
+        verbose: Optional[int] = None,
     ):
         '''
             Initialize MoleculeHEALER.
@@ -887,11 +916,14 @@ class MoleculeHEALER(_BaseHEALER):
                 max_bbs_per_frag: maximum number of building blocks per fragment.
                     If <= 0, all building blocks will be considered. Otherwise, the similarity
                     threshold will be adjusted to the number of building blocks.
-                verbose: verbosity level, 0 for errors, 1 for warnings, 2 for info.
+                show_progress: whether to draw progress bars. None draws them when
+                    stderr is a terminal.
+                verbose: deprecated alias for show_progress.
         '''
         if reaction_tags is None:
             reaction_tags = list(DEFAULT_REACTION_TAGS)
-        super().__init__(bb_source, reaction_tags, bb_repository, shuffle_bb_order, verbose)
+        super().__init__(bb_source, reaction_tags, bb_repository, shuffle_bb_order,
+                         show_progress, verbose)
         self.sim_threshold = sim_threshold
         self.max_bbs_per_frag = max_bbs_per_frag
 
@@ -1102,7 +1134,8 @@ class FragmentHEALER(MoleculeHEALER):
             shuffle_bb_order: bool = False,
             sim_threshold: float = 0.5,
             max_bbs_per_frag: int = -1,
-            verbose: int = 1,
+            show_progress: Optional[bool] = None,
+            verbose: Optional[int] = None,
     ):
         '''
             Initialize FragmentHEALER.
@@ -1118,11 +1151,13 @@ class FragmentHEALER(MoleculeHEALER):
                 max_bbs_per_frag: maximum number of building blocks per fragment.
                     If <= 0, all building blocks will be considered. Otherwise, the similarity
                     threshold will be adjusted to the number of building blocks.
-                verbose: verbosity level, 0 for errors, 1 for warnings, 2 for info.
+                show_progress: whether to draw progress bars. None draws them when
+                    stderr is a terminal.
+                verbose: deprecated alias for show_progress.
         '''
         super().__init__(
             bb_source, reaction_tags, bb_repository, shuffle_bb_order,
-            sim_threshold, max_bbs_per_frag, verbose
+            sim_threshold, max_bbs_per_frag, show_progress, verbose
         )
 
     @property

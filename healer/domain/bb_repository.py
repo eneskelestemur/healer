@@ -9,12 +9,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Set
 
-from tqdm import tqdm
 from rdkit.Chem import SDMolSupplier
 
 from healer.domain.building_block import BuildingBlock
 from healer.domain.reaction_template import ReactionTemplate21
 from healer.utils.fingerprints import get_fingerprint_generator
+from healer.utils.progress import progress_bar
 
 logger = logging.getLogger(__name__)
 
@@ -131,7 +131,7 @@ class BBRepository:
         """Whether BBs have been loaded from source."""
         return self._loaded
 
-    def load(self, show_progress: bool = True) -> "BBRepository":
+    def load(self, show_progress: Optional[bool] = None) -> "BBRepository":
         """
             Load ALL building blocks from the source file.
             
@@ -140,7 +140,8 @@ class BBRepository:
             efficient filtering later via get_bbs_for_reactions().
             
             Args:
-                show_progress: Whether to show a progress bar during loading.
+                show_progress: Whether to show a progress bar during loading. None
+                    shows one when stderr is a terminal.
             
             Returns:
                 self (for method chaining).
@@ -153,31 +154,33 @@ class BBRepository:
         self._reaction_bb_indices = {}
 
         fp_gen = get_fingerprint_generator()
-        for mol in tqdm(
+        with progress_bar(
             self._supplier,
             desc="Loading building blocks",
             total=len(self._supplier),
-            disable=not show_progress,
-        ):
-            if mol is None:
-                continue
+            show_progress=show_progress,
+            unit="bb",
+        ) as supplier:
+            for mol in supplier:
+                if mol is None:
+                    continue
                 
-            bb = BuildingBlock(mol)
-            bb.fingerprint = fp_gen.GetFingerprint(bb.mol)
-            bb_rxn_annotations = bb.get_parsed_prop("rxn_annotations")
+                bb = BuildingBlock(mol)
+                bb.fingerprint = fp_gen.GetFingerprint(bb.mol)
+                bb_rxn_annotations = bb.get_parsed_prop("rxn_annotations")
             
-            if not isinstance(bb_rxn_annotations, dict):
-                bb_rxn_annotations = {}
+                if not isinstance(bb_rxn_annotations, dict):
+                    bb_rxn_annotations = {}
 
-            # Store the BB
-            bb_idx = len(self._all_bbs)
-            self._all_bbs.append(bb)
+                # Store the BB
+                bb_idx = len(self._all_bbs)
+                self._all_bbs.append(bb)
 
-            # Index by all reactions this BB is compatible with
-            for rxn_name in bb_rxn_annotations.keys():
-                if rxn_name not in self._reaction_bb_indices:
-                    self._reaction_bb_indices[rxn_name] = set()
-                self._reaction_bb_indices[rxn_name].add(bb_idx)
+                # Index by all reactions this BB is compatible with
+                for rxn_name in bb_rxn_annotations.keys():
+                    if rxn_name not in self._reaction_bb_indices:
+                        self._reaction_bb_indices[rxn_name] = set()
+                    self._reaction_bb_indices[rxn_name].add(bb_idx)
 
         self._loaded = True
         logger.info(

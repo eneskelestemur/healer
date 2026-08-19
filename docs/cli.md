@@ -32,9 +32,11 @@ Invalid molecules are logged and skipped.
 | `--similarity` | Add similarity to the query | off |
 | `--properties` | Add the property profile | off |
 | `--n-jobs` | Parallel workers, `-1` for all cores | `1` |
-| `-v`, `-vv` | Info, then debug logging | info |
+| `-v` | Debug logging | info |
+| `-q`, `--quiet` | Warnings and errors only, no progress bars | off |
 
 The three limits are approximate — see [HEALER Classes](healer-classes.md).
+For log levels and progress bars, see [Logging & Progress](logging.md).
 
 ## `molecule`
 

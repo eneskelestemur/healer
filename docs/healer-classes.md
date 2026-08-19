@@ -17,11 +17,15 @@ in how the query is turned into fragments.
 | `reaction_tags` | Tag, list of tags, or `'all'` | see below |
 | `bb_repository` | Pre-loaded `BBRepository` to share | `None` |
 | `shuffle_bb_order` | Randomize building block order | `False` |
-| `verbose` | 0 = WARNING, 1 = INFO, 2 = DEBUG | `1` |
+| `show_progress` | Draw progress bars; None = only when stderr is a terminal | `None` |
 
 `reaction_tags` defaults to `['amide coupling', 'amide', 'C-N bond formation',
 'C-N', 'alkylation', 'N-arylation', 'azole', 'amination']`. See
 [Reactions](reactions.md) for the full tag list.
+
+Log verbosity is separate from `show_progress` — see
+[Logging & Progress](logging.md). `verbose` is accepted as a deprecated alias
+for `show_progress`.
 
 ## Shared `enumerate()` parameters
 

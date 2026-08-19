@@ -20,6 +20,7 @@ reaction templates.
 | [HEALER Classes](healer-classes.md) | `MoleculeHEALER`, `FragmentHEALER`, `SiteHEALER` and their parameters |
 | [Guided Enumeration](guided-enumeration.md) | Steering enumeration toward an objective with optimizers |
 | [Results](results.md) | Output columns, similarity, and property profiling |
+| [Logging & Progress](logging.md) | Log levels, progress bars, and quieting output |
 | [Command Line](cli.md) | The `healer` CLI |
 | [Web Interface](web-interface.md) | The `healer-ui` local app and server mode |
 

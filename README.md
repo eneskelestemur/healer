@@ -75,6 +75,7 @@ Full documentation is in [`docs/`](docs/README.md).
 | [HEALER Classes](docs/healer-classes.md) | The three modes and their parameters |
 | [Guided Enumeration](docs/guided-enumeration.md) | Optimizing toward an objective |
 | [Results](docs/results.md) | Output columns and properties |
+| [Logging & Progress](docs/logging.md) | Log levels and progress bars |
 | [Command Line](docs/cli.md) | The `healer` CLI |
 | [Web Interface](docs/web-interface.md) | `healer-ui` and server mode |
 | [Reactions](docs/reactions.md) | Reaction library and contributing templates |

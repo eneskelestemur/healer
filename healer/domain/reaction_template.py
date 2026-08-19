@@ -59,7 +59,7 @@ class ReactionTemplate21:
         self.long_name = long_name
         self.tier = tier
 
-        self._reaction = rdChemReactions.ReactionFromSmarts(reaction_smarts)
+        self._reaction = self._parse_smarts(reaction_smarts)
         self._sanitize_reaction()
 
     def __str__(self):
@@ -92,11 +92,35 @@ class ReactionTemplate21:
 
         return ReactionTemplate21(**valid_params)
 
+    def _parse_smarts(self, reaction_smarts):
+        """
+        Parse a reaction SMARTS string.
+
+        Args:
+            reaction_smarts: the SMARTS to parse.
+
+        Returns:
+            The RDKit reaction, or None if the string could not be parsed. Parsing
+            failures are reported rather than raised so that one bad template does
+            not stop a whole reaction library from loading.
+        """
+        try:
+            return rdChemReactions.ReactionFromSmarts(reaction_smarts)
+        except Exception as e:
+            logger.warning(
+                "Reaction %r could not be parsed and will be skipped: %s", self.name, e
+            )
+            return None
+
     def _sanitize_reaction(self):
         """
         Validate the current reaction and set `sanitized_` accordingly.
         Only 2 reactant -> 1 product templates are usable.
         """
+        if self._reaction is None:
+            self.sanitized_ = False
+            return
+
         self.sanitized_ = False
         try:
             self._reaction.Initialize()
@@ -133,7 +157,7 @@ class ReactionTemplate21:
         Sets the reaction SMARTS string.
         """
         self.reaction_smarts = reaction_smarts
-        self._reaction = rdChemReactions.ReactionFromSmarts(reaction_smarts)
+        self._reaction = self._parse_smarts(reaction_smarts)
         self._sanitize_reaction()
 
     def get_rdkit_reaction_object(self):

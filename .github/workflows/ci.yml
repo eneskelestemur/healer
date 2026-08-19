@@ -25,7 +25,8 @@ jobs:
           cache-dependency-path: pyproject.toml
 
       - name: Install ruff
-        run: pip install "ruff>=0.6"
+        # Pinned to match the dev extra: formatter output changes between releases.
+        run: pip install "ruff==0.16.3"
 
       - run: ruff check --output-format=github .
 

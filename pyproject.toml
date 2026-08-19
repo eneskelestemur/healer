@@ -49,7 +49,7 @@ dev = [
     "pytest>=8.0",
     "pytest-cov>=4.1",
     "httpx>=0.27",
-    "ruff>=0.6",
+    "ruff==0.16.3",   # pinned: formatter output changes between releases
     "nbformat>=5.9",
     "nbconvert>=7.0",
 ]
@@ -100,6 +100,8 @@ ignore = [
 
 [tool.ruff.format]
 quote-style = "double"
+# Documentation examples are written for readers, not normalized by the formatter.
+exclude = ["*.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

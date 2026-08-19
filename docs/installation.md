@@ -16,10 +16,14 @@ pip install mol-healer
 ```bash
 git clone https://github.com/eneskelestemur/healer.git
 cd healer
+pip install -e .
+```
 
-conda env create -f environment.yml
+RDKit installs from PyPI on all common platforms. If you prefer conda:
+
+```bash
+conda create -n healer python=3.12 -c conda-forge rdkit
 conda activate healer
-
 pip install -e .
 ```
 

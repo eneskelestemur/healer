@@ -95,7 +95,6 @@ For code contributions:
 ```bash
 git clone https://github.com/eneskelestemur/healer.git
 cd healer
-conda env create -f environment.yml && conda activate healer
 pip install -e '.[dev,web,opt]'
 pytest
 ```

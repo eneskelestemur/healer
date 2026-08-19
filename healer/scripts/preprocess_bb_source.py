@@ -1,22 +1,23 @@
-'''
-    This script implements the preprocessing of the Building Block datasets.
-'''
+"""
+This script implements the preprocessing of the Building Block datasets.
+"""
 
 import io
 import json
 import zipfile
 from itertools import islice
 from pathlib import Path
-from joblib import Parallel, delayed
-import healer.utils.utils as utils
 
-from tqdm import tqdm
+from joblib import Parallel, delayed
 from rdkit import Chem
-from rdkit.Chem import SDMolSupplier, ForwardSDMolSupplier
+from rdkit.Chem import ForwardSDMolSupplier, SDMolSupplier
+from tqdm import tqdm
+
+import healer.utils.utils as utils
 
 # Get reactions path from package data
 _HEALER_PKG = Path(__file__).parent.parent
-_REACTIONS_FILE = _HEALER_PKG / 'data' / 'reactions' / 'reactions.json'
+_REACTIONS_FILE = _HEALER_PKG / "data" / "reactions" / "reactions.json"
 
 REACTIONS = utils.load_reactions_from_json(str(_REACTIONS_FILE))
 REACTIONS = [rxn for rxn in REACTIONS if rxn.is_valid()]
@@ -40,87 +41,90 @@ def _iter_sdf_records(sdf_file: str):
     with open(sdf_file) as f:
         for line in f:
             record.append(line)
-            if line.startswith('$$$$'):
-                yield ''.join(record)
+            if line.startswith("$$$$"):
+                yield "".join(record)
                 record = []
 
 
 def add_rxn_annotations(mol: Chem.Mol) -> Chem.Mol:
     """
-        Add a new property called 'rxn_annotations' to the molecule.
-        The propery is a dictionary where the keys are the reaction
-        names in which the molecule can be found and the values are the
-        positions of the molecule in the reaction. Example:
-        ```
-            {
-                'amide coupling-1': [0, 1],
-                'sulfoxide': [1],
-            }
-        ```
+    Add a new property called 'rxn_annotations' to the molecule.
+    The propery is a dictionary where the keys are the reaction
+    names in which the molecule can be found and the values are the
+    positions of the molecule in the reaction. Example:
+    ```
+        {
+            'amide coupling-1': [0, 1],
+            'sulfoxide': [1],
+        }
+    ```
 
-        Args:
-            mol (Chem.Mol): The molecule to which the property will be added.
+    Args:
+        mol (Chem.Mol): The molecule to which the property will be added.
 
-        Returns:
-            Chem.Mol: The molecule with the new property added.
+    Returns:
+        Chem.Mol: The molecule with the new property added.
     """
     rxn_annotations = {}
     for rxn in REACTIONS:
         idx = rxn.get_reactant_index(mol)
         if idx is not None:
             rxn_annotations[rxn.name] = idx
-    mol.SetProp('rxn_annotations', json.dumps(rxn_annotations))
-    
+    mol.SetProp("rxn_annotations", json.dumps(rxn_annotations))
+
     return mol
+
 
 def remove_smaller_fragments(mol: Chem.Mol) -> Chem.Mol:
     """
-        Remove the smaller fragments from the molecule.
+    Remove the smaller fragments from the molecule.
 
-        Args:
-            mol (Chem.Mol): The molecule to process.
+    Args:
+        mol (Chem.Mol): The molecule to process.
 
-        Returns:
-            Chem.Mol: The processed molecule.
+    Returns:
+        Chem.Mol: The processed molecule.
     """
     frags = Chem.GetMolFrags(mol, asMols=True)
     largest_frag = max(frags, key=lambda x: x.GetNumAtoms())
     return largest_frag
 
+
 def extract_zip_if_needed(input_file: str, verbose: bool = True) -> str:
     """
-        Extract ZIP file if the input is a ZIP file, otherwise return the input file path.
-        
-        Args:
-            input_file (str): Path to the input file (could be ZIP or SDF).
-            verbose (bool): Whether to print extraction progress.
-            
-        Returns:
-            str: Path to the extracted SDF file or original file if not a ZIP.
+    Extract ZIP file if the input is a ZIP file, otherwise return the input file path.
+
+    Args:
+        input_file (str): Path to the input file (could be ZIP or SDF).
+        verbose (bool): Whether to print extraction progress.
+
+    Returns:
+        str: Path to the extracted SDF file or original file if not a ZIP.
     """
     input_path = Path(input_file)
-    
-    if input_path.suffix.lower() == '.zip':
+
+    if input_path.suffix.lower() == ".zip":
         extract_dir = input_path.parent / input_path.stem
         extract_dir.mkdir(exist_ok=True)
-        
+
         if verbose:
             print(f"Extracting {input_file} to {extract_dir}")
-            
-        with zipfile.ZipFile(input_file, 'r') as zip_ref:
+
+        with zipfile.ZipFile(input_file, "r") as zip_ref:
             zip_ref.extractall(extract_dir)
-            
+
         # Find the SDF file in the extracted directory
-        sdf_files = list(extract_dir.glob('*.sdf'))
+        sdf_files = list(extract_dir.glob("*.sdf"))
         if not sdf_files:
             raise FileNotFoundError(f"No SDF file found in extracted ZIP: {input_file}")
-        
+
         if len(sdf_files) > 1:
             print(f"Warning: Multiple SDF files found. Using: {sdf_files[0]}")
-            
+
         return str(sdf_files[0])
-    
+
     return input_file
+
 
 def _process_batch(sdf_blocks: list[str]) -> list[str]:
     """Process a batch of raw SDF record strings in one worker call."""
@@ -143,52 +147,59 @@ def _process_mol(sdf_block: str) -> str | None:
     for name, val in original_props.items():
         mol.SetProp(name, val)
     mol = add_rxn_annotations(mol)
-    annotations = json.loads(mol.GetProp('rxn_annotations'))
+    annotations = json.loads(mol.GetProp("rxn_annotations"))
     if not annotations:
         return None
     block = Chem.MolToMolBlock(mol)
     for name in mol.GetPropNames():
-        block += f'>  <{name}>\n{mol.GetProp(name)}\n\n'
-    block += '$$$$\n'
+        block += f">  <{name}>\n{mol.GetProp(name)}\n\n"
+    block += "$$$$\n"
     return block
 
 
-def main(input_file: str, output_dir: str = None, verbose: bool = True,
-         n_workers: int = 1) -> None:
+def main(
+    input_file: str, output_dir: str = None, verbose: bool = True, n_workers: int = 1
+) -> None:
     """
-        Process the building block file and add the 'rxn_annotations' property
-        to each molecule. Automatically extracts ZIP files if needed.
+    Process the building block file and add the 'rxn_annotations' property
+    to each molecule. Automatically extracts ZIP files if needed.
 
-        Args:
-            input_file (str): Path to the input file (SDF or ZIP containing SDF).
-            output_dir (str): Directory to save the processed file. If None, saves
-                              in the same directory as the input file.
-            verbose (bool): Whether to print progress information.
-            n_workers (int): Number of worker processes. Default 1 (sequential).
+    Args:
+        input_file (str): Path to the input file (SDF or ZIP containing SDF).
+        output_dir (str): Directory to save the processed file. If None, saves
+                          in the same directory as the input file.
+        verbose (bool): Whether to print progress information.
+        n_workers (int): Number of worker processes. Default 1 (sequential).
     """
     # Extract ZIP file if needed
     sdf_file = extract_zip_if_needed(input_file, verbose)
-    
+
     # Determine output path
     sdf_path = Path(sdf_file)
     if output_dir:
         out_dir = Path(output_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
-        output_file = out_dir / (sdf_path.stem + '_processed.sdf')
+        output_file = out_dir / (sdf_path.stem + "_processed.sdf")
     else:
-        output_file = sdf_path.parent / (sdf_path.stem + '_processed.sdf')
-    
+        output_file = sdf_path.parent / (sdf_path.stem + "_processed.sdf")
+
     # Use SDMolSupplier only to get the total count for the progress bar
     total = len(SDMolSupplier(sdf_file))
 
     n_chunks = -(-total // _CHUNK_SIZE)  # ceiling division
-    batches = Parallel(n_jobs=n_workers, return_as='generator')(
-        delayed(_process_batch)(chunk) for chunk in _ichunk(_iter_sdf_records(sdf_file), _CHUNK_SIZE)
+    batches = Parallel(n_jobs=n_workers, return_as="generator")(
+        delayed(_process_batch)(chunk)
+        for chunk in _ichunk(_iter_sdf_records(sdf_file), _CHUNK_SIZE)
     )
     count = 0
-    with open(str(output_file), 'w', buffering=8 * 1024 * 1024) as f:
-        for batch in tqdm(batches, desc="Processing BBs", unit="batch",
-                          total=n_chunks, disable=not verbose):
+    with open(str(output_file), "w", buffering=8 * 1024 * 1024) as f:
+        for batch in tqdm(
+            batches,
+            desc="Processing BBs",
+            unit="batch",
+            total=n_chunks,
+            disable=not verbose,
+        ):
             count += len(batch)
             f.writelines(batch)
 
@@ -199,19 +210,37 @@ def main(input_file: str, output_dir: str = None, verbose: bool = True,
 def cli():
     """CLI entry point for preprocess-bb command."""
     import argparse
+
     parser = argparse.ArgumentParser(
-        prog="preprocess-bb",
-        description="Preprocess building block files for HEALER."
+        prog="preprocess-bb", description="Preprocess building block files for HEALER."
     )
-    parser.add_argument("input_file", type=str, help="Path to the input SDF or ZIP file.")
-    parser.add_argument("-o", "--output-dir", type=str, default=None,
-                        help="Output directory for processed file. Defaults to same directory as input.")
-    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output.")
-    parser.add_argument("--workers", "-w", type=int, default=1,
-                        help="Number of worker processes (default: 1). Use -1 for all cores.")
+    parser.add_argument(
+        "input_file", type=str, help="Path to the input SDF or ZIP file."
+    )
+    parser.add_argument(
+        "-o",
+        "--output-dir",
+        type=str,
+        default=None,
+        help="Output directory for processed file. Defaults to same directory as input.",
+    )
+    parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Enable verbose output."
+    )
+    parser.add_argument(
+        "--workers",
+        "-w",
+        type=int,
+        default=1,
+        help="Number of worker processes (default: 1). Use -1 for all cores.",
+    )
     args = parser.parse_args()
-    main(args.input_file, output_dir=args.output_dir, verbose=args.verbose,
-         n_workers=args.workers)
+    main(
+        args.input_file,
+        output_dir=args.output_dir,
+        verbose=args.verbose,
+        n_workers=args.workers,
+    )
 
 
 if __name__ == "__main__":

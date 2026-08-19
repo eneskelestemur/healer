@@ -1,13 +1,12 @@
 """
 Shared pytest fixtures for HEALER tests.
 """
-import os
+
 import pytest
 
 # Must be imported before any RDKit chemistry runs so BuildingBlock objects
 # are transparently unwrapped by RunReactants, MolToSmiles, etc.
 import healer.utils.rdkit_monkey_patch  # noqa: F401
-
 from healer.domain.bb_repository import BBRepository, get_repository, resolve_bb_path
 
 # Penicillin G — has amide bonds that the tree builder reliably splits at depth 1.

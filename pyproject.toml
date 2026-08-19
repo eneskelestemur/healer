@@ -78,3 +78,32 @@ healer = [
     "data/buildingblocks/test_100_bb.sdf",
     "data/buildingblocks/test_100_bb_processed.sdf",
 ]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+extend-exclude = ["external", "benchmark", "web_client", "notebooks"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "C4"]
+ignore = [
+    "E501",    # long lines are reflowed by the formatter, not flagged by the linter
+    "E741",    # single-letter names are idiomatic in the numeric code
+    "B008",    # FastAPI relies on calls in argument defaults
+]
+
+[tool.ruff.lint.per-file-ignores]
+# The RDKit patch has to be applied before anything imports RDKit.
+"healer/__init__.py" = ["E402"]
+"healer/cli.py" = ["E402"]
+"healer/web/app.py" = ["E402"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "slow: benchmarks and timing-sensitive tests, deselected by default",
+]
+addopts = "-m 'not slow'"

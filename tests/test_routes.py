@@ -4,7 +4,9 @@ API route tests using FastAPI's TestClient (no server, no Redis/Celery needed).
 All tests run in LOCAL mode: HEALER_SERVER_MODE is not set / set to 'false',
 so jobs run synchronously and results are available immediately after the POST.
 """
+
 import os
+
 import pytest
 
 # Force local mode before any healer imports so the routes module sees the
@@ -19,6 +21,7 @@ from healer.web.app import app
 # Shared client fixture
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture(scope="module")
 def client() -> TestClient:
     with TestClient(app) as c:
@@ -28,6 +31,7 @@ def client() -> TestClient:
 # ---------------------------------------------------------------------------
 # Utility / info endpoints (fast, no chemistry)
 # ---------------------------------------------------------------------------
+
 
 def test_health_check(client: TestClient):
     resp = client.get("/api/health")
@@ -64,6 +68,7 @@ def test_get_mode(client: TestClient):
 # Molecule enumeration — success path
 # ---------------------------------------------------------------------------
 
+
 def test_molecule_enumeration_submit_and_poll(client: TestClient):
     """
     POST a valid molecule and confirm we get a completed job with results.
@@ -99,8 +104,7 @@ def test_molecule_enumeration_submit_and_poll(client: TestClient):
     poll_body = poll_resp.json()
 
     assert poll_body["status"] == "SUCCESS", (
-        f"Job ended with status {poll_body['status']}. "
-        f"Check server logs for errors."
+        f"Job ended with status {poll_body['status']}. Check server logs for errors."
     )
     assert poll_body["result"] is not None
     assert "display" in poll_body["result"]
@@ -112,6 +116,7 @@ def test_molecule_enumeration_submit_and_poll(client: TestClient):
 # ---------------------------------------------------------------------------
 # Molecule enumeration — error handling
 # ---------------------------------------------------------------------------
+
 
 def test_molecule_enumeration_invalid_smiles(client: TestClient):
     """
@@ -144,6 +149,7 @@ def test_job_not_found(client: TestClient):
 # Site enumeration — success path
 # ---------------------------------------------------------------------------
 
+
 def test_site_enumeration_submit_and_poll(client: TestClient):
     """
     POST a valid site enumeration request and confirm successful completion.
@@ -154,14 +160,14 @@ def test_site_enumeration_submit_and_poll(client: TestClient):
         "bb_source": "test",
         "reaction_tags": ["all"],
         "rules": {
-            "MW":      [0, 1000],
-            "HBD":     [0, 10],
-            "HBA":     [0, 20],
-            "TPSA":    [0, 500],
-            "RotB":    [0, 20],
-            "Rings":   [0, 20],
+            "MW": [0, 1000],
+            "HBD": [0, 10],
+            "HBA": [0, 20],
+            "TPSA": [0, 500],
+            "RotB": [0, 20],
+            "Rings": [0, 20],
             "ArRings": [0, 10],
-            "Chiral":  [0, 10],
+            "Chiral": [0, 10],
         },
         "max_total_products": 5,
     }
@@ -179,6 +185,7 @@ def test_site_enumeration_submit_and_poll(client: TestClient):
 # ---------------------------------------------------------------------------
 # Cancel endpoint (local mode)
 # ---------------------------------------------------------------------------
+
 
 def test_cancel_nonexistent_job_local_mode(client: TestClient):
     """In local mode, cancelling a nonexistent job returns 400."""

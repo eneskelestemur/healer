@@ -6,21 +6,22 @@ These tests verify that:
   - Required fields are enforced.
   - Serialization round-trips are lossless.
 """
+
 import pytest
 from pydantic import ValidationError
 
 from healer.web.models import (
+    JobResult,
+    JobStatusResponse,
+    JobSubmitResponse,
     MoleculeRequest,
     SiteRequest,
-    JobSubmitResponse,
-    JobStatusResponse,
-    JobResult,
 )
-
 
 # ---------------------------------------------------------------------------
 # MoleculeRequest
 # ---------------------------------------------------------------------------
+
 
 def test_molecule_request_minimal():
     """Only 'molecule' is required; all other fields take their defaults."""
@@ -67,11 +68,21 @@ def test_molecule_request_serializes():
     req = MoleculeRequest(molecule="CCO")
     data = req.model_dump()
     expected_keys = {
-        "molecule", "bb_source", "reaction_tags", "custom_sites",
-        "sim_threshold", "n_compositions", "randomize_compositions",
-        "random_seed", "retro_tree_depth", "min_frag_size",
-        "max_bbs_per_frag", "shuffle_bb_order",
-        "max_evals_per_comp", "max_products_per_comp", "max_total_products",
+        "molecule",
+        "bb_source",
+        "reaction_tags",
+        "custom_sites",
+        "sim_threshold",
+        "n_compositions",
+        "randomize_compositions",
+        "random_seed",
+        "retro_tree_depth",
+        "min_frag_size",
+        "max_bbs_per_frag",
+        "shuffle_bb_order",
+        "max_evals_per_comp",
+        "max_products_per_comp",
+        "max_total_products",
         "use_fragment_healer",
     }
     assert expected_keys.issubset(data.keys())
@@ -90,6 +101,7 @@ def test_molecule_request_custom_sites_optional():
 # SiteRequest
 # ---------------------------------------------------------------------------
 
+
 def test_site_request_minimal():
     req = SiteRequest(molecule="CCO")
     assert req.molecule == "CCO"
@@ -106,9 +118,16 @@ def test_site_request_missing_molecule():
 def test_site_request_custom_rules():
     req = SiteRequest(
         molecule="CCO",
-        rules={"MW": (0, 300), "HBD": (0, 3), "HBA": (0, 5),
-               "TPSA": (0, 100), "RotB": (0, 5), "Rings": (0, 5),
-               "ArRings": (0, 3), "Chiral": (0, 2)},
+        rules={
+            "MW": (0, 300),
+            "HBD": (0, 3),
+            "HBA": (0, 5),
+            "TPSA": (0, 100),
+            "RotB": (0, 5),
+            "Rings": (0, 5),
+            "ArRings": (0, 3),
+            "Chiral": (0, 2),
+        },
     )
     assert req.rules["MW"] == (0, 300)
 
@@ -121,6 +140,7 @@ def test_site_request_struct_rules_default():
 # ---------------------------------------------------------------------------
 # Response models
 # ---------------------------------------------------------------------------
+
 
 def test_job_submit_response():
     resp = JobSubmitResponse(job_id="abc-123", status="submitted")

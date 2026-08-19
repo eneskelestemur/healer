@@ -1,9 +1,11 @@
-'''
-    FastAPI server entry point for the HEALER web application.
-'''
+"""
+FastAPI server entry point for the HEALER web application.
+"""
+
 import logging
 import os
 import sys
+
 from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
@@ -17,10 +19,11 @@ if os.path.exists(env_path):
 # Check if web dependencies are available
 try:
     from fastapi import FastAPI
-    from fastapi.staticfiles import StaticFiles
+    from fastapi.exceptions import HTTPException
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.responses import JSONResponse
-    from fastapi.exceptions import HTTPException
+    from fastapi.staticfiles import StaticFiles
+
     _WEB_AVAILABLE = True
 except ImportError:
     _WEB_AVAILABLE = False
@@ -39,21 +42,20 @@ def _create_app():
         if exc.status_code >= 500:
             return JSONResponse(
                 status_code=exc.status_code,
-                content={"detail": "An internal error occurred. Please try again later."}
+                content={
+                    "detail": "An internal error occurred. Please try again later."
+                },
             )
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={"detail": exc.detail}
-        )
+        return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
     # Enable CORS - allow frontend and production domain
     allowed_origins = [
-        "http://localhost:3000",      # Local React dev
-        "http://127.0.0.1:3000",      # Local IP
-        "http://localhost:5173",      # Vite dev server
-        "https://healer.mml.unc.edu", # Production domain
+        "http://localhost:3000",  # Local React dev
+        "http://127.0.0.1:3000",  # Local IP
+        "http://localhost:5173",  # Vite dev server
+        "https://healer.mml.unc.edu",  # Production domain
     ]
-    
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=allowed_origins,
@@ -86,8 +88,9 @@ def start():
         print("Error: Web dependencies not installed.", file=sys.stderr)
         print("Install with: pip install mol-healer[web]", file=sys.stderr)
         raise SystemExit(1)
-    
+
     import argparse
+
     import uvicorn
 
     parser = argparse.ArgumentParser(description="Start the HEALER web UI server")

@@ -1,18 +1,18 @@
 """
 Smoke tests for healer.web.interface — building block discovery and path resolution.
 """
-import os
+
 from pathlib import Path
 
 import pytest
 
-from healer.web.interface import discover_building_blocks, resolve_bb_path, BB_BASE_PATH
 from healer.domain.bb_repository import resolve_bb_path as repo_resolve_bb_path
-
+from healer.web.interface import BB_BASE_PATH, discover_building_blocks, resolve_bb_path
 
 # ---------------------------------------------------------------------------
 # discover_building_blocks
 # ---------------------------------------------------------------------------
+
 
 def test_discover_returns_list():
     result = discover_building_blocks()
@@ -60,6 +60,7 @@ def test_discover_test_entry_has_expected_label():
 # resolve_bb_path (interface layer)
 # ---------------------------------------------------------------------------
 
+
 def test_resolve_named_key_test():
     """'test' named key resolves to an existing SDF file."""
     path = resolve_bb_path("test")
@@ -88,6 +89,7 @@ def test_resolve_bad_key_raises():
 # ---------------------------------------------------------------------------
 # resolve_bb_path (domain / bb_repository layer)
 # ---------------------------------------------------------------------------
+
 
 def test_repo_resolve_named_key_test():
     """'test' named key resolves via bb_repository layer to an existing SDF."""

@@ -1,6 +1,7 @@
-'''
-    Progress bar helpers.
-'''
+"""
+Progress bar helpers.
+"""
+
 import logging
 import os
 import sys
@@ -18,15 +19,15 @@ _active_bars = 0
 
 
 def _redirect_targets() -> list:
-    '''
-        Pick the loggers whose handlers should write through `tqdm.write` while a
-        bar is drawn. Redirecting a logger that only propagates would print each
-        record twice, once from the redirect and once from the handler upstream.
+    """
+    Pick the loggers whose handlers should write through `tqdm.write` while a
+    bar is drawn. Redirecting a logger that only propagates would print each
+    record twice, once from the redirect and once from the handler upstream.
 
-        Returns:
-            The loggers that own the stream handlers records reach.
-    '''
-    healer_logger = logging.getLogger('healer')
+    Returns:
+        The loggers that own the stream handlers records reach.
+    """
+    healer_logger = logging.getLogger("healer")
     owns_handlers = any(
         not isinstance(h, logging.NullHandler) for h in healer_logger.handlers
     )
@@ -36,32 +37,33 @@ def _redirect_targets() -> list:
 
 
 def progress_enabled(show_progress: Optional[bool] = None) -> bool:
-    '''
-        Decide whether progress bars should be drawn.
+    """
+    Decide whether progress bars should be drawn.
 
-        Args:
-            show_progress: explicit choice, which takes priority. None consults
-                the HEALER_PROGRESS environment variable, then falls back to
-                whether stderr is a terminal.
+    Args:
+        show_progress: explicit choice, which takes priority. None consults
+            the HEALER_PROGRESS environment variable, then falls back to
+            whether stderr is a terminal.
 
-        Returns:
-            True if bars should be drawn.
-    '''
+    Returns:
+        True if bars should be drawn.
+    """
     if show_progress is not None:
         return bool(show_progress)
 
-    env = os.environ.get('HEALER_PROGRESS')
+    env = os.environ.get("HEALER_PROGRESS")
     if env is not None:
-        return env.strip().lower() not in ('0', 'false', 'no', 'off', '')
+        return env.strip().lower() not in ("0", "false", "no", "off", "")
 
     return sys.stderr.isatty()
 
 
 class _NullBar:
-    '''
-        Stand-in used when no bar is drawn. Iterates the wrapped iterable and
-        accepts the tqdm calls made by the enumeration loops as no-ops.
-    '''
+    """
+    Stand-in used when no bar is drawn. Iterates the wrapped iterable and
+    accepts the tqdm calls made by the enumeration loops as no-ops.
+    """
+
     def __init__(self, iterable: Iterable[Any]) -> None:
         self._iterable = iterable
 
@@ -84,24 +86,24 @@ def progress_bar(
     desc: str,
     total: Optional[int] = None,
     show_progress: Optional[bool] = None,
-    unit: str = 'it',
+    unit: str = "it",
 ) -> Iterator[Any]:
-    '''
-        Wrap an iterable in a progress bar, unless one is already being drawn or
-        progress is switched off. While a bar is drawn, log records from the
-        `healer` logger are routed through `tqdm.write` so they scroll above it
-        instead of breaking it apart.
+    """
+    Wrap an iterable in a progress bar, unless one is already being drawn or
+    progress is switched off. While a bar is drawn, log records from the
+    `healer` logger are routed through `tqdm.write` so they scroll above it
+    instead of breaking it apart.
 
-        Args:
-            iterable: the iterable to wrap.
-            desc: bar label.
-            total: item count, for iterables without a length.
-            show_progress: explicit override, see `progress_enabled`.
-            unit: unit label for the rate display.
+    Args:
+        iterable: the iterable to wrap.
+        desc: bar label.
+        total: item count, for iterables without a length.
+        show_progress: explicit override, see `progress_enabled`.
+        unit: unit label for the rate display.
 
-        Yields:
-            The iterable, wrapped in a `tqdm` bar when one is drawn.
-    '''
+    Yields:
+        The iterable, wrapped in a `tqdm` bar when one is drawn.
+    """
     global _active_bars
 
     if _active_bars > 0 or not progress_enabled(show_progress):

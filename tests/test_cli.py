@@ -7,20 +7,20 @@ Covers:
 - run_enumeration: all three healer types (molecule, site, fragment)
   with both n_jobs=1 (sequential) and n_jobs=2 (parallel/loky)
 """
-import pytest
-import textwrap
-import pandas as pd
+
 from pathlib import Path
 
-# conftest.py imports rdkit_monkey_patch first — no need to repeat here.
+import pandas as pd
+import pytest
 
+# conftest.py imports rdkit_monkey_patch first — no need to repeat here.
 from healer.cli import load_input, parse_rules, run_enumeration
 from healer.domain.bb_repository import BBRepository
-
 
 # ---------------------------------------------------------------------------
 # load_input
 # ---------------------------------------------------------------------------
+
 
 def test_load_input_direct_smiles():
     result = load_input("c1ccccc1")
@@ -73,6 +73,7 @@ def test_load_input_invalid_raises():
 # ---------------------------------------------------------------------------
 # parse_rules
 # ---------------------------------------------------------------------------
+
 
 def test_parse_rules_basic():
     result = parse_rules("MW:0:500,HBD:0:5")
@@ -136,8 +137,11 @@ def _fragment_init(repo: BBRepository) -> dict:
 # run_enumeration — molecule mode
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.parametrize("n_jobs", [1, 2])
-def test_run_enumeration_molecule(test_bb_repository: BBRepository, tmp_path: Path, n_jobs: int):
+def test_run_enumeration_molecule(
+    test_bb_repository: BBRepository, tmp_path: Path, n_jobs: int
+):
     """molecule mode: aspirin; produces a CSV with at least the query molecule row."""
     out = tmp_path / f"out_mol_n{n_jobs}.csv"
     run_enumeration(
@@ -165,8 +169,11 @@ def test_run_enumeration_molecule(test_bb_repository: BBRepository, tmp_path: Pa
 # run_enumeration — site mode
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.parametrize("n_jobs", [1, 2])
-def test_run_enumeration_site(test_bb_repository: BBRepository, tmp_path: Path, n_jobs: int):
+def test_run_enumeration_site(
+    test_bb_repository: BBRepository, tmp_path: Path, n_jobs: int
+):
     """site mode: aspirin with permissive rules; produces a CSV."""
     out = tmp_path / f"out_site_n{n_jobs}.csv"
     run_enumeration(
@@ -188,8 +195,11 @@ def test_run_enumeration_site(test_bb_repository: BBRepository, tmp_path: Path, 
 # run_enumeration — fragment mode
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.parametrize("n_jobs", [1, 2])
-def test_run_enumeration_fragment(test_bb_repository: BBRepository, tmp_path: Path, n_jobs: int):
+def test_run_enumeration_fragment(
+    test_bb_repository: BBRepository, tmp_path: Path, n_jobs: int
+):
     """fragment mode: two-fragment SMILES; produces a CSV."""
     out = tmp_path / f"out_frag_n{n_jobs}.csv"
     run_enumeration(
@@ -213,7 +223,10 @@ def test_run_enumeration_fragment(test_bb_repository: BBRepository, tmp_path: Pa
 # Parallel path produces the same number of molecules as sequential
 # ---------------------------------------------------------------------------
 
-def test_molecule_parallel_matches_sequential(test_bb_repository: BBRepository, tmp_path: Path):
+
+def test_molecule_parallel_matches_sequential(
+    test_bb_repository: BBRepository, tmp_path: Path
+):
     """n_jobs=2 enumerates the same number of products as n_jobs=1."""
     query_kwargs = {
         "n_compositions": 3,
@@ -259,6 +272,8 @@ def test_molecule_parallel_matches_sequential(test_bb_repository: BBRepository, 
 # Parallelization reduces wall time for large candidate sets
 # ---------------------------------------------------------------------------
 
+
+@pytest.mark.slow
 def test_parallelization_speedup(test_bb_repository: BBRepository, tmp_path: Path):
     """
     n_jobs=2 is faster than n_jobs=1 when the candidate set is large enough
@@ -280,7 +295,11 @@ def test_parallelization_speedup(test_bb_repository: BBRepository, tmp_path: Pat
         "randomize_compositions": False,
         "random_seed": -1,
     }
-    enum_no_cap = {"max_evals_per_comp": None, "max_products_per_comp": None, "max_total_products": None}
+    enum_no_cap = {
+        "max_evals_per_comp": None,
+        "max_products_per_comp": None,
+        "max_total_products": None,
+    }
 
     def timed(n_jobs: int, out: Path) -> float:
         t0 = time.perf_counter()
@@ -306,4 +325,3 @@ def test_parallelization_speedup(test_bb_repository: BBRepository, tmp_path: Pat
         f"Parallel (n_jobs=2, {t_par:.1f}s) should be faster than "
         f"sequential (n_jobs=1, {t_seq:.1f}s) with 100 BBs and no product cap."
     )
-

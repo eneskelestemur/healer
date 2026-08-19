@@ -1,22 +1,22 @@
 """
 Unit tests for healer.domain.bb_repository — path resolution and repository loading.
 """
-import os
+
 from pathlib import Path
 
 import pytest
 
 from healer.domain.bb_repository import (
-    _build_bb_paths,
-    resolve_bb_path,
-    get_repository,
     BBRepository,
+    _build_bb_paths,
+    get_repository,
+    resolve_bb_path,
 )
-
 
 # ---------------------------------------------------------------------------
 # _build_bb_paths
 # ---------------------------------------------------------------------------
+
 
 def test_build_bb_paths_returns_expected_keys():
     paths = _build_bb_paths()
@@ -47,6 +47,7 @@ def test_build_bb_paths_stock_keys_are_globs():
 # resolve_bb_path — named keys
 # ---------------------------------------------------------------------------
 
+
 def test_resolve_test_key_returns_existing_file():
     path = resolve_bb_path("test")
     assert Path(path).exists(), f"Resolved path does not exist: {path}"
@@ -61,6 +62,7 @@ def test_resolve_test_key_is_absolute():
 # ---------------------------------------------------------------------------
 # resolve_bb_path — direct paths
 # ---------------------------------------------------------------------------
+
 
 def test_resolve_absolute_existing_path(test_bb_path: str):
     """An absolute path that exists on disk is returned as-is."""
@@ -83,6 +85,7 @@ def test_resolve_unknown_key_raises():
 # get_repository / BBRepository
 # ---------------------------------------------------------------------------
 
+
 def test_get_repository_returns_bb_repository(test_bb_path: str):
     repo = get_repository(test_bb_path)
     assert isinstance(repo, BBRepository)
@@ -102,8 +105,8 @@ def test_repository_cache_returns_same_object(test_bb_path: str):
 
 def test_repository_get_bbs_for_all_reactions(test_bb_repository: BBRepository):
     """BBs can be retrieved for all loaded reactions without error."""
-    from healer.utils import utils
     from healer.domain.bb_repository import _DATA_DIR
+    from healer.utils import utils
 
     reactions_path = _DATA_DIR / "reactions" / "reactions.json"
     all_rxns = utils.load_reactions_from_json(str(reactions_path))

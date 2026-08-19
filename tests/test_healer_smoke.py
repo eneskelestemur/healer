@@ -14,18 +14,20 @@ Design philosophy:
     >1 rows to confirm actual enumeration happened (penicillin has amide bonds
     that are well-covered by the default reaction set).
 """
+
 import logging
+
 import pytest
 from rdkit import Chem
 
 from healer.application.healer import MoleculeHEALER, SiteHEALER
 from healer.domain.bb_repository import BBRepository
-from tests.conftest import PENICILLIN_SMILES, ASPIRIN_SMILES
-
+from tests.conftest import ASPIRIN_SMILES, PENICILLIN_SMILES
 
 # ---------------------------------------------------------------------------
 # MoleculeHEALER
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="module")
 def molecule_healer(test_bb_repository: BBRepository) -> MoleculeHEALER:
@@ -77,7 +79,7 @@ def test_molecule_healer_pipeline(molecule_healer: MoleculeHEALER):
     results = molecule_healer.get_results(
         as_dict=True,
         calc_similarity=True,
-        calc_properties=False,   # skip slow property profiling in CI
+        calc_properties=False,  # skip slow property profiling in CI
     )
 
     # Always ≥1 row: query mol is row 0 by construction
@@ -117,7 +119,10 @@ def test_molecule_healer_similarity_column(molecule_healer: MoleculeHEALER):
 def test_molecule_healer_get_results_as_dataframe(molecule_healer: MoleculeHEALER):
     """get_results(as_dict=False) returns a DataFrame with expected columns."""
     import pandas as pd
-    df = molecule_healer.get_results(as_dict=False, calc_similarity=False, calc_properties=False)
+
+    df = molecule_healer.get_results(
+        as_dict=False, calc_similarity=False, calc_properties=False
+    )
     assert isinstance(df, pd.DataFrame)
     assert "Product" in df.columns
     assert "ID" in df.columns
@@ -136,21 +141,30 @@ def test_molecule_healer_reruns_on_different_mol(test_bb_repository: BBRepositor
         max_bbs_per_frag=10,
         verbose=0,
     )
-    healer.set_query_mol(ASPIRIN_SMILES, n_compositions=5, retro_tree_depth=1, min_frag_size=3)
+    healer.set_query_mol(
+        ASPIRIN_SMILES, n_compositions=5, retro_tree_depth=1, min_frag_size=3
+    )
     healer.enumerate(max_total_products=5)
-    results = healer.get_results(as_dict=True, calc_similarity=False, calc_properties=False)
+    results = healer.get_results(
+        as_dict=True, calc_similarity=False, calc_properties=False
+    )
     assert len(results) >= 1
 
     # Re-use the same instance
-    healer.set_query_mol(PENICILLIN_SMILES, n_compositions=5, retro_tree_depth=1, min_frag_size=3)
+    healer.set_query_mol(
+        PENICILLIN_SMILES, n_compositions=5, retro_tree_depth=1, min_frag_size=3
+    )
     healer.enumerate(max_total_products=5)
-    results2 = healer.get_results(as_dict=True, calc_similarity=False, calc_properties=False)
+    results2 = healer.get_results(
+        as_dict=True, calc_similarity=False, calc_properties=False
+    )
     assert len(results2) >= 1
 
 
 # ---------------------------------------------------------------------------
 # SiteHEALER
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="module")
 def site_healer(test_bb_repository: BBRepository) -> SiteHEALER:
@@ -162,14 +176,14 @@ def site_healer(test_bb_repository: BBRepository) -> SiteHEALER:
         reaction_tags="all",
         bb_repository=test_bb_repository,
         rules={
-            "MW":      (0, 1000),
-            "HBD":     (0, 10),
-            "HBA":     (0, 20),
-            "TPSA":    (0, 500),
-            "RotB":    (0, 20),
-            "Rings":   (0, 20),
+            "MW": (0, 1000),
+            "HBD": (0, 10),
+            "HBA": (0, 20),
+            "TPSA": (0, 500),
+            "RotB": (0, 20),
+            "Rings": (0, 20),
             "ArRings": (0, 10),
-            "Chiral":  (0, 10),
+            "Chiral": (0, 10),
         },
         verbose=0,
     )
@@ -204,7 +218,9 @@ def test_site_healer_pipeline(site_healer: SiteHEALER):
 
 def test_site_healer_id_column(site_healer: SiteHEALER):
     """Every result row has an ID in the expected HEAL_XXXXXX format."""
-    results = site_healer.get_results(as_dict=True, calc_similarity=False, calc_properties=False)
+    results = site_healer.get_results(
+        as_dict=True, calc_similarity=False, calc_properties=False
+    )
     for row in results:
         assert "ID" in row
         assert row["ID"].startswith("HEAL_")

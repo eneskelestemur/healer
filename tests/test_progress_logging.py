@@ -1,6 +1,7 @@
 """
 Tests for progress bar policy and logging setup.
 """
+
 import logging
 
 import pytest
@@ -9,10 +10,10 @@ from healer.logging_config import configure_logging
 from healer.utils import progress as progress_mod
 from healer.utils.progress import progress_bar, progress_enabled
 
-
 # ---------------------------------------------------------------------------
 # progress_enabled
 # ---------------------------------------------------------------------------
+
 
 def test_explicit_choice_wins_over_environment(monkeypatch):
     monkeypatch.setenv("HEALER_PROGRESS", "1")
@@ -21,9 +22,17 @@ def test_explicit_choice_wins_over_environment(monkeypatch):
     assert progress_enabled(True) is True
 
 
-@pytest.mark.parametrize("value,expected", [("0", False), ("false", False),
-                                            ("no", False), ("off", False),
-                                            ("1", True), ("yes", True)])
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        ("0", False),
+        ("false", False),
+        ("no", False),
+        ("off", False),
+        ("1", True),
+        ("yes", True),
+    ],
+)
 def test_environment_variable_is_honoured(monkeypatch, value, expected):
     monkeypatch.setenv("HEALER_PROGRESS", value)
     assert progress_enabled() is expected
@@ -39,6 +48,7 @@ def test_falls_back_to_tty_check(monkeypatch):
 # Bar nesting
 # ---------------------------------------------------------------------------
 
+
 class _FakeBar(list):
     """Stands in for tqdm: iterable, with the methods progress_bar calls."""
 
@@ -52,6 +62,7 @@ def test_inner_bar_is_suppressed_while_outer_is_active(monkeypatch):
     redraw the one wrapping it on every iteration.
     """
     drawn = []
+
     def fake_tqdm(iterable, **kw):
         drawn.append(kw["desc"])
         return _FakeBar(iterable)
@@ -85,6 +96,7 @@ def test_suppressed_bar_still_supports_tqdm_calls():
 # ---------------------------------------------------------------------------
 # Logging setup
 # ---------------------------------------------------------------------------
+
 
 def test_library_logger_has_a_null_handler():
     """Importing healer must not print anything on its own."""

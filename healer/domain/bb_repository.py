@@ -1,10 +1,11 @@
 """
-    Centralized repository for building blocks with lazy loading and caching.
+Centralized repository for building blocks with lazy loading and caching.
 """
+
 from __future__ import annotations
 
-import os
 import logging
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Set
@@ -23,33 +24,40 @@ _HEALER_PKG = Path(__file__).parent.parent
 _DATA_DIR = _HEALER_PKG / "data"
 _BB_DIR = Path(os.getenv("HEALER_DATA_DIR", str(_DATA_DIR / "buildingblocks")))
 
+
 # Named short-keys → subdirectory patterns, resolved against _BB_DIR.
 # Keeping this here so the CLI (which calls resolve_bb_path directly) also
 # honours HEALER_DATA_DIR.
 def _build_bb_paths() -> Dict[str, str]:
     return {
-        "US_stock":     str(_BB_DIR / "Enamine_Rush-Delivery_Building_Blocks-US" / "*_processed.sdf"),
-        "EU_stock":     str(_BB_DIR / "Enamine_Rush-Delivery_Building_Blocks-EU" / "*_processed.sdf"),
-        "Global_stock": str(_BB_DIR / "Enamine_Building_Blocks_Stock"            / "*_processed.sdf"),
-        "test":         str(_BB_DIR / "test_100_bb_processed.sdf"),
+        "US_stock": str(
+            _BB_DIR / "Enamine_Rush-Delivery_Building_Blocks-US" / "*_processed.sdf"
+        ),
+        "EU_stock": str(
+            _BB_DIR / "Enamine_Rush-Delivery_Building_Blocks-EU" / "*_processed.sdf"
+        ),
+        "Global_stock": str(
+            _BB_DIR / "Enamine_Building_Blocks_Stock" / "*_processed.sdf"
+        ),
+        "test": str(_BB_DIR / "test_100_bb_processed.sdf"),
     }
 
 
 def resolve_bb_path(bb_source: str, base_dir: Optional[Path] = None) -> str:
     """
-        Resolve a building block source name or pattern to an actual file path.
+    Resolve a building block source name or pattern to an actual file path.
 
-        Args:
-            bb_source: One of "US_stock", "EU_stock", "Global_stock", "test",
-                    or a direct file path (optionally with glob patterns).
-            base_dir: Optional directory to resolve relative paths against when
-                    they are not found as given.
+    Args:
+        bb_source: One of "US_stock", "EU_stock", "Global_stock", "test",
+                or a direct file path (optionally with glob patterns).
+        base_dir: Optional directory to resolve relative paths against when
+                they are not found as given.
 
-        Returns:
-            Resolved absolute file path.
+    Returns:
+        Resolved absolute file path.
 
-        Raises:
-            FileNotFoundError: If no file matches the pattern.
+    Raises:
+        FileNotFoundError: If no file matches the pattern.
     """
     pattern = _build_bb_paths().get(bb_source, bb_source)
     p = Path(pattern)
@@ -79,24 +87,26 @@ def resolve_bb_path(bb_source: str, base_dir: Optional[Path] = None) -> str:
 @dataclass
 class BBRepository:
     """
-        Centralized repository for building blocks with lazy loading and caching.
-        
-        Attributes:
-            source_path: Resolved path to the SDF file containing building blocks.
-        
-        Example:
-            >>> repo = BBRepository.from_source("US_stock")
-            >>> repo.load(reactions=my_reactions, show_progress=True)
-            >>> bbs = repo.get_bbs_for_reactions(my_reactions)
+    Centralized repository for building blocks with lazy loading and caching.
+
+    Attributes:
+        source_path: Resolved path to the SDF file containing building blocks.
+
+    Example:
+        >>> repo = BBRepository.from_source("US_stock")
+        >>> repo.load(reactions=my_reactions, show_progress=True)
+        >>> bbs = repo.get_bbs_for_reactions(my_reactions)
     """
 
     source_path: str
     _supplier: SDMolSupplier = field(init=False, repr=False, default=None)
     _all_bbs: List[BuildingBlock] = field(default_factory=list, init=False, repr=False)
     _loaded: bool = field(default=False, init=False, repr=False)
-    
+
     # Index mapping reaction names to sets of compatible BB indices
-    _reaction_bb_indices: Dict[str, Set[int]] = field(default_factory=dict, init=False, repr=False)
+    _reaction_bb_indices: Dict[str, Set[int]] = field(
+        default_factory=dict, init=False, repr=False
+    )
 
     def __post_init__(self) -> None:
         self._supplier = SDMolSupplier(self.source_path, sanitize=True)
@@ -104,14 +114,14 @@ class BBRepository:
     @classmethod
     def from_source(cls, bb_source: str) -> "BBRepository":
         """
-            Factory method to create a BBRepository from a source name or path.
-            
-            Args:
-                bb_source: One of "US_stock", "EU_stock", "Global_stock", "test",
-                        or a direct file path.
-            
-            Returns:
-                A new BBRepository instance.
+        Factory method to create a BBRepository from a source name or path.
+
+        Args:
+            bb_source: One of "US_stock", "EU_stock", "Global_stock", "test",
+                    or a direct file path.
+
+        Returns:
+            A new BBRepository instance.
         """
         resolved_path = resolve_bb_path(bb_source)
         return cls(source_path=resolved_path)
@@ -133,18 +143,18 @@ class BBRepository:
 
     def load(self, show_progress: Optional[bool] = None) -> "BBRepository":
         """
-            Load ALL building blocks from the source file.
-            
-            All BBs are loaded regardless of reaction compatibility. The reaction
-            index is built from the rxn_annotations property of each BB, allowing
-            efficient filtering later via get_bbs_for_reactions().
-            
-            Args:
-                show_progress: Whether to show a progress bar during loading. None
-                    shows one when stderr is a terminal.
-            
-            Returns:
-                self (for method chaining).
+        Load ALL building blocks from the source file.
+
+        All BBs are loaded regardless of reaction compatibility. The reaction
+        index is built from the rxn_annotations property of each BB, allowing
+        efficient filtering later via get_bbs_for_reactions().
+
+        Args:
+            show_progress: Whether to show a progress bar during loading. None
+                shows one when stderr is a terminal.
+
+        Returns:
+            self (for method chaining).
         """
         if self._loaded:
             logger.debug("BBRepository already loaded, skipping reload")
@@ -164,11 +174,11 @@ class BBRepository:
             for mol in supplier:
                 if mol is None:
                     continue
-                
+
                 bb = BuildingBlock(mol)
                 bb.fingerprint = fp_gen.GetFingerprint(bb.mol)
                 bb_rxn_annotations = bb.get_parsed_prop("rxn_annotations")
-            
+
                 if not isinstance(bb_rxn_annotations, dict):
                     bb_rxn_annotations = {}
 
@@ -194,13 +204,13 @@ class BBRepository:
         self, reactions: List[ReactionTemplate21]
     ) -> List[BuildingBlock]:
         """
-            Get BBs compatible with ANY of the given reactions.
-            
-            Args:
-                reactions: List of reactions to filter by.
-            
-            Returns:
-                List of BuildingBlock objects (references, not copies).
+        Get BBs compatible with ANY of the given reactions.
+
+        Args:
+            reactions: List of reactions to filter by.
+
+        Returns:
+            List of BuildingBlock objects (references, not copies).
         """
         if not self._loaded:
             raise RuntimeError("BBRepository not loaded. Call load() first.")
@@ -215,13 +225,13 @@ class BBRepository:
         self, reactions: List[ReactionTemplate21]
     ) -> Iterator[BuildingBlock]:
         """
-            Memory-efficient iterator over reaction-compatible BBs.
-            
-            Args:
-                reactions: List of reactions to filter by.
-            
-            Yields:
-                BuildingBlock objects compatible with any of the given reactions.
+        Memory-efficient iterator over reaction-compatible BBs.
+
+        Args:
+            reactions: List of reactions to filter by.
+
+        Yields:
+            BuildingBlock objects compatible with any of the given reactions.
         """
         if not self._loaded:
             raise RuntimeError("BBRepository not loaded. Call load() first.")
@@ -235,13 +245,13 @@ class BBRepository:
 
     def get_bb_by_index(self, idx: int) -> BuildingBlock:
         """
-            Get a BB by its index in the loaded list.
-            
-            Args:
-                idx: Index of the BB.
-            
-            Returns:
-                The BuildingBlock at the given index.
+        Get a BB by its index in the loaded list.
+
+        Args:
+            idx: Index of the BB.
+
+        Returns:
+            The BuildingBlock at the given index.
         """
         if not self._loaded:
             raise RuntimeError("BBRepository not loaded. Call load() first.")
@@ -249,10 +259,10 @@ class BBRepository:
 
     def get_all_bbs(self) -> List[BuildingBlock]:
         """
-            Get all loaded BBs.
-            
-            Returns:
-                List of all loaded BuildingBlock objects.
+        Get all loaded BBs.
+
+        Returns:
+            List of all loaded BuildingBlock objects.
         """
         if not self._loaded:
             raise RuntimeError("BBRepository not loaded. Call load() first.")
@@ -291,32 +301,31 @@ _REPOSITORY_CACHE: Dict[str, BBRepository] = {}
 
 def get_repository(bb_source: str) -> BBRepository:
     """
-        Get or create a BBRepository for the given source.
-        
-        This enables automatic sharing of BBRepository instances across
-        multiple HEALER instances using the same BB source.
-        
-        Args:
-            bb_source: One of "US_stock", "EU_stock", "Global_stock", "test",
-                    or a direct file path.
-        
-        Returns:
-            A BBRepository instance (possibly cached).
+    Get or create a BBRepository for the given source.
+
+    This enables automatic sharing of BBRepository instances across
+    multiple HEALER instances using the same BB source.
+
+    Args:
+        bb_source: One of "US_stock", "EU_stock", "Global_stock", "test",
+                or a direct file path.
+
+    Returns:
+        A BBRepository instance (possibly cached).
     """
     resolved_path = resolve_bb_path(bb_source)
-    
+
     if resolved_path not in _REPOSITORY_CACHE:
         _REPOSITORY_CACHE[resolved_path] = BBRepository(source_path=resolved_path)
-    
+
     return _REPOSITORY_CACHE[resolved_path]
 
 
 def clear_repository_cache() -> None:
     """
-        Clear all cached repositories.
-        
-        Use this between batches or when switching to different BB sources
-        to free memory.
+    Clear all cached repositories.
+
+    Use this between batches or when switching to different BB sources
+    to free memory.
     """
     _REPOSITORY_CACHE.clear()
-

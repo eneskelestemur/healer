@@ -1,18 +1,19 @@
 """
 Smoke tests for optimizer classes.
 """
+
 import logging
 
 import pytest
 from rdkit import Chem
 from rdkit.Chem import QED, Crippen
 
-from healer.application.healer import MoleculeHEALER, FragmentHEALER
+from healer.application.healer import FragmentHEALER, MoleculeHEALER
 from healer.application.optimizers import (
     BaseOptimizer,
+    BayesianSequenceOptimizer,
     BeamSearchOptimizer,
     GeneticAlgorithmOptimizer,
-    BayesianSequenceOptimizer,
     OptimizerError,
 )
 from healer.domain.bb_repository import BBRepository
@@ -44,16 +45,23 @@ def batch_logp(mols):
 # BaseOptimizer
 # ---------------------------------------------------------------------------
 
+
 def test_base_optimizer_requires_fn():
     with pytest.raises(ValueError):
+
         class _Dummy(BaseOptimizer):
             pass
+
         _Dummy()
 
 
 def test_evaluate_batch_with_target_fn():
     opt = BeamSearchOptimizer(beam_width=5, target_fn=qed_fn)
-    mols = [Chem.MolFromSmiles("C"), Chem.MolFromSmiles("CC"), Chem.MolFromSmiles("CCC")]
+    mols = [
+        Chem.MolFromSmiles("C"),
+        Chem.MolFromSmiles("CC"),
+        Chem.MolFromSmiles("CCC"),
+    ]
     scores = opt.evaluate_batch(mols)
     assert len(scores) == 3
     assert all(isinstance(s, float) for s in scores)
@@ -75,7 +83,9 @@ def test_evaluate_batch_handles_failure():
 
 
 def test_evaluate_batch_prefers_batch_fn_over_target_fn():
-    opt = BeamSearchOptimizer(beam_width=5, target_fn=failing_fn, batch_target_fn=batch_logp)
+    opt = BeamSearchOptimizer(
+        beam_width=5, target_fn=failing_fn, batch_target_fn=batch_logp
+    )
     scores = opt.evaluate_batch([Chem.MolFromSmiles("CCO")])
     assert scores == [pytest.approx(Crippen.MolLogP(Chem.MolFromSmiles("CCO")))]
 
@@ -89,6 +99,7 @@ def test_evaluate_single_molecule():
 # ---------------------------------------------------------------------------
 # BeamSearchOptimizer — full pipeline
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="module")
 def beam_healer(test_bb_repository: BBRepository) -> MoleculeHEALER:
@@ -104,19 +115,29 @@ def beam_healer(test_bb_repository: BBRepository) -> MoleculeHEALER:
 
 def test_beam_search_optimizer_pipeline(beam_healer: MoleculeHEALER):
     opt = BeamSearchOptimizer(beam_width=5, target_fn=qed_fn)
-    beam_healer.set_query_mol(PENICILLIN_SMILES, n_compositions=3, retro_tree_depth=1, min_frag_size=3)
+    beam_healer.set_query_mol(
+        PENICILLIN_SMILES, n_compositions=3, retro_tree_depth=1, min_frag_size=3
+    )
     beam_healer.enumerate(optimizer=opt, max_total_products=10)
-    results = beam_healer.get_results(as_dict=True, calc_similarity=False, calc_properties=False)
+    results = beam_healer.get_results(
+        as_dict=True, calc_similarity=False, calc_properties=False
+    )
     assert len(results) >= 1
     assert all(Chem.MolFromSmiles(r["Product"]) is not None for r in results)
     # At least some products should have an optimization_score
-    scored = [r for r in results if "optimization_score" in r and r["optimization_score"] is not None]
+    scored = [
+        r
+        for r in results
+        if "optimization_score" in r and r["optimization_score"] is not None
+    ]
     assert len(scored) > 0
 
 
 def test_beam_search_with_batch_fn(beam_healer: MoleculeHEALER):
     opt = BeamSearchOptimizer(beam_width=5, batch_target_fn=batch_qed)
-    beam_healer.set_query_mol(PENICILLIN_SMILES, n_compositions=2, retro_tree_depth=1, min_frag_size=3)
+    beam_healer.set_query_mol(
+        PENICILLIN_SMILES, n_compositions=2, retro_tree_depth=1, min_frag_size=3
+    )
     beam_healer.enumerate(optimizer=opt, max_total_products=5)
     assert len(beam_healer.enumerated_molecules) >= 1
 
@@ -124,6 +145,7 @@ def test_beam_search_with_batch_fn(beam_healer: MoleculeHEALER):
 # ---------------------------------------------------------------------------
 # GeneticAlgorithmOptimizer — full pipeline
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="module")
 def ga_healer(test_bb_repository: BBRepository) -> MoleculeHEALER:
@@ -144,9 +166,13 @@ def test_ga_optimizer_pipeline(ga_healer: MoleculeHEALER):
         random_seed=42,
         target_fn=qed_fn,
     )
-    ga_healer.set_query_mol(PENICILLIN_SMILES, n_compositions=2, retro_tree_depth=1, min_frag_size=3)
+    ga_healer.set_query_mol(
+        PENICILLIN_SMILES, n_compositions=2, retro_tree_depth=1, min_frag_size=3
+    )
     ga_healer.enumerate(optimizer=opt, max_evals_per_comp=30, max_total_products=20)
-    results = ga_healer.get_results(as_dict=True, calc_similarity=False, calc_properties=False)
+    results = ga_healer.get_results(
+        as_dict=True, calc_similarity=False, calc_properties=False
+    )
     assert len(results) >= 1
     assert all(Chem.MolFromSmiles(r["Product"]) is not None for r in results)
 
@@ -154,7 +180,9 @@ def test_ga_optimizer_pipeline(ga_healer: MoleculeHEALER):
 def test_ga_optimizer_evolves(ga_healer: MoleculeHEALER):
     """GA should run multiple generations when budget allows."""
     opt = GeneticAlgorithmOptimizer(population_size=8, random_seed=0, target_fn=qed_fn)
-    ga_healer.set_query_mol(PENICILLIN_SMILES, n_compositions=1, retro_tree_depth=1, min_frag_size=3)
+    ga_healer.set_query_mol(
+        PENICILLIN_SMILES, n_compositions=1, retro_tree_depth=1, min_frag_size=3
+    )
     ga_healer.enumerate(optimizer=opt, max_evals_per_comp=50, max_total_products=40)
     assert opt._ga.generations_completed >= 1
 
@@ -162,6 +190,7 @@ def test_ga_optimizer_evolves(ga_healer: MoleculeHEALER):
 # ---------------------------------------------------------------------------
 # BayesianSequenceOptimizer — full pipeline
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="module")
 def bayes_healer(test_bb_repository: BBRepository) -> MoleculeHEALER:
@@ -177,16 +206,22 @@ def bayes_healer(test_bb_repository: BBRepository) -> MoleculeHEALER:
 
 def test_bayesian_optimizer_pipeline(bayes_healer: MoleculeHEALER):
     opt = BayesianSequenceOptimizer(batch_size=3, target_fn=qed_fn)
-    bayes_healer.set_query_mol(PENICILLIN_SMILES, n_compositions=1, retro_tree_depth=1, min_frag_size=3)
+    bayes_healer.set_query_mol(
+        PENICILLIN_SMILES, n_compositions=1, retro_tree_depth=1, min_frag_size=3
+    )
     bayes_healer.enumerate(optimizer=opt, max_evals_per_comp=15, max_total_products=10)
-    results = bayes_healer.get_results(as_dict=True, calc_similarity=False, calc_properties=False)
+    results = bayes_healer.get_results(
+        as_dict=True, calc_similarity=False, calc_properties=False
+    )
     assert len(results) >= 1
     assert all(Chem.MolFromSmiles(r["Product"]) is not None for r in results)
 
 
 def test_bayesian_optimizer_with_batch_fn(bayes_healer: MoleculeHEALER):
     opt = BayesianSequenceOptimizer(batch_size=3, batch_target_fn=batch_qed)
-    bayes_healer.set_query_mol(PENICILLIN_SMILES, n_compositions=1, retro_tree_depth=1, min_frag_size=3)
+    bayes_healer.set_query_mol(
+        PENICILLIN_SMILES, n_compositions=1, retro_tree_depth=1, min_frag_size=3
+    )
     bayes_healer.enumerate(optimizer=opt, max_evals_per_comp=12, max_total_products=8)
     assert len(bayes_healer.enumerated_molecules) >= 1
 
@@ -195,10 +230,15 @@ def test_bayesian_optimizer_with_batch_fn(bayes_healer: MoleculeHEALER):
 # Failure handling: scoring failures excluded from tell() feedback
 # ---------------------------------------------------------------------------
 
+
 def test_failing_scorer_does_not_crash_ga(ga_healer: MoleculeHEALER):
     """A target_fn that always fails should not crash GA enumeration."""
-    opt = GeneticAlgorithmOptimizer(population_size=6, random_seed=1, target_fn=failing_fn)
-    ga_healer.set_query_mol(PENICILLIN_SMILES, n_compositions=1, retro_tree_depth=1, min_frag_size=3)
+    opt = GeneticAlgorithmOptimizer(
+        population_size=6, random_seed=1, target_fn=failing_fn
+    )
+    ga_healer.set_query_mol(
+        PENICILLIN_SMILES, n_compositions=1, retro_tree_depth=1, min_frag_size=3
+    )
     ga_healer.enumerate(optimizer=opt, max_total_products=5)
     assert len(ga_healer.enumerated_molecules) >= 1
 
@@ -206,6 +246,7 @@ def test_failing_scorer_does_not_crash_ga(ga_healer: MoleculeHEALER):
 # ---------------------------------------------------------------------------
 # Domain capping
 # ---------------------------------------------------------------------------
+
 
 def _dummy_pool(n: int):
     return [BuildingBlock(Chem.MolFromSmiles("C" * (i + 1))) for i in range(n)]
@@ -248,7 +289,9 @@ def test_capped_healer_retains_sims_uncapped_does_not(test_bb_repository: BBRepo
         comp = healer._compositions[0]
         if expect_sims:
             assert comp.fragment_sims is not None
-            assert [len(s) for s in comp.fragment_sims] == [len(p) for p in comp.fragment_bbs]
+            assert [len(s) for s in comp.fragment_sims] == [
+                len(p) for p in comp.fragment_bbs
+            ]
         else:
             assert comp.fragment_sims is None
 
@@ -256,6 +299,7 @@ def test_capped_healer_retains_sims_uncapped_does_not(test_bb_repository: BBRepo
 # ---------------------------------------------------------------------------
 # Feedback contract
 # ---------------------------------------------------------------------------
+
 
 class _RecordingGA(GeneticAlgorithmOptimizer):
     """GA that records the feedback it is given, one entry per tell()."""
@@ -266,11 +310,15 @@ class _RecordingGA(GeneticAlgorithmOptimizer):
 
     def tell(self, results):
         self.rounds.append({tuple(bb.get_smiles() for bb in t): s for t, s in results})
-        assert len(self.rounds[-1]) == len(results), "tell() received a repeated combination"
+        assert len(self.rounds[-1]) == len(results), (
+            "tell() received a repeated combination"
+        )
         super().tell(results)
 
 
-def test_tell_reports_each_combination_once_at_its_best_score(test_bb_repository: BBRepository):
+def test_tell_reports_each_combination_once_at_its_best_score(
+    test_bb_repository: BBRepository,
+):
     """
     A combination can yield several products through different reactions. The
     optimizer must see it once, scored by its best product, otherwise fitness
@@ -305,7 +353,9 @@ def test_tell_reports_each_combination_once_at_its_best_score(test_bb_repository
         assert score == pytest.approx(best_by_combo[key])
 
 
-def test_ga_keeps_its_best_combination_across_generations(test_bb_repository: BBRepository):
+def test_ga_keeps_its_best_combination_across_generations(
+    test_bb_repository: BBRepository,
+):
     """
     The fitness cache accumulates, so elites carried into later generations keep
     their score. Wiping it each round makes them score -1e9 and be discarded.
@@ -319,7 +369,9 @@ def test_ga_keeps_its_best_combination_across_generations(test_bb_repository: BB
         verbose=0,
     )
     healer.set_query_mol(PENICILLIN_SMILES, n_compositions=1)
-    opt = _RecordingGA(population_size=10, mutation_percent_genes=20, random_seed=7, target_fn=logp_fn)
+    opt = _RecordingGA(
+        population_size=10, mutation_percent_genes=20, random_seed=7, target_fn=logp_fn
+    )
     healer.enumerate(optimizer=opt, max_evals_per_comp=200, max_total_products=10000)
 
     round_bests = [max(r.values()) for r in opt.rounds if r]
@@ -327,7 +379,9 @@ def test_ga_keeps_its_best_combination_across_generations(test_bb_repository: BB
 
     running = round_bests[0]
     for best in round_bests:
-        assert best >= running - 1e-9, "the best combination was lost between generations"
+        assert best >= running - 1e-9, (
+            "the best combination was lost between generations"
+        )
         running = max(running, best)
     assert round_bests[-1] == pytest.approx(max(round_bests))
 
@@ -336,14 +390,18 @@ def test_ga_keeps_its_best_combination_across_generations(test_bb_repository: BB
 # Exhausted search vs. failed optimizer
 # ---------------------------------------------------------------------------
 
+
 def test_optimizer_error_does_not_abort_enumeration(ga_healer: MoleculeHEALER, caplog):
     """A failing ask() should be reported and skipped, not propagated."""
+
     class FailingAsk(GeneticAlgorithmOptimizer):
         def ask(self):
             raise OptimizerError("recommender exploded")
 
     opt = FailingAsk(population_size=6, random_seed=0, target_fn=qed_fn)
-    ga_healer.set_query_mol(PENICILLIN_SMILES, n_compositions=1, retro_tree_depth=1, min_frag_size=3)
+    ga_healer.set_query_mol(
+        PENICILLIN_SMILES, n_compositions=1, retro_tree_depth=1, min_frag_size=3
+    )
     with caplog.at_level(logging.WARNING, logger="healer.application.healer"):
         ga_healer.enumerate(optimizer=opt, max_evals_per_comp=12)
     assert "recommender exploded" in caplog.text
@@ -360,8 +418,12 @@ def test_exhausted_search_space_ends_cleanly(test_bb_repository: BBRepository):
         max_bbs_per_frag=3,
         verbose=0,
     )
-    healer.set_query_mol(PENICILLIN_SMILES, n_compositions=1, retro_tree_depth=1, min_frag_size=3)
-    opt = BayesianSequenceOptimizer(batch_size=3, target_fn=qed_fn, max_domain_per_frag=3)
+    healer.set_query_mol(
+        PENICILLIN_SMILES, n_compositions=1, retro_tree_depth=1, min_frag_size=3
+    )
+    opt = BayesianSequenceOptimizer(
+        batch_size=3, target_fn=qed_fn, max_domain_per_frag=3
+    )
     healer.enumerate(optimizer=opt, max_evals_per_comp=100, max_total_products=500)
     assert len(healer.enumerated_molecules) >= 1
 
@@ -370,6 +432,7 @@ def test_exhausted_search_space_ends_cleanly(test_bb_repository: BBRepository):
 # Sequence optimizers must assemble exactly what they proposed
 # ---------------------------------------------------------------------------
 
+
 def test_sequence_optimizer_assembles_proposed_tuples(test_bb_repository: BBRepository):
     """
     With three or more fragments, records must be paired with building blocks
@@ -377,6 +440,7 @@ def test_sequence_optimizer_assembles_proposed_tuples(test_bb_repository: BBRepo
     drift onto combinations the optimizer never asked for, because applying a
     reaction can yield several products per candidate or none at all.
     """
+
     class SpyGA(GeneticAlgorithmOptimizer):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)

@@ -378,24 +378,3 @@ def get_svg_mol_with_bbs(
     svg = base64.b64encode(svg.encode('utf-8')).decode('utf-8')
     return f"data:image/svg+xml;base64,{svg}"
 
-def _dummy2dummy(mol: Chem.rdchem.Mol):
-    '''
-        Possibly a useful function, but not used in the project. 
-        Helper function to replace [*] with [*H5] in the molecule.
-
-        NOTE: [*] causes problems in the reaction SMARTS since they
-            are considered as wildcard atoms.
-
-        Args:
-            mol: rdkit mol object.
-
-        Returns:
-            mol: rdkit mol object with [*] replaced by [*H5].
-    '''
-    if '[*]' in Chem.MolToSmiles(mol):
-        return Chem.MolFromSmiles(Chem.MolToSmiles(mol).replace('[*]', '[*H5]'))
-    elif '*' in Chem.MolToSmiles(mol):
-        return Chem.MolFromSmiles(Chem.MolToSmiles(mol).replace('*', '[*H5]'))
-    else:
-        return ValueError('No dummy atom found.')
-

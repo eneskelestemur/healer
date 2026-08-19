@@ -68,7 +68,7 @@ def add_rxn_annotations(mol: Chem.Mol) -> Chem.Mol:
     rxn_annotations = {}
     for rxn in REACTIONS:
         idx = rxn.get_reactant_index(mol)
-        if idx is not None:
+        if idx:
             rxn_annotations[rxn.name] = idx
     mol.SetProp("rxn_annotations", json.dumps(rxn_annotations))
 

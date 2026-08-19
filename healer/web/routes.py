@@ -7,6 +7,7 @@
     
     Set HEALER_SERVER_MODE=true to enable server mode.
 '''
+import logging
 import os
 import uuid
 import json
@@ -31,6 +32,8 @@ from healer.web.interface import (
     discover_building_blocks,
 )
 from healer.utils import utils
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api")
 
@@ -58,13 +61,13 @@ if USE_CELERY:
         task_enumerate_molecule = _task_enumerate_molecule
         task_enumerate_site = _task_enumerate_site
         AsyncResult = _AsyncResult
-        print("HEALER Web: Running in SERVER mode (Celery/Redis)")
+        logger.info("Running in SERVER mode (Celery/Redis)")
     except ImportError as e:
-        print(f"Warning: Celery import failed ({e}), falling back to local mode")
+        logger.warning("Celery import failed (%s), falling back to local mode", e)
         USE_CELERY = False
 
 if not USE_CELERY:
-    print("HEALER Web: Running in LOCAL mode (synchronous)")
+    logger.info("Running in LOCAL mode (synchronous)")
 
 # ============================================================================
 # In-Memory Job Store (for local mode)
@@ -167,7 +170,7 @@ async def cancel_job(job_id: str):
             celery_app.control.revoke(job_id, terminate=True)
             return {"job_id": job_id, "status": "cancelled"}
         except Exception as e:
-            print(f"Failed to cancel job {job_id}: {e}")
+            logger.error("Failed to cancel job %s: %s", job_id, e)
             raise HTTPException(status_code=500, detail="Failed to cancel job")
     else:
         # Local mode - can't really cancel synchronous jobs
@@ -249,7 +252,7 @@ async def get_reaction_tags():
         reaction_tags_path = healer_pkg / 'data' / 'reactions' / 'reaction_tags.txt'
         
         if not reaction_tags_path.exists():
-            print("Warning: reaction_tags.txt not found, returning default tags")
+            logger.warning("reaction_tags.txt not found, returning default tags")
             return ["amide coupling", "amide", "C-N bond formation", "C-N",
                     "alkylation", "N-arylation", "azole", "amination"]
 
@@ -263,7 +266,7 @@ async def get_reaction_tags():
         return tags
             
     except Exception as e:
-        print(f"Error loading reaction tags: {e}")
+        logger.error("Error loading reaction tags: %s", e)
         return []
 
 
@@ -286,7 +289,7 @@ async def smiles_to_molfile(request: SmilesRequest):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error converting SMILES: {e}")
+        logger.error("Error converting SMILES: %s", e)
         raise HTTPException(status_code=500, detail="Error processing molecule")
 
 
@@ -313,7 +316,7 @@ async def render_mol_with_indices(request: SmilesRequest):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error rendering molecule: {e}")
+        logger.error("Error rendering molecule: %s", e)
         raise HTTPException(status_code=500, detail="Error rendering molecule")
 
 
@@ -335,7 +338,7 @@ async def render_result(request: RenderRequest):
                     )
                     return {"svg": svg_data_uri}
                 except Exception as e:
-                    print(f"Error highlighting BBs: {e}")
+                    logger.warning("Error highlighting BBs: %s", e)
         
         svg_data_uri = utils.get_svg_mol(smiles, legend="")
         return {"svg": svg_data_uri}
@@ -344,6 +347,6 @@ async def render_result(request: RenderRequest):
             svg_data_uri = utils.get_svg_mol(request.smiles, legend="")
             return {"svg": svg_data_uri}
         except Exception:
-            print(f"Error rendering result: {e}")
+            logger.error("Error rendering result: %s", e)
             raise HTTPException(status_code=500, detail="Error rendering result")
 

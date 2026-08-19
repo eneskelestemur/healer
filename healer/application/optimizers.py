@@ -182,6 +182,7 @@ class BaseSequenceOptimizer(BaseOptimizer, ABC):
         self.max_domain_per_frag = max_domain_per_frag
         self._domain: Optional[List[List[BuildingBlock]]] = None
         self._bb_to_idx: Optional[List[dict]] = None
+        self._skipped_in_tell: int = 0
 
     def _set_domain(self, domain: List[List[BuildingBlock]]) -> None:
         '''
@@ -207,8 +208,26 @@ class BaseSequenceOptimizer(BaseOptimizer, ABC):
         try:
             return tuple(self._bb_to_idx[j][bb.get_smiles()] for j, bb in enumerate(bb_tuple))
         except KeyError:
-            logger.warning("BB not found in domain during tell(); skipping.")
+            # Counted and reported once per tell(), since this runs per combination.
+            self._skipped_in_tell += 1
+            logger.debug("Combination not found in domain during tell(); skipping.")
             return None
+
+    def _report_skipped(self, n_results: int) -> None:
+        '''
+            Warn once about combinations that could not be mapped back to the
+            domain during the last tell(), then reset the counter.
+
+            Args:
+                n_results: number of combinations that were reported.
+        '''
+        if self._skipped_in_tell:
+            logger.warning(
+                "%s: %d of %d reported combinations were not in the search domain "
+                "and were dropped from the optimizer's feedback.",
+                type(self).__name__, self._skipped_in_tell, n_results,
+            )
+            self._skipped_in_tell = 0
 
     def prepare_domain(
         self,
@@ -244,7 +263,7 @@ class BaseSequenceOptimizer(BaseOptimizer, ABC):
             else:
                 prepared.append(pool[:cap])
 
-        logger.info(
+        logger.debug(
             "%s: truncated building block pools from %s to %s (max_domain_per_frag=%d)%s.",
             type(self).__name__,
             [len(p) for p in domain], [len(p) for p in prepared], cap,
@@ -455,6 +474,7 @@ class GeneticAlgorithmOptimizer(BaseSequenceOptimizer):
             key = self._to_indices(bb_tuple)
             if key is not None:
                 self._score_cache[key] = score
+        self._report_skipped(len(results))
         self._ga.run()
 
 
@@ -591,6 +611,7 @@ class BayesianSequenceOptimizer(BaseSequenceOptimizer):
             row = {f'BB{j}': str(idx) for j, idx in enumerate(indices)}
             row['Score'] = score
             rows.append(row)
+        self._report_skipped(len(results))
         if rows:
             self._campaign.add_measurements(pd.DataFrame(rows))
 

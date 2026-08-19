@@ -1,8 +1,12 @@
 '''
     FastAPI server entry point for the HEALER web application.
 '''
+import logging
 import os
+import sys
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables from the root directory
 root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -79,8 +83,8 @@ app = _create_app() if _WEB_AVAILABLE else None
 def start():
     """Entry point for the 'healer-ui' command."""
     if not _WEB_AVAILABLE:
-        print("Error: Web dependencies not installed.")
-        print("Install with: pip install mol-healer[web]")
+        print("Error: Web dependencies not installed.", file=sys.stderr)
+        print("Install with: pip install mol-healer[web]", file=sys.stderr)
         raise SystemExit(1)
     
     import argparse

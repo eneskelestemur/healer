@@ -62,3 +62,4 @@ external/prop_profiler/
 # OS Generated
 .DS_Store
 Thumbs.db
+.coverage

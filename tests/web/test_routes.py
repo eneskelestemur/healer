@@ -16,21 +16,13 @@ os.environ.setdefault("HEALER_SERVER_MODE", "false")
 from fastapi.testclient import TestClient
 
 from healer.web.app import app
-
-# ---------------------------------------------------------------------------
-# Shared client fixture
-# ---------------------------------------------------------------------------
+from tests.conftest import ASPIRIN_SMILES
 
 
 @pytest.fixture(scope="module")
 def client() -> TestClient:
     with TestClient(app) as c:
         yield c
-
-
-# ---------------------------------------------------------------------------
-# Utility / info endpoints (fast, no chemistry)
-# ---------------------------------------------------------------------------
 
 
 def test_health_check(client: TestClient):
@@ -62,11 +54,6 @@ def test_get_mode(client: TestClient):
     resp = client.get("/api/info/mode")
     assert resp.status_code == 200
     assert "mode" in resp.json()
-
-
-# ---------------------------------------------------------------------------
-# Molecule enumeration — success path
-# ---------------------------------------------------------------------------
 
 
 def test_molecule_enumeration_submit_and_poll(client: TestClient):
@@ -113,11 +100,6 @@ def test_molecule_enumeration_submit_and_poll(client: TestClient):
     assert len(poll_body["result"]["complete"]) >= 1
 
 
-# ---------------------------------------------------------------------------
-# Molecule enumeration — error handling
-# ---------------------------------------------------------------------------
-
-
 def test_molecule_enumeration_invalid_smiles(client: TestClient):
     """
     Submitting an invalid SMILES string should result in a FAILURE job status,
@@ -143,11 +125,6 @@ def test_job_not_found(client: TestClient):
     """Polling a non-existent job ID returns 404."""
     resp = client.get("/api/jobs/00000000-0000-0000-0000-000000000000")
     assert resp.status_code == 404
-
-
-# ---------------------------------------------------------------------------
-# Site enumeration — success path
-# ---------------------------------------------------------------------------
 
 
 def test_site_enumeration_submit_and_poll(client: TestClient):
@@ -182,12 +159,76 @@ def test_site_enumeration_submit_and_poll(client: TestClient):
     assert len(body["result"]["complete"]) >= 1
 
 
-# ---------------------------------------------------------------------------
-# Cancel endpoint (local mode)
-# ---------------------------------------------------------------------------
-
-
 def test_cancel_nonexistent_job_local_mode(client: TestClient):
     """In local mode, cancelling a nonexistent job returns 400."""
     resp = client.post("/api/jobs/nonexistent-job-id/cancel")
     assert resp.status_code == 400
+
+
+class TestUtilityEndpoints:
+    def test_reaction_tags_are_listed(self, client: TestClient):
+        response = client.get("/api/utils/reaction-tags")
+        assert response.status_code == 200
+        tags = response.json()
+        assert isinstance(tags, list) and "amide coupling" in tags
+
+    def test_smiles_becomes_a_molfile(self, client: TestClient):
+        response = client.post("/api/utils/smiles-to-mol", json={"smiles": "CCO"})
+        assert response.status_code == 200
+        assert response.json()["molblock"].endswith("M  END\n")
+
+    def test_an_invalid_smiles_is_rejected(self, client: TestClient):
+        response = client.post(
+            "/api/utils/smiles-to-mol", json={"smiles": "not-a-molecule"}
+        )
+        assert response.status_code in (400, 500)
+
+    def test_a_molecule_renders_with_indices(self, client: TestClient):
+        response = client.post(
+            "/api/utils/render-mol-with-indices", json={"smiles": "c1ccccc1N"}
+        )
+        assert response.status_code == 200
+        assert response.json()["svg"].startswith("data:image/svg+xml;base64,")
+
+    def test_a_result_renders_with_highlighted_blocks(self, client: TestClient):
+        response = client.post(
+            "/api/utils/render-result",
+            json={"smiles": "CC(=O)NCc1ccccc1", "bbs": ["CC(=O)O", "NCc1ccccc1"]},
+        )
+        assert response.status_code == 200
+        assert response.json()["svg"].startswith("data:image/svg+xml;base64,")
+
+    def test_a_result_renders_without_blocks(self, client: TestClient):
+        response = client.post(
+            "/api/utils/render-result", json={"smiles": "CC(=O)NCc1ccccc1"}
+        )
+        assert response.status_code == 200
+
+    def test_rendering_falls_back_when_blocks_do_not_match(self, client: TestClient):
+        """A non-matching block must still produce the plain molecule."""
+        response = client.post(
+            "/api/utils/render-result", json={"smiles": "CCO", "bbs": ["c1ccncc1"]}
+        )
+        assert response.status_code == 200
+        assert response.json()["svg"]
+
+
+class TestDownload:
+    def test_a_finished_job_can_be_downloaded(self, client: TestClient):
+        submit = client.post(
+            "/api/enumerate/molecule",
+            json={
+                "molecule": ASPIRIN_SMILES,
+                "bb_source": "test",
+                "max_total_products": 3,
+            },
+        )
+        job_id = submit.json()["job_id"]
+
+        response = client.get(f"/api/jobs/{job_id}/download")
+        assert response.status_code == 200
+        assert response.headers["content-type"].startswith("text/csv")
+        assert "ID,Product" in response.text
+
+    def test_downloading_an_unknown_job_is_rejected(self, client: TestClient):
+        assert client.get("/api/jobs/does-not-exist/download").status_code == 404

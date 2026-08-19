@@ -24,10 +24,6 @@ from healer.application.healer import MoleculeHEALER, SiteHEALER
 from healer.domain.bb_repository import BBRepository
 from tests.conftest import ASPIRIN_SMILES, PENICILLIN_SMILES
 
-# ---------------------------------------------------------------------------
-# MoleculeHEALER
-# ---------------------------------------------------------------------------
-
 
 @pytest.fixture(scope="module")
 def molecule_healer(test_bb_repository: BBRepository) -> MoleculeHEALER:
@@ -159,11 +155,6 @@ def test_molecule_healer_reruns_on_different_mol(test_bb_repository: BBRepositor
         as_dict=True, calc_similarity=False, calc_properties=False
     )
     assert len(results2) >= 1
-
-
-# ---------------------------------------------------------------------------
-# SiteHEALER
-# ---------------------------------------------------------------------------
 
 
 @pytest.fixture(scope="module")

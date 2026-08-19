@@ -9,10 +9,6 @@ import pytest
 from healer.domain.bb_repository import resolve_bb_path as repo_resolve_bb_path
 from healer.web.interface import BB_BASE_PATH, discover_building_blocks, resolve_bb_path
 
-# ---------------------------------------------------------------------------
-# discover_building_blocks
-# ---------------------------------------------------------------------------
-
 
 def test_discover_returns_list():
     result = discover_building_blocks()
@@ -56,11 +52,6 @@ def test_discover_test_entry_has_expected_label():
         assert test_entries[0]["label"] == "Test Set (100 BBs)"
 
 
-# ---------------------------------------------------------------------------
-# resolve_bb_path (interface layer)
-# ---------------------------------------------------------------------------
-
-
 def test_resolve_named_key_test():
     """'test' named key resolves to an existing SDF file."""
     path = resolve_bb_path("test")
@@ -86,11 +77,6 @@ def test_resolve_bad_key_raises():
         resolve_bb_path("this_key_does_not_exist_anywhere")
 
 
-# ---------------------------------------------------------------------------
-# resolve_bb_path (domain / bb_repository layer)
-# ---------------------------------------------------------------------------
-
-
 def test_repo_resolve_named_key_test():
     """'test' named key resolves via bb_repository layer to an existing SDF."""
     path = repo_resolve_bb_path("test")
@@ -101,3 +87,82 @@ def test_repo_resolve_named_key_test():
 def test_repo_resolve_nonexistent_raises():
     with pytest.raises(FileNotFoundError):
         repo_resolve_bb_path("/does/not/exist.sdf")
+
+
+class TestServerLimits:
+    def test_limits_are_returned_as_a_copy(self):
+        from healer.web.interface import get_server_limits
+
+        limits = get_server_limits()
+        limits["max_total_products"] = -1
+        assert get_server_limits()["max_total_products"] != -1
+
+    def test_requests_pass_through_in_local_mode(self):
+        from healer.web import interface
+
+        params = {"max_total_products": 10**9}
+        assert interface.apply_server_limits(dict(params)) == params
+
+    def test_requests_are_clamped_in_server_mode(self, monkeypatch):
+        from healer.web import interface
+
+        monkeypatch.setattr(interface, "SERVER_MODE", True)
+        clamped = interface.apply_server_limits({"max_total_products": 10**9})
+        assert (
+            clamped["max_total_products"]
+            == interface.SERVER_LIMITS["max_total_products"]
+        )
+
+    def test_values_below_the_cap_are_untouched_in_server_mode(self, monkeypatch):
+        from healer.web import interface
+
+        monkeypatch.setattr(interface, "SERVER_MODE", True)
+        assert (
+            interface.apply_server_limits({"max_total_products": 3})[
+                "max_total_products"
+            ]
+            == 3
+        )
+
+
+class TestFragmentCounting:
+    def test_a_single_component_counts_once(self):
+        from healer.web.interface import count_molecular_fragments
+
+        assert count_molecular_fragments("CCO") == 1
+
+    def test_components_are_counted(self):
+        from healer.web.interface import count_molecular_fragments
+
+        assert count_molecular_fragments("c1ccccc1N.CC(=O)O") == 2
+
+    def test_an_invalid_smiles_counts_as_zero(self):
+        from healer.web.interface import count_molecular_fragments
+
+        assert count_molecular_fragments("not-a-molecule") == 0
+
+
+class TestResultFormatting:
+    def test_display_rows_are_derived_from_the_records(self):
+        from healer.web.interface import format_enumeration_results
+
+        records = [
+            {
+                "ID": "HEAL_000000",
+                "Product": "CCO",
+                "BB1": "CC",
+                "Similarity_to_query": 0.5,
+            }
+        ]
+        display, original = format_enumeration_results(records, "molecule")
+
+        assert len(display) == 1
+        assert display[0]["Product"] == "CCO"
+        assert display[0]["Similarity_to_query"] == 0.5
+        assert original == records
+
+    def test_no_records_gives_no_rows(self):
+        from healer.web.interface import format_enumeration_results
+
+        display, original = format_enumeration_results([], "molecule")
+        assert display == [] and original == []

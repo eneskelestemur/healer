@@ -1,12 +1,4 @@
-"""
-Tests for CLI utilities and the run_enumeration pipeline.
-
-Covers:
-- load_input: SMILES string, CSV, SDF, invalid input
-- parse_rules: rule string parsing
-- run_enumeration: all three healer types (molecule, site, fragment)
-  with both n_jobs=1 (sequential) and n_jobs=2 (parallel/loky)
-"""
+"""Tests for the command line interface."""
 
 from pathlib import Path
 
@@ -16,10 +8,7 @@ import pytest
 # conftest.py imports rdkit_monkey_patch first — no need to repeat here.
 from healer.cli import load_input, parse_rules, run_enumeration
 from healer.domain.bb_repository import BBRepository
-
-# ---------------------------------------------------------------------------
-# load_input
-# ---------------------------------------------------------------------------
+from tests.conftest import ASPIRIN_SMILES
 
 
 def test_load_input_direct_smiles():
@@ -70,11 +59,6 @@ def test_load_input_invalid_raises():
         load_input("NOT_A_SMILES_AND_NOT_A_FILE")
 
 
-# ---------------------------------------------------------------------------
-# parse_rules
-# ---------------------------------------------------------------------------
-
-
 def test_parse_rules_basic():
     result = parse_rules("MW:0:500,HBD:0:5")
     assert result == {"MW": (0, 500), "HBD": (0, 5)}
@@ -90,10 +74,6 @@ def test_parse_rules_ignores_malformed_entry():
     result = parse_rules("MW:0:500,BAD,HBD:0:5")
     assert result == {"MW": (0, 500), "HBD": (0, 5)}
 
-
-# ---------------------------------------------------------------------------
-# Shared helpers for run_enumeration tests
-# ---------------------------------------------------------------------------
 
 _BASE_INIT = {
     "bb_source": "test",
@@ -133,11 +113,6 @@ def _fragment_init(repo: BBRepository) -> dict:
     return {**_BASE_INIT, "bb_repository": repo}
 
 
-# ---------------------------------------------------------------------------
-# run_enumeration — molecule mode
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.parametrize("n_jobs", [1, 2])
 def test_run_enumeration_molecule(
     test_bb_repository: BBRepository, tmp_path: Path, n_jobs: int
@@ -165,11 +140,6 @@ def test_run_enumeration_molecule(
     assert len(df) >= 1
 
 
-# ---------------------------------------------------------------------------
-# run_enumeration — site mode
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.parametrize("n_jobs", [1, 2])
 def test_run_enumeration_site(
     test_bb_repository: BBRepository, tmp_path: Path, n_jobs: int
@@ -189,11 +159,6 @@ def test_run_enumeration_site(
     assert out.exists(), "Output CSV was not created"
     df = pd.read_csv(out)
     assert len(df) >= 1
-
-
-# ---------------------------------------------------------------------------
-# run_enumeration — fragment mode
-# ---------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize("n_jobs", [1, 2])
@@ -217,11 +182,6 @@ def test_run_enumeration_fragment(
     assert out.exists(), "Output CSV was not created"
     df = pd.read_csv(out)
     assert len(df) >= 1
-
-
-# ---------------------------------------------------------------------------
-# Parallel path produces the same number of molecules as sequential
-# ---------------------------------------------------------------------------
 
 
 def test_molecule_parallel_matches_sequential(
@@ -266,11 +226,6 @@ def test_molecule_parallel_matches_sequential(
     assert n_seq == n_par, (
         f"Sequential produced {n_seq} rows, parallel produced {n_par} rows"
     )
-
-
-# ---------------------------------------------------------------------------
-# Parallelization reduces wall time for large candidate sets
-# ---------------------------------------------------------------------------
 
 
 @pytest.mark.slow
@@ -325,3 +280,209 @@ def test_parallelization_speedup(test_bb_repository: BBRepository, tmp_path: Pat
         f"Parallel (n_jobs=2, {t_par:.1f}s) should be faster than "
         f"sequential (n_jobs=1, {t_seq:.1f}s) with 100 BBs and no product cap."
     )
+
+
+class TestConfigFiles:
+    def test_values_are_read_from_json(self, tmp_path):
+        from healer.cli import load_config
+
+        path = tmp_path / "run.json"
+        path.write_text('{"bb_source": "test", "max_total": 5}')
+        assert load_config(str(path)) == {"bb_source": "test", "max_total": 5}
+
+    def test_command_line_values_win_over_the_config(self):
+        import argparse
+
+        from healer.cli import merge_args_with_config
+
+        args = argparse.Namespace(bb_source="US_stock", max_total=None)
+        merged = merge_args_with_config(args, {"bb_source": "test", "max_total": 5})
+
+        assert merged.bb_source == "US_stock"
+        assert merged.max_total == 5
+
+    def test_unknown_config_keys_are_added(self):
+        import argparse
+
+        from healer.cli import merge_args_with_config
+
+        merged = merge_args_with_config(argparse.Namespace(), {"extra": 1})
+        assert merged.extra == 1
+
+
+class TestKwargBuilders:
+    def _args(self, **overrides):
+        import argparse
+
+        base = {
+            "bb_source": "test",
+            "reactions": "all",
+            "shuffle": False,
+            "quiet": True,
+            "sim_threshold": 0.5,
+            "max_bbs_per_frag": -1,
+            "n_compositions": 10,
+            "randomize": False,
+            "seed": -1,
+            "retro_depth": 1,
+            "min_frag_size": 3,
+            "reactive_sites": None,
+            "rules": None,
+            "struct_rules": None,
+            "max_evals": None,
+            "max_products": None,
+            "max_total": None,
+            "n_jobs": 1,
+            "similarity": False,
+            "properties": False,
+        }
+        base.update(overrides)
+        return argparse.Namespace(**base)
+
+    def test_all_reactions_stay_a_string(self):
+        from healer.cli import get_init_kwargs
+
+        assert get_init_kwargs(self._args(), "molecule")["reaction_tags"] == "all"
+
+    def test_a_tag_list_is_split(self):
+        from healer.cli import get_init_kwargs
+
+        kwargs = get_init_kwargs(
+            self._args(reactions="amide coupling,N-arylation"), "molecule"
+        )
+        assert kwargs["reaction_tags"] == ["amide coupling", "N-arylation"]
+
+    def test_quiet_disables_progress(self):
+        from healer.cli import get_init_kwargs
+
+        assert (
+            get_init_kwargs(self._args(quiet=True), "molecule")["show_progress"]
+            is False
+        )
+        assert (
+            get_init_kwargs(self._args(quiet=False), "molecule")["show_progress"]
+            is None
+        )
+
+    def test_site_mode_carries_the_rules(self):
+        from healer.cli import get_init_kwargs
+
+        kwargs = get_init_kwargs(self._args(rules="MW:0:300"), "site")
+        assert kwargs["rules"] == {"MW": (0, 300)}
+        assert "sim_threshold" not in kwargs
+
+    def test_query_kwargs_differ_by_mode(self):
+        from healer.cli import get_query_kwargs
+
+        assert "n_compositions" in get_query_kwargs(self._args(), "molecule")
+        assert get_query_kwargs(self._args(reactive_sites=[1]), "site") == {
+            "reactive_sites": [1]
+        }
+        assert get_query_kwargs(self._args(), "fragment") == {}
+
+    def test_limits_and_output_options_are_forwarded(self):
+        from healer.cli import get_enumerate_kwargs, get_results_kwargs
+
+        args = self._args(max_total=5, n_jobs=2, similarity=True)
+        assert get_enumerate_kwargs(args)["max_total_products"] == 5
+        assert get_enumerate_kwargs(args)["n_jobs"] == 2
+        assert get_results_kwargs(args)["calc_similarity"] is True
+
+
+class TestParser:
+    def test_each_subcommand_is_available(self):
+        from healer.cli import build_parser
+
+        parser = build_parser()
+        for command in ("molecule", "site", "fragment", "view"):
+            assert parser.parse_args([command, "CCO"]).command == command
+
+    def test_defaults_match_the_documentation(self):
+        from healer.cli import build_parser
+
+        args = build_parser().parse_args(["molecule", "CCO"])
+        assert args.bb_source == "US_stock"
+        assert args.reactions == "all"
+        assert args.n_jobs == 1
+        assert args.quiet is False
+
+    def test_reactive_sites_are_parsed_as_json(self):
+        from healer.cli import build_parser
+
+        args = build_parser().parse_args(["site", "CCO", "--reactive-sites", "[1,2]"])
+        assert args.reactive_sites == [1, 2]
+
+    def test_a_missing_command_is_rejected(self):
+        from healer.cli import build_parser
+
+        with pytest.raises(SystemExit):
+            build_parser().parse_args([])
+
+
+class TestViewCommand:
+    def test_an_svg_is_written_when_asked(self, tmp_path):
+        import argparse
+
+        from healer.cli import cmd_view
+
+        out = tmp_path / "mol.svg"
+        cmd_view(argparse.Namespace(smiles="CCO", output=str(out)))
+        assert out.exists() and out.read_bytes().startswith(b"<?xml")
+
+    def test_an_invalid_smiles_is_reported(self, caplog):
+        import argparse
+        import logging
+
+        from healer.cli import cmd_view
+
+        with caplog.at_level(logging.ERROR, logger="healer.cli"):
+            cmd_view(argparse.Namespace(smiles="not-a-molecule", output=None))
+        assert "Invalid SMILES" in caplog.text
+
+
+class TestRunSummary:
+    def test_invalid_molecules_are_skipped_and_counted(
+        self, test_bb_repository, tmp_path, caplog
+    ):
+        import logging
+
+        out = tmp_path / "out.csv"
+        with caplog.at_level(logging.WARNING, logger="healer.cli"):
+            run_enumeration(
+                healer_type="molecule",
+                smiles_list=["not-a-molecule", ASPIRIN_SMILES],
+                init_kwargs=_molecule_init(test_bb_repository),
+                query_kwargs={
+                    "n_compositions": 1,
+                    "retro_tree_depth": 1,
+                    "min_frag_size": 3,
+                    "randomize_compositions": False,
+                    "random_seed": -1,
+                },
+                enumerate_kwargs={**_BASE_ENUMERATE, "max_total_products": 2},
+                results_kwargs=_BASE_RESULTS,
+                output_path=str(out),
+                show_progress=False,
+            )
+        assert "Skipping invalid SMILES" in caplog.text
+        assert out.exists()
+
+    def test_a_failing_molecule_does_not_stop_the_run(
+        self, test_bb_repository, tmp_path, caplog
+    ):
+        import logging
+
+        out = tmp_path / "out.csv"
+        with caplog.at_level(logging.ERROR, logger="healer.cli"):
+            run_enumeration(
+                healer_type="fragment",
+                smiles_list=["CCO", "c1ccccc1N.CC(=O)O"],  # first has too few fragments
+                init_kwargs=_fragment_init(test_bb_repository),
+                query_kwargs={},
+                enumerate_kwargs={**_BASE_ENUMERATE, "max_total_products": 2},
+                results_kwargs=_BASE_RESULTS,
+                output_path=str(out),
+                show_progress=False,
+            )
+        assert "Error processing" in caplog.text
+        assert out.exists()

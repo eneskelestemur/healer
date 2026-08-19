@@ -18,10 +18,6 @@ from healer.web.models import (
     SiteRequest,
 )
 
-# ---------------------------------------------------------------------------
-# MoleculeRequest
-# ---------------------------------------------------------------------------
-
 
 def test_molecule_request_minimal():
     """Only 'molecule' is required; all other fields take their defaults."""
@@ -97,11 +93,6 @@ def test_molecule_request_custom_sites_optional():
     assert req2.custom_sites == [(0, 1)]
 
 
-# ---------------------------------------------------------------------------
-# SiteRequest
-# ---------------------------------------------------------------------------
-
-
 def test_site_request_minimal():
     req = SiteRequest(molecule="CCO")
     assert req.molecule == "CCO"
@@ -135,11 +126,6 @@ def test_site_request_custom_rules():
 def test_site_request_struct_rules_default():
     req = SiteRequest(molecule="CCO")
     assert req.struct_rules == []
-
-
-# ---------------------------------------------------------------------------
-# Response models
-# ---------------------------------------------------------------------------
 
 
 def test_job_submit_response():

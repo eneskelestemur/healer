@@ -3,30 +3,17 @@ Test cases for the retrosynthesis tree builder.
 """
 
 import logging
-from pathlib import Path
 
 import pytest
 from rdkit import Chem
 
-import healer.utils.utils as utils
 from healer.application.tree_builder import RetrosynthesisTree
 from healer.domain.composition import CompositionPath
 
-HEALER_PKG = Path(__file__).parent.parent / "healer"
-REACTIONS_PATH = HEALER_PKG / "data" / "reactions" / "reactions.json"
-PEN_SMILES = "CC1(C)SC2C(NC(=O)Cc3ccccc3)C(=O)N2C1C(=O)O"
-
 
 @pytest.fixture(scope="module")
-def reactions():
-    # Load and filter valid reactions
-    rxns = utils.load_reactions_from_json(REACTIONS_PATH)
-    return [r for r in rxns if r.is_valid()]
-
-
-@pytest.fixture(scope="module")
-def penicillin():
-    return Chem.MolFromSmiles(PEN_SMILES)
+def reactions(all_reactions):
+    return all_reactions
 
 
 def test_zero_depth(penicillin, reactions):
@@ -60,7 +47,7 @@ def test_min_heavy_atoms_filter(penicillin, reactions):
     assert len(paths) == 0
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def unbounded_tree(penicillin, reactions):
     """The full depth-2 tree, used to size budgets that are certain to bite."""
     tree = RetrosynthesisTree(

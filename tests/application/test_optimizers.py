@@ -41,11 +41,6 @@ def batch_logp(mols):
     return [Crippen.MolLogP(m) for m in mols]
 
 
-# ---------------------------------------------------------------------------
-# BaseOptimizer
-# ---------------------------------------------------------------------------
-
-
 def test_base_optimizer_requires_fn():
     with pytest.raises(ValueError):
 
@@ -96,11 +91,6 @@ def test_evaluate_single_molecule():
     assert opt.evaluate(mol) == pytest.approx(Crippen.MolLogP(mol))
 
 
-# ---------------------------------------------------------------------------
-# BeamSearchOptimizer — full pipeline
-# ---------------------------------------------------------------------------
-
-
 @pytest.fixture(scope="module")
 def beam_healer(test_bb_repository: BBRepository) -> MoleculeHEALER:
     return MoleculeHEALER(
@@ -140,11 +130,6 @@ def test_beam_search_with_batch_fn(beam_healer: MoleculeHEALER):
     )
     beam_healer.enumerate(optimizer=opt, max_total_products=5)
     assert len(beam_healer.enumerated_molecules) >= 1
-
-
-# ---------------------------------------------------------------------------
-# GeneticAlgorithmOptimizer — full pipeline
-# ---------------------------------------------------------------------------
 
 
 @pytest.fixture(scope="module")
@@ -187,11 +172,6 @@ def test_ga_optimizer_evolves(ga_healer: MoleculeHEALER):
     assert opt._ga.generations_completed >= 1
 
 
-# ---------------------------------------------------------------------------
-# BayesianSequenceOptimizer — full pipeline
-# ---------------------------------------------------------------------------
-
-
 @pytest.fixture(scope="module")
 def bayes_healer(test_bb_repository: BBRepository) -> MoleculeHEALER:
     return MoleculeHEALER(
@@ -226,11 +206,6 @@ def test_bayesian_optimizer_with_batch_fn(bayes_healer: MoleculeHEALER):
     assert len(bayes_healer.enumerated_molecules) >= 1
 
 
-# ---------------------------------------------------------------------------
-# Failure handling: scoring failures excluded from tell() feedback
-# ---------------------------------------------------------------------------
-
-
 def test_failing_scorer_does_not_crash_ga(ga_healer: MoleculeHEALER):
     """A target_fn that always fails should not crash GA enumeration."""
     opt = GeneticAlgorithmOptimizer(
@@ -241,11 +216,6 @@ def test_failing_scorer_does_not_crash_ga(ga_healer: MoleculeHEALER):
     )
     ga_healer.enumerate(optimizer=opt, max_total_products=5)
     assert len(ga_healer.enumerated_molecules) >= 1
-
-
-# ---------------------------------------------------------------------------
-# Domain capping
-# ---------------------------------------------------------------------------
 
 
 def _dummy_pool(n: int):
@@ -294,11 +264,6 @@ def test_capped_healer_retains_sims_uncapped_does_not(test_bb_repository: BBRepo
             ]
         else:
             assert comp.fragment_sims is None
-
-
-# ---------------------------------------------------------------------------
-# Feedback contract
-# ---------------------------------------------------------------------------
 
 
 class _RecordingGA(GeneticAlgorithmOptimizer):
@@ -386,11 +351,6 @@ def test_ga_keeps_its_best_combination_across_generations(
     assert round_bests[-1] == pytest.approx(max(round_bests))
 
 
-# ---------------------------------------------------------------------------
-# Exhausted search vs. failed optimizer
-# ---------------------------------------------------------------------------
-
-
 def test_optimizer_error_does_not_abort_enumeration(ga_healer: MoleculeHEALER, caplog):
     """A failing ask() should be reported and skipped, not propagated."""
 
@@ -426,11 +386,6 @@ def test_exhausted_search_space_ends_cleanly(test_bb_repository: BBRepository):
     )
     healer.enumerate(optimizer=opt, max_evals_per_comp=100, max_total_products=500)
     assert len(healer.enumerated_molecules) >= 1
-
-
-# ---------------------------------------------------------------------------
-# Sequence optimizers must assemble exactly what they proposed
-# ---------------------------------------------------------------------------
 
 
 def test_sequence_optimizer_assembles_proposed_tuples(test_bb_repository: BBRepository):

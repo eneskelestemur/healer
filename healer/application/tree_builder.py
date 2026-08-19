@@ -2,8 +2,9 @@
 Retrosynthesis decomposition tree structure.
 """
 
+import logging
 import random
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from rdkit import Chem
 
@@ -11,6 +12,8 @@ import healer.utils.utils as utils
 from healer.domain.composition import CompositionPath, RetroStep
 from healer.domain.reaction_template import ReactionTemplate21
 from healer.utils.plotting import plot_retrosynthesis_tree
+
+logger = logging.getLogger(__name__)
 
 
 class SplitNode:
@@ -61,6 +64,7 @@ class RetrosynthesisTree:
         reactions: List[ReactionTemplate21],
         max_depth: int = 1,
         min_heavy_atoms: int = 3,
+        max_nodes: Optional[int] = 10000,
     ) -> None:
         """
         Initialize the retrosynthesis tree with a root molecule and
@@ -71,17 +75,31 @@ class RetrosynthesisTree:
             reactions: List of ReactionTemplate21 objects to use for retrosynthesis.
             max_depth: Maximum depth of the retrosynthesis tree.
             min_heavy_atoms: Minimum number of heavy atoms in reactants to consider them valid.
+            max_nodes: Stop expanding once this many nodes exist, bounding the
+                O(b^d) growth at higher depths. None removes the bound.
         """
         self.root: SplitNode = SplitNode(root_molecule)
         self.reactions: List[ReactionTemplate21] = reactions
         self.max_depth: int = max_depth
         self.min_heavy_atoms: int = min_heavy_atoms
+        self.max_nodes: Optional[int] = max_nodes
+        self.n_nodes: int = 1
+        self.budget_exhausted: bool = False
 
     def build(self) -> None:
         """
-        Recursively expand the tree from the root.
+        Recursively expand the tree from the root. Expansion stops early once the
+        node budget is used up, leaving a smaller but valid tree.
         """
+        self.n_nodes = 1
+        self.budget_exhausted = False
         self._expand(self.root, depth=0)
+        if self.budget_exhausted:
+            logger.warning(
+                "Retrosynthesis tree hit its %d node budget and was truncated. "
+                "Lower retro_tree_depth, narrow reaction_tags, or raise max_nodes.",
+                self.max_nodes,
+            )
 
     def _expand(self, node: SplitNode, depth: int) -> None:
         """
@@ -93,11 +111,13 @@ class RetrosynthesisTree:
             node: The current SplitNode to expand.
             depth: Current depth in the retrosynthesis tree.
         """
-        if depth >= self.max_depth:
+        if depth >= self.max_depth or self._budget_reached():
             return
 
         for rxn in self.reactions:
             for r1, r2 in rxn.run_retro(node.molecule):
+                if self._budget_reached():
+                    return
                 if not self._passes_filters(r1, r2):
                     continue
 
@@ -110,9 +130,24 @@ class RetrosynthesisTree:
                 child2 = SplitNode(r2)
                 branch = SplitBranch(step, (child1, child2))
                 node.children.append(branch)
+                self.n_nodes += 2
 
                 self._expand(child1, depth + 1)
                 self._expand(child2, depth + 1)
+
+    def _budget_reached(self) -> bool:
+        """
+        Whether the node budget has been used up.
+
+        Returns:
+            True once the tree has grown to `max_nodes`.
+        """
+        if self.max_nodes is None:
+            return False
+        if self.n_nodes >= self.max_nodes:
+            self.budget_exhausted = True
+            return True
+        return False
 
     def _passes_filters(self, r1: Chem.Mol, r2: Chem.Mol) -> bool:
         """

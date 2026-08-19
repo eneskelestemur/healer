@@ -79,6 +79,7 @@ much larger than the fragment are down-ranked.
 | `n_compositions` | Number of fragment compositions to keep | `10` |
 | `retro_tree_depth` | Retrosynthesis tree depth | `1` |
 | `min_frag_size` | Minimum fragment size in heavy atoms | `3` |
+| `max_retro_nodes` | Node budget for the retrosynthesis tree; `None` removes it | `10000` |
 | `randomize_compositions` | Shuffle rather than order by fragment count | `False` |
 | `random_seed` | Seed, `-1` for none | `-1` |
 | `custom_split_sites` | Explicit bonds to break, skipping the tree | `None` |
@@ -86,6 +87,12 @@ much larger than the fragment are down-ranked.
 Depth 1 splits the molecule in two; depth 2 splits those halves again, giving up
 to four fragments. Cost grows exponentially with depth and routes beyond depth 2
 are rarely practical.
+
+`max_retro_nodes` bounds that growth. In ordinary use it never fires — fragments
+fall below `min_frag_size` after a couple of levels, which prunes the tree well
+before the default budget. It is a guard against pathological inputs: a large
+query, `reaction_tags='all'`, and a low `min_frag_size` together. When it does
+fire, enumeration continues with the smaller tree and logs a warning.
 
 Compositions are ordered by fragment count and truncated to `n_compositions`.
 

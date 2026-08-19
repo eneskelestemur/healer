@@ -1089,6 +1089,7 @@ class MoleculeHEALER(_BaseHEALER):
         custom_split_sites: Optional[List[List[Tuple[int, int]]]] = None,
         retro_tree_depth: int = 1,
         min_frag_size: int = 3,
+        max_retro_nodes: Optional[int] = 10000,
     ) -> None:
         """
         Set the query molecule for enumeration and custom split sites.
@@ -1109,6 +1110,8 @@ class MoleculeHEALER(_BaseHEALER):
                 there will be two separate compositions generated from the molecule.
             retro_tree_depth: depth of retrosynthesis tree to generate compositions.
             min_frag_size: minimum number of heavy atoms in a fragment to consider it valid.
+            max_retro_nodes: node budget for the retrosynthesis tree, which bounds its
+                exponential growth at higher depths. None removes the bound.
         """
         if isinstance(query_mol, str):
             self.query_mol = Chem.MolFromSmiles(query_mol, sanitize=False)
@@ -1131,6 +1134,7 @@ class MoleculeHEALER(_BaseHEALER):
         self.custom_split_sites = custom_split_sites if custom_split_sites else []
         self.retro_tree_depth = retro_tree_depth
         self.min_frag_size = min_frag_size
+        self.max_retro_nodes = max_retro_nodes
 
         self._compositions = []  # reset compositions
 
@@ -1164,6 +1168,7 @@ class MoleculeHEALER(_BaseHEALER):
                 self.reactions,
                 max_depth=self.retro_tree_depth,
                 min_heavy_atoms=self.min_frag_size,
+                max_nodes=self.max_retro_nodes,
             )
             retro_tree.build()
             self._compositions = retro_tree.get_composition_paths(

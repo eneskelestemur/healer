@@ -377,7 +377,7 @@ def build_parser() -> argparse.ArgumentParser:
     """Build the argument parser with subcommands."""
     parser = argparse.ArgumentParser(
         prog="healer",
-        description="HEALER: Hit Expansion by Assembling Ligands from Enumerated Reactions",
+        description="HEALER: Hit Expansion to Advanced Leads Using Enumerated Reactions",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 

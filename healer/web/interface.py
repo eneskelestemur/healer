@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from rdkit import Chem
 
 from healer.application.healer import FragmentHEALER, MoleculeHEALER, SiteHEALER
+from healer.domain.bb_repository import count_records
 from healer.domain.bb_repository import resolve_bb_path as _repo_resolve_bb_path
 
 logger = logging.getLogger(__name__)
@@ -41,7 +42,7 @@ _BB_NAMED_SOURCES: Dict[str, Dict[str, str]] = {
         "subdir": "Enamine_Building_Blocks_Stock",
         "label": "Enamine Global Stock",
     },
-    "test": {"subdir": None, "label": "Test Set (100 BBs)"},
+    "test": {"subdir": None, "label": "Test Set"},
 }
 
 # Fallback pretty-name lookup for any extra SDF files found by rglob
@@ -52,10 +53,10 @@ SERVER_MODE = os.environ.get("HEALER_SERVER_MODE", "false").lower() == "true"
 
 # Default limits for server mode (can be overridden via env vars)
 SERVER_LIMITS = {
-    "max_evals_per_comp": int(os.environ.get("HEALER_LIMIT_MAX_EVALS", 10000)),
-    "max_products_per_comp": int(os.environ.get("HEALER_LIMIT_MAX_PRODUCTS", 500)),
-    "max_total_products": int(os.environ.get("HEALER_LIMIT_MAX_TOTAL", 5000)),
-    "sim_threshold_min": float(os.environ.get("HEALER_LIMIT_SIM_MIN", 0.5)),
+    "max_evals_per_comp": int(os.environ.get("HEALER_LIMIT_MAX_EVALS", 1000000)),
+    "max_products_per_comp": int(os.environ.get("HEALER_LIMIT_MAX_PRODUCTS", 1000)),
+    "max_total_products": int(os.environ.get("HEALER_LIMIT_MAX_TOTAL", 50000)),
+    "sim_threshold_min": float(os.environ.get("HEALER_LIMIT_SIM_MIN", 0.65)),
     "sim_threshold_max": float(os.environ.get("HEALER_LIMIT_SIM_MAX", 1.0)),
     "max_bbs_per_frag": int(os.environ.get("HEALER_LIMIT_MAX_BBS", 10)),
     "n_compositions_max": int(os.environ.get("HEALER_LIMIT_N_COMP", 50)),
@@ -126,7 +127,7 @@ def apply_server_limits(
     return limited
 
 
-def discover_building_blocks() -> List[Dict[str, str]]:
+def discover_building_blocks() -> List[Dict[str, Any]]:
     """
     Discover available processed building block files under BB_BASE_PATH.
 
@@ -134,6 +135,7 @@ def discover_building_blocks() -> List[Dict[str, str]]:
         List of dicts with:
           'value' — absolute path to the SDF file (passed as bb_source to enumeration)
           'label' — human-readable display name
+          'count' — number of building blocks in the file
           'key'   — short named key (e.g. "US_stock"), present only for known sources
     """
     if not BB_BASE_PATH.exists():
@@ -141,7 +143,7 @@ def discover_building_blocks() -> List[Dict[str, str]]:
         return []
 
     seen_paths: set = set()
-    options: List[Dict[str, str]] = []
+    options: List[Dict[str, Any]] = []
 
     # 1. Walk named sources first so they appear at the top with their pretty labels
     for key, info in _BB_NAMED_SOURCES.items():
@@ -160,7 +162,14 @@ def discover_building_blocks() -> List[Dict[str, str]]:
             if abs_path in seen_paths:
                 continue
             seen_paths.add(abs_path)
-            options.append({"value": abs_path, "label": info["label"], "key": key})
+            options.append(
+                {
+                    "value": abs_path,
+                    "label": info["label"],
+                    "count": count_records(abs_path),
+                    "key": key,
+                }
+            )
 
     # 2. Catch any remaining *_processed.sdf files not covered by named sources
     for sdf_path in sorted(BB_BASE_PATH.rglob("*_processed.sdf")):
@@ -170,7 +179,9 @@ def discover_building_blocks() -> List[Dict[str, str]]:
         seen_paths.add(abs_path)
         stem = sdf_path.stem.replace("_processed", "")
         label = _EXTRA_PRETTY_NAMES.get(stem, stem.replace("_", " "))
-        options.append({"value": abs_path, "label": label})
+        options.append(
+            {"value": abs_path, "label": label, "count": count_records(abs_path)}
+        )
 
     return options
 
@@ -405,21 +416,24 @@ def format_enumeration_results(
         if "stoplight_color" in result:
             display_result["stoplight_color"] = result["stoplight_color"]
 
-        bb_keys = [k for k in result.keys() if k.startswith("BB")]
+        bb_keys = [
+            k for k in result.keys() if k.startswith("BB") and not k.startswith("BBID")
+        ]
         bb_keys.sort(key=lambda x: int(x[2:]))
 
         if app_type == "molecule":
             for i, bb_key in enumerate(bb_keys, 1):
                 if result.get(bb_key):
                     display_result[f"BB{i}"] = result[bb_key]
-                    url_key = f"URL{i}"
-                    if result.get(url_key):
-                        display_result[url_key] = result[url_key]
+                    for prefix in ("BBID", "URL"):
+                        if result.get(f"{prefix}{i}"):
+                            display_result[f"{prefix}{i}"] = result[f"{prefix}{i}"]
         elif app_type == "site":
             if bb_keys and result.get(bb_keys[1]):
                 display_result["BB"] = result[bb_keys[1]]
-                if result.get("URL2"):
-                    display_result["URL"] = result["URL2"]
+                for prefix in ("BBID", "URL"):
+                    if result.get(f"{prefix}2"):
+                        display_result[prefix] = result[f"{prefix}2"]
 
         rxn_keys = [
             k for k in result.keys() if k.startswith("Reaction") and k.endswith("_name")

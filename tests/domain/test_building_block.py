@@ -33,6 +33,24 @@ class TestConstruction:
         assert ethanol.get_parsed_prop("nope") == ""
 
 
+class TestIdentifier:
+    @pytest.mark.parametrize("prop_name", ["id", "ID", "Id"])
+    def test_the_identifier_is_found_whatever_its_case(self, prop_name):
+        mol = Chem.MolFromSmiles("CCO")
+        mol.SetProp(prop_name, "EN300-12345")
+
+        assert BuildingBlock(mol).get_id() == "EN300-12345"
+
+    def test_a_source_without_one_gives_an_empty_string(self, ethanol):
+        assert ethanol.get_id() == ""
+
+    def test_other_properties_are_not_mistaken_for_it(self):
+        mol = Chem.MolFromSmiles("CCO")
+        mol.SetProp("MDLNUMBER", "MFCD00003399")
+
+        assert BuildingBlock(mol).get_id() == ""
+
+
 class TestLazyMol:
     def test_mol_is_rebuilt_from_smiles(self, ethanol):
         assert Chem.MolToSmiles(ethanol.mol) == "CCO"

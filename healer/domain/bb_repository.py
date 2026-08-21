@@ -25,7 +25,7 @@ _DATA_DIR = _HEALER_PKG / "data"
 _BB_DIR = Path(os.getenv("HEALER_DATA_DIR", str(_DATA_DIR / "buildingblocks")))
 
 
-# Named short-keys → subdirectory patterns, resolved against _BB_DIR.
+# Named short-keys -> subdirectory patterns, resolved against _BB_DIR.
 # Keeping this here so the CLI (which calls resolve_bb_path directly) also
 # honours HEALER_DATA_DIR.
 def _build_bb_paths() -> Dict[str, str]:
@@ -82,6 +82,55 @@ def resolve_bb_path(bb_source: str, base_dir: Optional[Path] = None) -> str:
             raise FileNotFoundError(f"Building block file not found: {chosen}")
 
     return str(chosen)
+
+
+_RECORD_COUNT_CACHE: Dict[tuple, int] = {}
+_COUNT_CHUNK_SIZE = 8 * 1024 * 1024
+
+
+def count_records(sdf_path: str) -> int:
+    """
+    Count the molecule records in an SDF file by scanning for record delimiters.
+
+    Args:
+        sdf_path: Path to the SDF file.
+
+    Returns:
+        Number of records, or 0 if the file cannot be read.
+    """
+    path = Path(sdf_path)
+    try:
+        stat = path.stat()
+    except OSError:
+        logger.warning("Cannot stat building block file: %s", sdf_path)
+        return 0
+
+    key = (str(path.resolve()), stat.st_size, stat.st_mtime_ns)
+    if key in _RECORD_COUNT_CACHE:
+        return _RECORD_COUNT_CACHE[key]
+
+    delimiter = b"\n$$$$"
+    count = 0
+    try:
+        with open(path, "rb") as f:
+            # Too short to hold a whole delimiter, so nothing is counted twice.
+            overlap = len(delimiter) - 1
+            tail = b""
+            first = True
+            while chunk := f.read(_COUNT_CHUNK_SIZE):
+                if first:
+                    if chunk.startswith(b"$$$$"):
+                        count += 1
+                    first = False
+                buffer = tail + chunk
+                count += buffer.count(delimiter)
+                tail = buffer[-overlap:]
+    except OSError as e:
+        logger.warning("Cannot count records in %s: %s", sdf_path, e)
+        return 0
+
+    _RECORD_COUNT_CACHE[key] = count
+    return count
 
 
 @dataclass

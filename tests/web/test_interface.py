@@ -35,6 +35,14 @@ def test_discover_entry_shape():
         assert isinstance(entry["label"], str)
 
 
+def test_discover_reports_library_sizes():
+    """Each entry carries the number of building blocks in its file."""
+    result = discover_building_blocks()
+    for entry in result:
+        assert isinstance(entry["count"], int)
+        assert entry["count"] > 0, f"Empty library reported: {entry}"
+
+
 def test_discover_values_are_absolute_paths():
     """All 'value' fields must be absolute paths that exist on disk."""
     result = discover_building_blocks()
@@ -45,11 +53,11 @@ def test_discover_values_are_absolute_paths():
 
 
 def test_discover_test_entry_has_expected_label():
-    """The test BB entry should carry the 'Test Set (100 BBs)' label."""
+    """The test BB entry should carry the 'Test Set' label."""
     result = discover_building_blocks()
     test_entries = [e for e in result if e.get("key") == "test"]
     if test_entries:
-        assert test_entries[0]["label"] == "Test Set (100 BBs)"
+        assert test_entries[0]["label"] == "Test Set"
 
 
 def test_resolve_named_key_test():
@@ -166,3 +174,41 @@ class TestResultFormatting:
 
         display, original = format_enumeration_results([], "molecule")
         assert display == [] and original == []
+
+    def test_identifiers_and_urls_travel_with_their_block(self):
+        from healer.web.interface import format_enumeration_results
+
+        records = [
+            {
+                "Product": "CCO",
+                "BB1": "CC",
+                "BB2": "CO",
+                "BBID1": "EN300-1",
+                "URL1": "https://example.com/1",
+                "BBID2": "",
+                "URL2": "",
+            }
+        ]
+        display, _ = format_enumeration_results(records, "molecule")
+
+        assert display[0]["BBID1"] == "EN300-1"
+        assert display[0]["URL1"] == "https://example.com/1"
+        assert "BBID2" not in display[0] and "URL2" not in display[0]
+
+    def test_site_mode_reports_the_added_block(self):
+        from healer.web.interface import format_enumeration_results
+
+        records = [
+            {
+                "Product": "CCO",
+                "BB1": "CC",
+                "BB2": "CO",
+                "BBID2": "EN300-2",
+                "URL2": "https://example.com/2",
+            }
+        ]
+        display, _ = format_enumeration_results(records, "site")
+
+        assert display[0]["BB"] == "CO"
+        assert display[0]["BBID"] == "EN300-2"
+        assert display[0]["URL"] == "https://example.com/2"

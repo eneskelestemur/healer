@@ -25,6 +25,7 @@ Both calculations cost time on large result sets; turn them off for a quick look
 | `Product` | Canonical SMILES of the analog |
 | `BB1`, `BB2`, … | Building blocks used |
 | `Reaction1_name`, … | Reaction template applied at each step |
+| `BBID1`, `BBID2`, … | Catalog identifier per building block, from the `id` field of the SDF |
 | `URL1`, `URL2`, … | Supplier URL per building block, when present in the SDF |
 | `Similarity_to_query` | Tanimoto similarity, with `calc_similarity=True` |
 | `optimization_score` | Objective value, when an optimizer was used |
@@ -45,9 +46,9 @@ compare analogs against; drop it with `df[df['BB1'] != '']`.
 
 ## Deduplication
 
-Rows are deduplicated on everything except the `URL` and `Reaction` columns, so
-the same product reached by two different routes appears once, keeping the first
-route found.
+Rows are deduplicated on the `BB` and `Reaction` columns, so every distinct
+route is kept and the same product may appear more than once. A route repeated
+within the run keeps its first occurrence.
 
 ## Raw records
 

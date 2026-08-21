@@ -84,8 +84,8 @@ function ResultRow({ row, bbKeys }: { row: EnumerationResult, bbKeys: string[] }
                 )}
             </Table.Td>
             {bbKeys.map(key => {
-                const urlKey = key.replace('BB', 'URL');
-                const url = row[urlKey] || (key === 'BB' ? row['URL'] : undefined);
+                const url = row[key.replace('BB', 'URL')];
+                const bbId = row[key.replace('BB', 'BBID')];
                 return (
                     <Table.Td key={key} style={{ fontFamily: 'monospace', fontSize: '12px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={row[key]}>
                         {url ? (
@@ -94,6 +94,9 @@ function ResultRow({ row, bbKeys }: { row: EnumerationResult, bbKeys: string[] }
                             </Anchor>
                         ) : (
                             row[key]
+                        )}
+                        {bbId && (
+                            <Text size="xs" c="dimmed" inherit title={bbId}>{bbId}</Text>
                         )}
                     </Table.Td>
                 );
@@ -117,7 +120,7 @@ export function ResultsTable({ results }: ResultsTableProps) {
         const allKeys = new Set<string>();
         displayResults.forEach(row => {
             Object.keys(row).forEach(k => {
-                if (k.startsWith('BB') && !fixedKeys.includes(k)) {
+                if (k.startsWith('BB') && !k.startsWith('BBID') && !fixedKeys.includes(k)) {
                     allKeys.add(k);
                 }
             });
@@ -145,8 +148,8 @@ export function ResultsTable({ results }: ResultsTableProps) {
                         Stoplight Scores
                     </Anchor>
                     , which is a drug-likeness indicator. Click on a row to visualize the molecule. The building blocks are highlighted 
-                    in the structure but may not be accurate always. You can also click on building block IDs to visit their source page 
-                    (if available).
+                    in the structure but may not be accurate always. You can click on a building block's URL to visit its source page
+                    (if available), and its catalog identifier is shown underneath.
                  </Text>
             </Alert>
             

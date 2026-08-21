@@ -41,37 +41,37 @@
  17 18  1  0
  17 19  1  0
 M  END
->  <id>  (1) 
+>  <id>
 EN300-07843
 
->  <IUPAC Name>  (1) 
+>  <IUPAC Name>
 2-(2-ethoxy-4-formylphenoxy)-N,N-dimethylpropanamide
 
->  <CAS>  (1) 
+>  <CAS>
 733030-83-6
 
->  <purity>  (1) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (1) 
+>  <MDLNUMBER>
 MFCD04635872
 
->  <LogP>  (1) 
+>  <LogP>
 1.479
 
->  <URL>  (1) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-07843
 
->  <avail_US_100mg>  (1) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (1) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (1) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (1) 
+>  <rxn_annotations>
 {"amination-2": [0], "benzimidazole-2": [1], "benzothiazole-1": [1], "benzoxazole-2": [1], "biginelli-2": [1], "biginelli-3": [1], "biginelli-4": [1], "erlenmeyer-plochl": [0], "imidazole-3": [1], "oxazole-1": [0], "pictet-spengler": [1], "pyrimidone-1": [1], "pyrimidone-2": [1]}
 
 $$$$
@@ -125,40 +125,40 @@ $$$$
  20 22  2  0
  15 22  1  0
 M  END
->  <id>  (2) 
+>  <id>
 EN300-04783
 
->  <IUPAC Name>  (2) 
+>  <IUPAC Name>
 4-[2-(3,4-dichlorophenyl)-2-oxoethoxy]-3-methoxybenzaldehyde
 
->  <CAS>  (2) 
+>  <CAS>
 723333-45-7
 
->  <purity>  (2) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (2) 
+>  <MDLNUMBER>
 MFCD03960564
 
->  <LogP>  (2) 
+>  <LogP>
 3.816
 
->  <URL>  (2) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-04783
 
->  <MP>  (2) 
+>  <MP>
 137-138
 
->  <avail_US_100mg>  (2) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (2) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (2) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (2) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "amination-1": [0], "amination-2": [0], "benzimidazole-2": [1], "benzothiazole-1": [1], "benzoxazole-2": [1], "biginelli-2": [1], "biginelli-3": [1], "biginelli-4": [1], "claisen-1": [0], "decarboxylative_coupling-1": [1], "erlenmeyer-plochl": [0], "ether-1": [0], "goldberg-1": [0], "goldberg-2": [0], "heck": [0], "imidazole-3": [1], "negishi": [0, 1], "oxazole-1": [0], "pictet-spengler": [1], "pyrimidone-1": [1], "pyrimidone-2": [1], "sonogashira": [0], "suzuki": [0], "suzuki-2": [0], "thioether-2": [0]}
 
 $$$$
@@ -196,46 +196,46 @@ $$$$
   2 14  1  0
   9 14  1  0
 M  END
->  <id>  (3) 
+>  <id>
 EN300-04785
 
->  <IUPAC Name>  (3) 
+>  <IUPAC Name>
 2-[(1-methyl-1H-1,3-benzodiazol-2-yl)amino]ethan-1-ol
 
->  <CAS>  (3) 
+>  <CAS>
 57262-39-2
 
->  <purity>  (3) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (3) 
+>  <MDLNUMBER>
 MFCD01136088
 
->  <LogP>  (3) 
+>  <LogP>
 1.339
 
->  <URL>  (3) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-04785
 
->  <MP>  (3) 
+>  <MP>
 138-139
 
->  <avail_US_100mg>  (3) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (3) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (3) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (3) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (3) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (3) 
+>  <rxn_annotations>
 {"5-het-amination": [1], "alkylation-1": [1], "amide_coupling-1": [1], "amide_coupling-2": [1], "amide_coupling-5": [1], "amination-1": [1], "amination-2": [1], "carbamate": [1], "carbamate-2": [0, 1], "curtius-1": [1], "curtius-2": [1], "esterification-1": [1], "esterification-2": [1], "ether-2": [1], "mitsunobu-1": [0], "mitsunobu-2": [0], "mitsunobu-3": [0], "mitsunobu-4": [0], "mitsunobu-5": [0], "quinazoline-1": [1], "sulfonamide-1": [1], "thiourea-1": [1], "urea-1": [1], "urea-2": [0, 1]}
 
 $$$$
@@ -283,40 +283,40 @@ $$$$
  18 19  2  0
  14 19  1  0
 M  END
->  <id>  (4) 
+>  <id>
 EN300-08172
 
->  <IUPAC Name>  (4) 
+>  <IUPAC Name>
 1-[4-(benzenesulfonyl)piperazin-1-yl]-2-chloroethan-1-one
 
->  <CAS>  (4) 
+>  <CAS>
 722491-33-0
 
->  <purity>  (4) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (4) 
+>  <MDLNUMBER>
 MFCD04116862
 
->  <LogP>  (4) 
+>  <LogP>
 1.477
 
->  <URL>  (4) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-08172
 
->  <avail_US_100mg>  (4) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (4) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (4) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (4) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (4) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "ether-2": [0], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -349,49 +349,49 @@ $$$$
  10 11  2  0
  10 12  1  0
 M  END
->  <id>  (5) 
+>  <id>
 EN300-56168
 
->  <IUPAC Name>  (5) 
+>  <IUPAC Name>
 4-chloro-2-methoxybenzoic acid
 
->  <CAS>  (5) 
+>  <CAS>
 57479-70-6
 
->  <purity>  (5) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (5) 
+>  <MDLNUMBER>
 MFCD00002532
 
->  <LogP>  (5) 
+>  <LogP>
 2.346
 
->  <URL>  (5) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-56168
 
->  <MP>  (5) 
+>  <MP>
 138-140
 
->  <avail_US_100mg>  (5) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (5) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (5) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (5) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (5) 
+>  <avail_US_5g>
 X
 
->  <avail_US_10g>  (5) 
+>  <avail_US_10g>
 X
 
->  <rxn_annotations>  (5) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "124-triazole-3": [1], "amide_coupling-1": [0], "amide_coupling-5": [0], "amination-1": [0], "benzimidazole-1": [1], "benzoxazole-1": [1], "curtius-1": [0], "curtius-2": [0], "decarboxylative_coupling-1": [0, 1], "esterification-2": [0], "ether-1": [0], "goldberg-1": [0], "goldberg-2": [0], "heck": [0], "mitsunobu-5": [1], "negishi": [0, 1], "oxadiazole-1": [1], "oxadiazole-2": [1], "sonogashira": [0], "suzuki": [0], "suzuki-2": [0], "thioether-2": [0]}
 
 $$$$
@@ -454,37 +454,37 @@ $$$$
  25 26  2  0
   5 26  1  0
 M  END
->  <id>  (6) 
+>  <id>
 EN300-04309
 
->  <IUPAC Name>  (6) 
+>  <IUPAC Name>
 3-[4-(acetyloxy)phenyl]-2-(1,3-dioxo-2,3-dihydro-1H-isoindol-2-yl)propanoic acid
 
->  <CAS>  (6) 
+>  <CAS>
 345585-35-5
 
->  <purity>  (6) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (6) 
+>  <MDLNUMBER>
 MFCD03950738
 
->  <LogP>  (6) 
+>  <LogP>
 1.957
 
->  <URL>  (6) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-04309
 
->  <avail_US_100mg>  (6) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (6) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (6) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (6) 
+>  <rxn_annotations>
 {"124-triazole-3": [1], "amide_coupling-1": [0], "amide_coupling-5": [0], "benzimidazole-1": [1], "benzoxazole-1": [1], "claisen-2": [0], "curtius-1": [0], "curtius-2": [0], "esterification-2": [0], "mitsunobu-5": [1], "oxadiazole-1": [1], "oxadiazole-2": [1]}
 
 $$$$
@@ -543,40 +543,40 @@ $$$$
  23 24  2  0
   4 24  1  0
 M  END
->  <id>  (7) 
+>  <id>
 EN300-06320
 
->  <IUPAC Name>  (7) 
+>  <IUPAC Name>
 4-{[1-(4-fluorophenyl)-5-oxo-2-sulfanylideneimidazolidin-4-ylidene]methyl}benzoic acid
 
->  <CAS>  (7) 
+>  <CAS>
 554442-49-8
 
->  <purity>  (7) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (7) 
+>  <MDLNUMBER>
 MFCD03989640
 
->  <LogP>  (7) 
+>  <LogP>
 2.786
 
->  <URL>  (7) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-06320
 
->  <avail_US_100mg>  (7) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (7) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (7) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (7) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (7) 
+>  <rxn_annotations>
 {"124-triazole-3": [1], "amide_coupling-1": [0], "amide_coupling-5": [0], "benzimidazole-1": [1], "benzoxazole-1": [1], "curtius-1": [0], "curtius-2": [0], "decarboxylative_coupling-1": [0], "esterification-2": [0], "mitsunobu-5": [1], "oxadiazole-1": [1], "oxadiazole-2": [1]}
 
 $$$$
@@ -609,40 +609,40 @@ $$$$
   7 12  2  0
   2 12  1  0
 M  END
->  <id>  (8) 
+>  <id>
 EN300-06326
 
->  <IUPAC Name>  (8) 
+>  <IUPAC Name>
 (2,5-dimethylphenyl)thiourea
 
->  <CAS>  (8) 
+>  <CAS>
 16738-19-5
 
->  <purity>  (8) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (8) 
+>  <MDLNUMBER>
 MFCD00041372
 
->  <LogP>  (8) 
+>  <LogP>
 1.183
 
->  <URL>  (8) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-06326
 
->  <MP>  (8) 
+>  <MP>
 135-140
 
->  <avail_US_100mg>  (8) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (8) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (8) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (8) 
+>  <rxn_annotations>
 {"goldberg-1": [1]}
 
 $$$$
@@ -687,37 +687,37 @@ $$$$
  15 17  1  0
  15 18  1  0
 M  END
->  <id>  (9) 
+>  <id>
 EN300-51068
 
->  <IUPAC Name>  (9) 
+>  <IUPAC Name>
 2-[3-ethoxy-4-(2,2,2-trifluoroethoxy)phenyl]acetonitrile
 
->  <CAS>  (9) 
+>  <CAS>
 1193388-18-9
 
->  <purity>  (9) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (9) 
+>  <MDLNUMBER>
 MFCD12912920
 
->  <LogP>  (9) 
+>  <LogP>
 2.544
 
->  <URL>  (9) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-51068
 
->  <avail_US_100mg>  (9) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (9) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (9) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (9) 
+>  <rxn_annotations>
 {"124-triazole-2": [0], "124-triazole-3": [0], "oxadiazole-1": [0], "tetrazole-1": [0], "tetrazole-2": [0]}
 
 $$$$
@@ -755,133 +755,44 @@ $$$$
  13 14  2  0
   9 14  1  0
 M  END
->  <id>  (10) 
+>  <id>
 EN300-11757
 
->  <IUPAC Name>  (10) 
+>  <IUPAC Name>
 2-(4-phenyl-1,3-thiazol-2-yl)acetonitrile
 
->  <CAS>  (10) 
+>  <CAS>
 41381-89-9
 
->  <purity>  (10) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (10) 
+>  <MDLNUMBER>
 MFCD00551791
 
->  <LogP>  (10) 
+>  <LogP>
 2.006
 
->  <URL>  (10) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-11757
 
->  <MP>  (10) 
+>  <MP>
 42-44
 
->  <avail_US_100mg>  (10) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (10) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (10) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (10) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (10) 
+>  <rxn_annotations>
 {"124-triazole-2": [0], "124-triazole-3": [0], "friedel-crafts-1": [0], "oxadiazole-1": [0], "tetrazole-1": [0], "tetrazole-2": [0]}
-
-$$$$
-
-     RDKit          2D
-
- 21 23  0  0  0  0  0  0  0  0999 V2000
-    0.7145   -5.3625    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    0.0000   -4.9500    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
-    0.0000   -4.1250    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-   -0.7145   -3.7125    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-   -0.7145   -2.8875    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    0.0000   -2.4750    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    0.0000   -1.6500    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    0.7145   -1.2375    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
-    0.7145   -0.4125    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
-    1.4289    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    2.1434   -0.4125    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    2.8579    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    3.5724   -0.4125    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    3.5724   -1.2375    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    2.8579   -1.6500    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    2.1434   -1.2375    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    1.4289   -1.6500    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    1.4289   -2.4750    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
-    0.7145   -2.8875    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    0.7145   -3.7125    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-  1  2  1  0
-  2  3  1  0
-  3  4  2  0
-  4  5  1  0
-  5  6  2  0
-  6  7  1  0
-  7  8  1  0
-  8  9  1  0
-  9 10  2  0
-  9 11  1  0
- 11 12  1  0
- 12 13  2  0
- 13 14  1  0
- 14 15  2  0
- 15 16  1  0
- 16 17  2  0
- 12 17  1  0
- 17 18  1  0
-  8 18  1  0
- 18 19  2  0
-  6 20  1  0
- 20 21  2  0
-  3 21  1  0
-M  END
->  <id>  (11) 
-EN300-04325
-
->  <IUPAC Name>  (11) 
-2-[(4-methoxyphenyl)methyl]-1,2,3,4-tetrahydroisoquinoline-1,3-dione
-
->  <CAS>  (11) 
-217493-71-5
-
->  <purity>  (11) 
-95.00
-
->  <MDLNUMBER>  (11) 
-MFCD00974750
-
->  <LogP>  (11) 
-2.395
-
->  <URL>  (11) 
-https://www.enaminestore.com/catalog/EN300-04325
-
->  <MP>  (11) 
-104-108
-
->  <avail_US_100mg>  (11) 
-X
-
->  <avail_US_250mg>  (11) 
-X
-
->  <avail_US_1g>  (11) 
-X
-
->  <avail_US_2_5g>  (11) 
-X
-
->  <rxn_annotations>  (11) 
-{}
 
 $$$$
 
@@ -921,49 +832,49 @@ $$$$
  14 15  2  0
   2 15  1  0
 M  END
->  <id>  (12) 
+>  <id>
 EN300-04510
 
->  <IUPAC Name>  (12) 
+>  <IUPAC Name>
 3-chloro-5-methyl-8-thia-4,6-diazatricyclo[7.4.0.0,2,7]trideca-1(9),2(7),3,5-tetraene
 
->  <CAS>  (12) 
+>  <CAS>
 81765-97-1
 
->  <purity>  (12) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (12) 
+>  <MDLNUMBER>
 MFCD00458475
 
->  <LogP>  (12) 
+>  <LogP>
 3.688
 
->  <URL>  (12) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-04510
 
->  <MP>  (12) 
+>  <MP>
 93-98
 
->  <avail_US_100mg>  (12) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (12) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (12) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (12) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (12) 
+>  <avail_US_5g>
 X
 
->  <avail_US_10g>  (12) 
+>  <avail_US_10g>
 X
 
->  <rxn_annotations>  (12) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "amination-1": [0], "decarboxylative_coupling-1": [1], "ether-1": [0], "goldberg-1": [0], "goldberg-2": [0], "heck": [0], "negishi": [0, 1], "sonogashira": [0], "suzuki": [0], "suzuki-2": [0], "thioether-2": [0]}
 
 $$$$
@@ -1009,40 +920,40 @@ $$$$
  17 18  1  0
  13 18  1  0
 M  END
->  <id>  (13) 
+>  <id>
 EN300-04776
 
->  <IUPAC Name>  (13) 
+>  <IUPAC Name>
 1-[4-(piperidine-1-sulfonyl)phenyl]ethan-1-one
 
->  <CAS>  (13) 
+>  <CAS>
 58722-34-2
 
->  <purity>  (13) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (13) 
+>  <MDLNUMBER>
 MFCD00579882
 
->  <LogP>  (13) 
+>  <LogP>
 2.104
 
->  <URL>  (13) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-04776
 
->  <MP>  (13) 
+>  <MP>
 112-113
 
->  <avail_US_100mg>  (13) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (13) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (13) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (13) 
+>  <rxn_annotations>
 {"amination-2": [0], "claisen-1": [0], "quinoline-1": [1], "quinoline-2": [1]}
 
 $$$$
@@ -1090,37 +1001,37 @@ $$$$
  13 19  1  0
  10 19  1  0
 M  END
->  <id>  (14) 
+>  <id>
 EN300-04991
 
->  <IUPAC Name>  (14) 
+>  <IUPAC Name>
 2-({5-[(2,6-dimethylphenyl)amino]-1,3,4-thiadiazol-2-yl}sulfanyl)acetic acid
 
->  <CAS>  (14) 
+>  <CAS>
 565165-62-0
 
->  <purity>  (14) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (14) 
+>  <MDLNUMBER>
 MFCD03965212
 
->  <LogP>  (14) 
+>  <LogP>
 3.373
 
->  <URL>  (14) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-04991
 
->  <avail_US_100mg>  (14) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (14) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (14) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (14) 
+>  <rxn_annotations>
 {"124-triazole-3": [1], "5-het-amination": [1], "alkylation-1": [1], "amide_coupling-1": [0, 1], "amide_coupling-2": [1], "amide_coupling-5": [0, 1], "amination-1": [1], "amination-2": [1], "benzimidazole-1": [1], "benzoxazole-1": [1], "carbamate-2": [0], "curtius-1": [0, 1], "curtius-2": [0], "esterification-2": [0], "goldberg-1": [1], "mitsunobu-5": [1], "oxadiazole-1": [1], "oxadiazole-2": [1], "quinazoline-1": [1], "sulfonamide-1": [1], "thiourea-1": [1], "urea-1": [1], "urea-2": [0, 1]}
 
 $$$$
@@ -1176,37 +1087,37 @@ $$$$
  22 23  2  0
   4 23  1  0
 M  END
->  <id>  (15) 
+>  <id>
 EN300-06504
 
->  <IUPAC Name>  (15) 
+>  <IUPAC Name>
 2-chloro-N,N'-bis(4-ethoxyphenyl)ethanimidamide
 
->  <CAS>  (15) 
+>  <CAS>
 40403-45-0
 
->  <purity>  (15) 
+>  <purity>
 95.00
 
->  <LogP>  (15) 
+>  <LogP>
 5.775
 
->  <URL>  (15) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-06504
 
->  <MP>  (15) 
+>  <MP>
 81-83
 
->  <avail_US_100mg>  (15) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (15) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (15) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (15) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "ether-2": [0], "goldberg-1": [1], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -1250,34 +1161,34 @@ $$$$
  16 17  2  0
  11 17  1  0
 M  END
->  <id>  (16) 
+>  <id>
 EN300-06505
 
->  <IUPAC Name>  (16) 
+>  <IUPAC Name>
 2-{[5-(4-fluorophenyl)-1,3,4-oxadiazol-2-yl]sulfanyl}acetic acid
 
->  <CAS>  (16) 
+>  <CAS>
 485334-65-4
 
->  <purity>  (16) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (16) 
+>  <MDLNUMBER>
 MFCD02741504
 
->  <LogP>  (16) 
+>  <LogP>
 .877
 
->  <URL>  (16) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-06505
 
->  <avail_US_100mg>  (16) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (16) 
+>  <avail_US_250mg>
 X
 
->  <rxn_annotations>  (16) 
+>  <rxn_annotations>
 {"124-triazole-3": [1], "amide_coupling-1": [0], "amide_coupling-5": [0], "benzimidazole-1": [1], "benzoxazole-1": [1], "curtius-1": [0], "curtius-2": [0], "esterification-2": [0], "mitsunobu-5": [1], "oxadiazole-1": [1], "oxadiazole-2": [1]}
 
 $$$$
@@ -1321,103 +1232,38 @@ $$$$
  16 17  1  0
  13 17  1  0
 M  END
->  <id>  (17) 
+>  <id>
 EN300-06506
 
->  <IUPAC Name>  (17) 
+>  <IUPAC Name>
 N-[(furan-2-yl)methyl]-2-(methylamino)benzamide
 
->  <CAS>  (17) 
+>  <CAS>
 348612-47-5
 
->  <purity>  (17) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (17) 
+>  <MDLNUMBER>
 MFCD00121563
 
->  <LogP>  (17) 
+>  <LogP>
 2.25
 
->  <URL>  (17) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-06506
 
->  <avail_US_100mg>  (17) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (17) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (17) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (17) 
+>  <rxn_annotations>
 {"5-het-amination": [1], "5-het-arylation": [0], "alkylation-1": [1], "amide_coupling-1": [1], "amide_coupling-2": [1], "amide_coupling-5": [1], "amination-1": [1], "amination-2": [1], "carbamate-2": [0], "curtius-1": [1], "friedel-crafts-1": [0], "goldberg-1": [1], "quinazoline-1": [1], "sulfonamide-1": [1], "thiourea-1": [1], "urea-1": [1], "urea-2": [0, 1]}
-
-$$$$
-
-     RDKit          2D
-
- 10 10  0  0  0  0  0  0  0  0999 V2000
-    0.0000    3.3000    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
-    0.0000    2.4750    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-   -0.7145    2.0625    0.0000 S   0  0  0  0  0  0  0  0  0  0  0  0
-    0.7145    2.0625    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
-    0.7145    1.2375    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    1.4289    0.8250    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    1.4289   -0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    0.7145   -0.4125    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    0.0000    0.8250    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-  1  2  1  0
-  2  3  2  0
-  2  4  1  0
-  4  5  1  0
-  5  6  1  0
-  6  7  1  0
-  7  8  1  0
-  8  9  1  0
-  9 10  1  0
-  5 10  1  0
-M  END
->  <id>  (18) 
-EN300-06716
-
->  <IUPAC Name>  (18) 
-cyclohexylthiourea
-
->  <CAS>  (18) 
-5055-72-1
-
->  <purity>  (18) 
-95.00
-
->  <MDLNUMBER>  (18) 
-MFCD00060341
-
->  <LogP>  (18) 
-1.337
-
->  <URL>  (18) 
-https://www.enaminestore.com/catalog/EN300-06716
-
->  <MP>  (18) 
-164-165
-
->  <avail_US_100mg>  (18) 
-X
-
->  <avail_US_250mg>  (18) 
-X
-
->  <avail_US_1g>  (18) 
-X
-
->  <avail_US_2_5g>  (18) 
-X
-
->  <rxn_annotations>  (18) 
-{}
 
 $$$$
 
@@ -1454,37 +1300,37 @@ $$$$
  13 14  2  0
   9 14  1  0
 M  END
->  <id>  (19) 
+>  <id>
 EN300-03203
 
->  <IUPAC Name>  (19) 
+>  <IUPAC Name>
 4-ethyl-5-(pyridin-4-yl)-4H-1,2,4-triazole-3-thiol
 
->  <CAS>  (19) 
+>  <CAS>
 26029-01-6
 
->  <purity>  (19) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (19) 
+>  <MDLNUMBER>
 MFCD03286275
 
->  <LogP>  (19) 
+>  <LogP>
 1.128
 
->  <URL>  (19) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-03203
 
->  <avail_US_100mg>  (19) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (19) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (19) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (19) 
+>  <rxn_annotations>
 {"thioether-1": [1], "thioether-2": [1]}
 
 $$$$
@@ -1540,37 +1386,37 @@ $$$$
   8 22  1  0
  17 22  1  0
 M  END
->  <id>  (20) 
+>  <id>
 EN300-06133
 
->  <IUPAC Name>  (20) 
+>  <IUPAC Name>
 4-(4-methylphenyl)-1-sulfanyl-4H,5H-[1,2,4]triazolo[4,3-a]quinazolin-5-one
 
->  <CAS>  (20) 
+>  <CAS>
 67442-92-6
 
->  <purity>  (20) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (20) 
+>  <MDLNUMBER>
 MFCD03987293
 
->  <LogP>  (20) 
+>  <LogP>
 3.621
 
->  <URL>  (20) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-06133
 
->  <avail_US_100mg>  (20) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (20) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (20) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (20) 
+>  <rxn_annotations>
 {"quinazoline-1": [0], "thioether-1": [1], "thioether-2": [1]}
 
 $$$$
@@ -1622,37 +1468,37 @@ $$$$
  20 21  2  0
  16 21  1  0
 M  END
->  <id>  (21) 
+>  <id>
 EN300-08464
 
->  <IUPAC Name>  (21) 
+>  <IUPAC Name>
 N-benzyl-2-chloro-N-(2-phenylethyl)propanamide
 
->  <CAS>  (21) 
+>  <CAS>
 731011-97-5
 
->  <purity>  (21) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (21) 
+>  <MDLNUMBER>
 MFCD04626511
 
->  <LogP>  (21) 
+>  <LogP>
 4.205
 
->  <URL>  (21) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-08464
 
->  <avail_US_100mg>  (21) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (21) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (21) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (21) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "ether-2": [0], "friedel-crafts-1": [0], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -1691,37 +1537,37 @@ $$$$
  13 14  2  0
  13 15  1  0
 M  END
->  <id>  (22) 
+>  <id>
 EN300-21756
 
->  <IUPAC Name>  (22) 
+>  <IUPAC Name>
 2-(2-chloropropanamido)benzamide
 
->  <CAS>  (22) 
+>  <CAS>
 871673-15-3
 
->  <purity>  (22) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (22) 
+>  <MDLNUMBER>
 MFCD07355815
 
->  <LogP>  (22) 
+>  <LogP>
 1.41
 
->  <URL>  (22) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-21756
 
->  <avail_US_100mg>  (22) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (22) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (22) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (22) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "ether-2": [0], "goldberg-1": [1], "quinazolinone-2": [1], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -1739,43 +1585,43 @@ $$$$
   3  4  1  0
   4  5  3  0
 M  END
->  <id>  (23) 
+>  <id>
 EN300-56336
 
->  <IUPAC Name>  (23) 
+>  <IUPAC Name>
 but-3-enenitrile
 
->  <CAS>  (23) 
+>  <CAS>
 109-75-1
 
->  <purity>  (23) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (23) 
+>  <MDLNUMBER>
 MFCD00001962
 
->  <LogP>  (23) 
+>  <LogP>
 .38
 
->  <URL>  (23) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-56336
 
->  <avail_US_100mg>  (23) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (23) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (23) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (23) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (23) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (23) 
+>  <rxn_annotations>
 {"124-triazole-2": [0], "124-triazole-3": [0], "oxadiazole-1": [0], "tetrazole-1": [0], "tetrazole-2": [0]}
 
 $$$$
@@ -1805,40 +1651,40 @@ $$$$
   2 10  1  0
   6 10  1  0
 M  END
->  <id>  (24) 
+>  <id>
 EN300-06743
 
->  <IUPAC Name>  (24) 
+>  <IUPAC Name>
 1-methyl-1H,2H,3H,4H-pyrrolo[1,2-a]pyrazine
 
->  <CAS>  (24) 
+>  <CAS>
 73627-18-6
 
->  <purity>  (24) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (24) 
+>  <MDLNUMBER>
 MFCD00296984
 
->  <LogP>  (24) 
+>  <LogP>
 .966
 
->  <URL>  (24) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-06743
 
->  <avail_US_100mg>  (24) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (24) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (24) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (24) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (24) 
+>  <rxn_annotations>
 {"5-het-amination": [1], "alkylation-1": [1], "amide_coupling-1": [1], "amide_coupling-2": [1], "amide_coupling-5": [1], "amination-1": [1], "amination-2": [1], "carbamate-2": [0], "curtius-1": [1], "friedel-crafts-1": [0], "quinazoline-1": [1], "sulfonamide-1": [1], "thiourea-1": [1], "urea-1": [1], "urea-2": [0, 1]}
 
 $$$$
@@ -1896,40 +1742,40 @@ $$$$
  17 23  1  0
  23 24  1  0
 M  END
->  <id>  (25) 
+>  <id>
 EN300-06312
 
->  <IUPAC Name>  (25) 
+>  <IUPAC Name>
 ethyl 2-(3-{[(2,5-dimethylphenyl)carbamoyl]methyl}-4-oxo-1,3-thiazolidin-2-ylidene)acetate
 
->  <CAS>  (25) 
+>  <CAS>
 736162-68-8
 
->  <purity>  (25) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (25) 
+>  <MDLNUMBER>
 MFCD04606919
 
->  <LogP>  (25) 
+>  <LogP>
 2.851
 
->  <URL>  (25) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-06312
 
->  <avail_US_100mg>  (25) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (25) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (25) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (25) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (25) 
+>  <rxn_annotations>
 {"goldberg-1": [1]}
 
 $$$$
@@ -1964,40 +1810,40 @@ $$$$
  10 12  1  0
  12 13  1  0
 M  END
->  <id>  (26) 
+>  <id>
 EN300-06674
 
->  <IUPAC Name>  (26) 
+>  <IUPAC Name>
 N-(2-chloroacetyl)-1-methyl-1H-pyrrole-2-carboxamide
 
->  <CAS>  (26) 
+>  <CAS>
 730950-20-6
 
->  <purity>  (26) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (26) 
+>  <MDLNUMBER>
 MFCD04621544
 
->  <LogP>  (26) 
+>  <LogP>
 .976
 
->  <URL>  (26) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-06674
 
->  <avail_US_100mg>  (26) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (26) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (26) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (26) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (26) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "ether-2": [0], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -2029,40 +1875,40 @@ $$$$
  10 11  1  0
   2 11  1  0
 M  END
->  <id>  (27) 
+>  <id>
 EN300-17325
 
->  <IUPAC Name>  (27) 
+>  <IUPAC Name>
 6-chloro-1H-1,3-benzodiazole-2-thiol
 
->  <CAS>  (27) 
+>  <CAS>
 25369-78-2
 
->  <purity>  (27) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (27) 
+>  <MDLNUMBER>
 MFCD01044385
 
->  <LogP>  (27) 
+>  <LogP>
 3.196
 
->  <URL>  (27) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-17325
 
->  <MP>  (27) 
+>  <MP>
 298-302
 
->  <avail_US_100mg>  (27) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (27) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (27) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (27) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "N-azole-arylation": [1], "alkylation-2": [1], "amination-1": [0], "decarboxylative_coupling-1": [1], "ether-1": [0], "goldberg-1": [0], "goldberg-2": [0], "heck": [0], "negishi": [0, 1], "sonogashira": [0], "suzuki": [0], "suzuki-2": [0], "thioether-1": [1], "thioether-2": [0, 1]}
 
 $$$$
@@ -2106,37 +1952,37 @@ $$$$
  16 17  2  0
   2 17  1  0
 M  END
->  <id>  (28) 
+>  <id>
 EN300-36525
 
->  <IUPAC Name>  (28) 
+>  <IUPAC Name>
 2-(4-fluorophenoxy)-1-(piperazin-1-yl)ethan-1-one
 
->  <CAS>  (28) 
+>  <CAS>
 256943-72-3
 
->  <purity>  (28) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (28) 
+>  <MDLNUMBER>
 MFCD09951063
 
->  <LogP>  (28) 
+>  <LogP>
 1.641
 
->  <URL>  (28) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-36525
 
->  <avail_US_100mg>  (28) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (28) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (28) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (28) 
+>  <rxn_annotations>
 {"5-het-amination": [1], "alkylation-1": [1], "amide_coupling-1": [1], "amide_coupling-2": [1], "amide_coupling-5": [1], "amination-1": [1], "amination-2": [1], "carbamate-2": [0], "curtius-1": [1], "quinazoline-1": [1], "sulfonamide-1": [1], "thiourea-1": [1], "urea-1": [1], "urea-2": [0, 1]}
 
 $$$$
@@ -2177,40 +2023,40 @@ $$$$
  14 15  1  0
  14 16  1  0
 M  END
->  <id>  (29) 
+>  <id>
 EN300-50508
 
->  <IUPAC Name>  (29) 
+>  <IUPAC Name>
 2-[4-(difluoromethoxy)-3-ethoxyphenyl]acetonitrile
 
->  <CAS>  (29) 
+>  <CAS>
 1193389-10-4
 
->  <purity>  (29) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (29) 
+>  <MDLNUMBER>
 MFCD12912861
 
->  <LogP>  (29) 
+>  <LogP>
 2.197
 
->  <URL>  (29) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-50508
 
->  <avail_US_100mg>  (29) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (29) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (29) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (29) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (29) 
+>  <rxn_annotations>
 {"124-triazole-2": [0], "124-triazole-3": [0], "oxadiazole-1": [0], "tetrazole-1": [0], "tetrazole-2": [0]}
 
 $$$$
@@ -2244,46 +2090,46 @@ $$$$
   8 12  2  0
   2 12  1  0
 M  END
->  <id>  (30) 
+>  <id>
 EN300-05707
 
->  <IUPAC Name>  (30) 
+>  <IUPAC Name>
 7-bromo-1,3-dioxaindane-5-carbaldehyde
 
->  <CAS>  (30) 
+>  <CAS>
 19522-96-4
 
->  <purity>  (30) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (30) 
+>  <MDLNUMBER>
 MFCD00128258
 
->  <LogP>  (30) 
+>  <LogP>
 2.636
 
->  <URL>  (30) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-05707
 
->  <MP>  (30) 
+>  <MP>
 123-125
 
->  <avail_US_100mg>  (30) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (30) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (30) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (30) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (30) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (30) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "5-het-arylation": [1], "amination-1": [0], "amination-2": [0], "benzimidazole-2": [1], "benzothiazole-1": [1], "benzoxazole-2": [1], "biginelli-2": [1], "biginelli-3": [1], "biginelli-4": [1], "castro-stephens-2": [0], "decarboxylative_coupling-1": [1], "erlenmeyer-plochl": [0], "ether-1": [0], "goldberg-1": [0], "goldberg-2": [0], "heck": [0], "imidazole-3": [1], "negishi": [0, 1], "oxazole-1": [0], "pictet-spengler": [1], "pyrimidone-1": [1], "pyrimidone-2": [1], "sonogashira": [0], "suzuki": [0], "suzuki-2": [0], "thioether-2": [0]}
 
 $$$$
@@ -2336,37 +2182,37 @@ $$$$
  20 21  2  0
  12 21  1  0
 M  END
->  <id>  (31) 
+>  <id>
 EN300-05708
 
->  <IUPAC Name>  (31) 
+>  <IUPAC Name>
 2-(2,3-dihydro-1,4-benzodioxine-6-carbonyl)benzoic acid
 
->  <CAS>  (31) 
+>  <CAS>
 568555-82-8
 
->  <purity>  (31) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (31) 
+>  <MDLNUMBER>
 MFCD03982033
 
->  <LogP>  (31) 
+>  <LogP>
 2.377
 
->  <URL>  (31) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-05708
 
->  <MP>  (31) 
+>  <MP>
 145-146
 
->  <avail_US_100mg>  (31) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (31) 
+>  <avail_US_250mg>
 X
 
->  <rxn_annotations>  (31) 
+>  <rxn_annotations>
 {"124-triazole-3": [1], "amide_coupling-1": [0], "amide_coupling-5": [0], "amination-2": [0], "benzimidazole-1": [1], "benzoxazole-1": [1], "curtius-1": [0], "curtius-2": [0], "decarboxylative_coupling-1": [0], "erlenmeyer-plochl": [0], "esterification-2": [0], "mitsunobu-5": [1], "oxadiazole-1": [1], "oxadiazole-2": [1], "phthalazinone": [0]}
 
 $$$$
@@ -2420,40 +2266,40 @@ $$$$
  21 22  2  0
   2 22  1  0
 M  END
->  <id>  (32) 
+>  <id>
 EN300-05712
 
->  <IUPAC Name>  (32) 
+>  <IUPAC Name>
 2-(2-chloroacetamido)-N-[(4-methylphenyl)methyl]benzamide
 
->  <CAS>  (32) 
+>  <CAS>
 736977-31-4
 
->  <purity>  (32) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (32) 
+>  <MDLNUMBER>
 MFCD03982576
 
->  <LogP>  (32) 
+>  <LogP>
 3.554
 
->  <URL>  (32) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-05712
 
->  <avail_US_100mg>  (32) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (32) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (32) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (32) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (32) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "ether-2": [0], "goldberg-1": [1], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -2503,37 +2349,37 @@ $$$$
  19 20  2  0
   3 20  1  0
 M  END
->  <id>  (33) 
+>  <id>
 EN300-05713
 
->  <IUPAC Name>  (33) 
+>  <IUPAC Name>
 2-amino-N-[2-(4-methoxyphenyl)ethyl]benzamide
 
->  <CAS>  (33) 
+>  <CAS>
 565171-47-3
 
->  <purity>  (33) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (33) 
+>  <MDLNUMBER>
 MFCD03982574
 
->  <LogP>  (33) 
+>  <LogP>
 2.57
 
->  <URL>  (33) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-05713
 
->  <MP>  (33) 
+>  <MP>
 98-100
 
->  <avail_US_100mg>  (33) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (33) 
+>  <avail_US_250mg>
 X
 
->  <rxn_annotations>  (33) 
+>  <rxn_annotations>
 {"5-het-amination": [1], "alkylation-1": [1], "amide_coupling-1": [1], "amide_coupling-2": [1], "amide_coupling-5": [1], "amination-1": [1], "amination-2": [1], "carbamate-2": [0], "chan-lam-1": [0], "conrad-limpach": [1], "curtius-1": [1], "goldberg-1": [1], "indole-1": [1], "pyrrole-2": [1], "quinazoline-1": [1], "sulfonamide-1": [1], "thiourea-1": [1], "urea-1": [1], "urea-2": [0, 1]}
 
 $$$$
@@ -2588,37 +2434,37 @@ $$$$
  20 22  1  0
  22 23  1  0
 M  END
->  <id>  (34) 
+>  <id>
 EN300-09516
 
->  <IUPAC Name>  (34) 
+>  <IUPAC Name>
 2-chloro-N-({[4-chloro-2-(trifluoromethyl)phenyl]carbamoyl}methyl)-N-(propan-2-yl)acetamide
 
->  <CAS>  (34) 
+>  <CAS>
 747411-16-1
 
->  <purity>  (34) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (34) 
+>  <MDLNUMBER>
 MFCD05270870
 
->  <LogP>  (34) 
+>  <LogP>
 2.778
 
->  <URL>  (34) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-09516
 
->  <avail_US_100mg>  (34) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (34) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (34) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (34) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "amination-1": [0], "decarboxylative_coupling-1": [1], "ether-1": [0], "ether-2": [0], "goldberg-1": [0, 1], "goldberg-2": [0], "heck": [0], "negishi": [0, 1], "sonogashira": [0], "suzuki": [0], "suzuki-2": [0], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -2640,40 +2486,40 @@ $$$$
   4  6  1  0
   4  7  1  0
 M  END
->  <id>  (35) 
+>  <id>
 EN300-61549
 
->  <IUPAC Name>  (35) 
+>  <IUPAC Name>
 2-methylpentan-2-ol
 
->  <CAS>  (35) 
+>  <CAS>
 590-36-3
 
->  <purity>  (35) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (35) 
+>  <MDLNUMBER>
 MFCD00004485
 
->  <LogP>  (35) 
+>  <LogP>
 1.531
 
->  <URL>  (35) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-61549
 
->  <avail_US_100mg>  (35) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (35) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (35) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (35) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (35) 
+>  <rxn_annotations>
 {"carbamate": [1], "carbamate-2": [1], "curtius-2": [1], "esterification-1": [1], "esterification-2": [1]}
 
 $$$$
@@ -2724,43 +2570,43 @@ $$$$
  19 20  1  0
  16 20  1  0
 M  END
->  <id>  (36) 
+>  <id>
 EN300-06236
 
->  <IUPAC Name>  (36) 
+>  <IUPAC Name>
 ethyl 2-[3-(thiophen-2-yl)-7H-[1,2,4]triazolo[3,4-b][1,3,4]thiadiazin-6-yl]acetate
 
->  <CAS>  (36) 
+>  <CAS>
 301173-57-9
 
->  <purity>  (36) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (36) 
+>  <MDLNUMBER>
 MFCD00729091
 
->  <LogP>  (36) 
+>  <LogP>
 1.801
 
->  <URL>  (36) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-06236
 
->  <avail_US_100mg>  (36) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (36) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (36) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (36) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (36) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (36) 
+>  <rxn_annotations>
 {"5-het-arylation": [0], "claisen-2": [0], "friedel-crafts-1": [0]}
 
 $$$$
@@ -2788,104 +2634,38 @@ $$$$
   7  9  1  0
   9 10  1  0
 M  END
->  <id>  (37) 
+>  <id>
 EN300-04409
 
->  <IUPAC Name>  (37) 
+>  <IUPAC Name>
 methyl 2-(2-chloroacetamido)acetate
 
->  <CAS>  (37) 
+>  <CAS>
 76969-81-8
 
->  <purity>  (37) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (37) 
+>  <MDLNUMBER>
 MFCD03954031
 
->  <LogP>  (37) 
+>  <LogP>
 -.175
 
->  <URL>  (37) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-04409
 
->  <MP>  (37) 
+>  <MP>
 41-43
 
->  <avail_US_100mg>  (37) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (37) 
+>  <avail_US_250mg>
 X
 
->  <rxn_annotations>  (37) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "claisen-2": [0], "ether-2": [0], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
-
-$$$$
-
-     RDKit          2D
-
- 10 11  0  0  0  0  0  0  0  0999 V2000
-   -0.1712   -0.6979    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    0.6538   -0.6979    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    1.1387   -0.0305    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    1.9233   -0.2854    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
-    2.6378    0.1271    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    3.3523   -0.2854    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    3.3523   -1.1104    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    2.6378   -1.5229    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    1.9233   -1.1104    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    1.1387   -1.3654    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
-  1  2  1  0
-  2  3  2  0
-  3  4  1  0
-  4  5  1  0
-  5  6  2  0
-  6  7  1  0
-  7  8  2  0
-  8  9  1  0
-  4  9  1  0
-  9 10  2  0
-  2 10  1  0
-M  END
->  <id>  (38) 
-EN300-18552
-
->  <IUPAC Name>  (38) 
-2-methylimidazo[1,2-a]pyridine
-
->  <CAS>  (38) 
-934-37-2
-
->  <purity>  (38) 
-95.00
-
->  <MDLNUMBER>  (38) 
-MFCD02251330
-
->  <LogP>  (38) 
-1.675
-
->  <URL>  (38) 
-https://www.enaminestore.com/catalog/EN300-18552
-
->  <MP>  (38) 
-42-44
-
->  <avail_US_100mg>  (38) 
-X
-
->  <avail_US_250mg>  (38) 
-X
-
->  <avail_US_1g>  (38) 
-X
-
->  <avail_US_2_5g>  (38) 
-X
-
->  <rxn_annotations>  (38) 
-{}
 
 $$$$
 
@@ -2934,114 +2714,38 @@ $$$$
  18 20  2  0
  14 20  1  0
 M  END
->  <id>  (39) 
+>  <id>
 EN300-04313
 
->  <IUPAC Name>  (39) 
+>  <IUPAC Name>
 4-(chloromethyl)-N-(3-chlorophenyl)-3-(3-methoxypropyl)-2,3-dihydro-1,3-thiazol-2-imine
 
->  <CAS>  (39) 
+>  <CAS>
 721418-94-6
 
->  <purity>  (39) 
+>  <purity>
 95.00
 
->  <LogP>  (39) 
+>  <LogP>
 5.229
 
->  <URL>  (39) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-04313
 
->  <avail_US_100mg>  (39) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (39) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (39) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (39) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (39) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "amination-1": [0], "decarboxylative_coupling-1": [1], "ether-1": [0], "ether-2": [0], "goldberg-1": [0], "goldberg-2": [0], "heck": [0], "negishi": [0, 1], "sonogashira": [0], "suzuki": [0], "suzuki-2": [0], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
-
-$$$$
-
-     RDKit          2D
-
- 17 17  0  0  0  0  0  0  0  0999 V2000
-   -0.7145    5.3625    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-   -0.7145    4.5375    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-   -1.5395    4.5375    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    0.1105    4.5375    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-   -0.7145    3.7125    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
-   -1.4289    3.3000    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
-    0.0000    3.3000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    0.7145    3.7125    0.0000 S   0  0  0  0  0  0  0  0  0  0  0  0
-    0.0000    2.4750    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
-    0.7145    2.0625    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    0.7145    1.2375    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    1.4289    0.8250    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    1.4289   -0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    0.7145   -0.4125    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    0.7145   -1.2375    0.0000 F   0  0  0  0  0  0  0  0  0  0  0  0
-    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    0.0000    0.8250    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-  1  2  1  0
-  2  3  1  0
-  2  4  1  0
-  2  5  1  0
-  5  6  1  0
-  5  7  1  0
-  7  8  2  0
-  7  9  1  0
-  9 10  1  0
- 10 11  1  0
- 11 12  2  0
- 12 13  1  0
- 13 14  2  0
- 14 15  1  0
- 14 16  1  0
- 16 17  2  0
- 11 17  1  0
-M  END
->  <id>  (40) 
-EN300-04314
-
->  <IUPAC Name>  (40) 
-3-amino-3-tert-butyl-1-[(4-fluorophenyl)methyl]thiourea
-
->  <CAS>  (40) 
-721418-90-2
-
->  <purity>  (40) 
-95.00
-
->  <MDLNUMBER>  (40) 
-MFCD03950786
-
->  <LogP>  (40) 
-2.36
-
->  <URL>  (40) 
-https://www.enaminestore.com/catalog/EN300-04314
-
->  <avail_US_100mg>  (40) 
-X
-
->  <avail_US_250mg>  (40) 
-X
-
->  <avail_US_1g>  (40) 
-X
-
->  <avail_US_2_5g>  (40) 
-X
-
->  <rxn_annotations>  (40) 
-{}
 
 $$$$
 
@@ -3085,37 +2789,37 @@ $$$$
  16 17  2  0
  16 18  1  0
 M  END
->  <id>  (41) 
+>  <id>
 EN300-04315
 
->  <IUPAC Name>  (41) 
+>  <IUPAC Name>
 2-(4-chlorobenzenesulfonamido)-3-hydroxybutanoic acid
 
->  <CAS>  (41) 
+>  <CAS>
 1396962-58-5
 
->  <purity>  (41) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (41) 
+>  <MDLNUMBER>
 MFCD03948303
 
->  <LogP>  (41) 
+>  <LogP>
 1.128
 
->  <URL>  (41) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-04315
 
->  <avail_US_100mg>  (41) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (41) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (41) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (41) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "124-triazole-3": [1], "amide_coupling-1": [0], "amide_coupling-5": [0], "amination-1": [0], "benzimidazole-1": [1], "benzoxazole-1": [1], "carbamate": [1], "carbamate-2": [1], "curtius-1": [0], "curtius-2": [0, 1], "decarboxylative_coupling-1": [1], "esterification-1": [1], "esterification-2": [0, 1], "ether-1": [0], "ether-2": [1], "goldberg-1": [0], "goldberg-2": [0], "heck": [0], "mitsunobu-1": [0], "mitsunobu-2": [0, 1], "mitsunobu-3": [0], "mitsunobu-4": [0], "mitsunobu-5": [0, 1], "negishi": [0, 1], "oxadiazole-1": [1], "oxadiazole-2": [1], "sonogashira": [0], "suzuki": [0], "suzuki-2": [0], "thioether-2": [0]}
 
 $$$$
@@ -3180,40 +2884,40 @@ $$$$
  26 27  2  0
   4 27  1  0
 M  END
->  <id>  (42) 
+>  <id>
 EN300-04319
 
->  <IUPAC Name>  (42) 
+>  <IUPAC Name>
 6-[(4-ethoxyphenyl)sulfamoyl]-2-hydroxyquinoline-4-carboxylic acid
 
->  <CAS>  (42) 
+>  <CAS>
 568543-64-6
 
->  <purity>  (42) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (42) 
+>  <MDLNUMBER>
 MFCD03964637
 
->  <LogP>  (42) 
+>  <LogP>
 4.204
 
->  <URL>  (42) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-04319
 
->  <avail_US_100mg>  (42) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (42) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (42) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (42) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (42) 
+>  <rxn_annotations>
 {"124-triazole-3": [1], "amide_coupling-1": [0], "amide_coupling-5": [0], "benzimidazole-1": [1], "benzoxazole-1": [1], "carbamate": [1], "carbamate-2": [1], "chan-lam-2": [0], "curtius-1": [0], "curtius-2": [0, 1], "decarboxylative_coupling-1": [0], "esterification-1": [1], "esterification-2": [0, 1], "ether-1": [1], "ether-2": [1], "mitsunobu-1": [1], "mitsunobu-2": [1], "mitsunobu-5": [1], "oxadiazole-1": [1], "oxadiazole-2": [1]}
 
 $$$$
@@ -3274,37 +2978,37 @@ $$$$
   6 25  2  0
   2 25  1  0
 M  END
->  <id>  (43) 
+>  <id>
 EN300-04321
 
->  <IUPAC Name>  (43) 
+>  <IUPAC Name>
 2-hydroxy-6-[(3-methylphenyl)sulfamoyl]quinoline-4-carboxylic acid
 
->  <CAS>  (43) 
+>  <CAS>
 721418-33-3
 
->  <purity>  (43) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (43) 
+>  <MDLNUMBER>
 MFCD03950771
 
->  <LogP>  (43) 
+>  <LogP>
 4.241
 
->  <URL>  (43) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-04321
 
->  <avail_US_100mg>  (43) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (43) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (43) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (43) 
+>  <rxn_annotations>
 {"124-triazole-3": [1], "amide_coupling-1": [0], "amide_coupling-5": [0], "benzimidazole-1": [1], "benzoxazole-1": [1], "carbamate": [1], "carbamate-2": [1], "chan-lam-2": [0], "curtius-1": [0], "curtius-2": [0, 1], "decarboxylative_coupling-1": [0], "esterification-1": [1], "esterification-2": [0, 1], "ether-1": [1], "ether-2": [1], "mitsunobu-1": [1], "mitsunobu-2": [1], "mitsunobu-5": [1], "oxadiazole-1": [1], "oxadiazole-2": [1]}
 
 $$$$
@@ -3342,46 +3046,46 @@ $$$$
   6 14  1  0
   9 14  1  0
 M  END
->  <id>  (44) 
+>  <id>
 EN300-08435
 
->  <IUPAC Name>  (44) 
+>  <IUPAC Name>
 2-chloro-1-(2,3-dihydro-1H-indol-1-yl)propan-1-one
 
->  <CAS>  (44) 
+>  <CAS>
 107236-27-1
 
->  <purity>  (44) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (44) 
+>  <MDLNUMBER>
 MFCD05263162
 
->  <LogP>  (44) 
+>  <LogP>
 2.504
 
->  <URL>  (44) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-08435
 
->  <MP>  (44) 
+>  <MP>
 110-112
 
->  <avail_US_100mg>  (44) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (44) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (44) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (44) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (44) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (44) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "ether-2": [0], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -3416,43 +3120,43 @@ $$$$
  12 13  2  0
   7 13  1  0
 M  END
->  <id>  (45) 
+>  <id>
 EN300-08441
 
->  <IUPAC Name>  (45) 
+>  <IUPAC Name>
 2-chloro-N-(4-fluorophenyl)propanamide
 
->  <CAS>  (45) 
+>  <CAS>
 21262-04-4
 
->  <purity>  (45) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (45) 
+>  <MDLNUMBER>
 MFCD04626493
 
->  <LogP>  (45) 
+>  <LogP>
 2.704
 
->  <URL>  (45) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-08441
 
->  <MP>  (45) 
+>  <MP>
 83-84
 
->  <avail_US_100mg>  (45) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (45) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (45) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (45) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (45) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "ether-2": [0], "goldberg-1": [1], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -3487,40 +3191,40 @@ $$$$
  12 13  1  0
   8 13  1  0
 M  END
->  <id>  (46) 
+>  <id>
 EN300-08443
 
->  <IUPAC Name>  (46) 
+>  <IUPAC Name>
 2-chloro-N-(cyclohexylmethyl)propanamide
 
->  <CAS>  (46) 
+>  <CAS>
 596807-98-6
 
->  <purity>  (46) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (46) 
+>  <MDLNUMBER>
 MFCD04626494
 
->  <LogP>  (46) 
+>  <LogP>
 2.714
 
->  <URL>  (46) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-08443
 
->  <avail_US_100mg>  (46) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (46) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (46) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (46) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (46) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "ether-2": [0], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -3562,40 +3266,40 @@ $$$$
   7 16  1  0
  11 16  1  0
 M  END
->  <id>  (47) 
+>  <id>
 EN300-06486
 
->  <IUPAC Name>  (47) 
+>  <IUPAC Name>
 2-(quinolin-8-ylsulfanyl)acetohydrazide
 
->  <CAS>  (47) 
+>  <CAS>
 121643-10-5
 
->  <purity>  (47) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (47) 
+>  <MDLNUMBER>
 MFCD01542347
 
->  <LogP>  (47) 
+>  <LogP>
 .666
 
->  <URL>  (47) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-06486
 
->  <MP>  (47) 
+>  <MP>
 170-171
 
->  <avail_US_100mg>  (47) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (47) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (47) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (47) 
+>  <rxn_annotations>
 {"124-triazole-2": [1]}
 
 $$$$
@@ -3641,34 +3345,34 @@ $$$$
  17 18  2  0
   2 18  1  0
 M  END
->  <id>  (48) 
+>  <id>
 EN300-06488
 
->  <IUPAC Name>  (48) 
+>  <IUPAC Name>
 2-[(5,7-dichloro-2-methylquinolin-8-yl)oxy]acetic acid
 
->  <CAS>  (48) 
+>  <CAS>
 730950-02-4
 
->  <purity>  (48) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (48) 
+>  <MDLNUMBER>
 MFCD04621513
 
->  <LogP>  (48) 
+>  <LogP>
 3.365
 
->  <URL>  (48) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-06488
 
->  <avail_US_100mg>  (48) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (48) 
+>  <avail_US_250mg>
 X
 
->  <rxn_annotations>  (48) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "124-triazole-3": [1], "amide_coupling-1": [0], "amide_coupling-5": [0], "amination-1": [0], "benzimidazole-1": [1], "benzoxazole-1": [1], "curtius-1": [0], "curtius-2": [0], "decarboxylative_coupling-1": [1], "esterification-2": [0], "ether-1": [0], "goldberg-1": [0], "goldberg-2": [0], "heck": [0], "mitsunobu-5": [1], "negishi": [0, 1], "oxadiazole-1": [1], "oxadiazole-2": [1], "sonogashira": [0], "suzuki": [0], "suzuki-2": [0], "thioether-2": [0]}
 
 $$$$
@@ -3731,40 +3435,40 @@ $$$$
  25 26  2  0
  21 26  1  0
 M  END
->  <id>  (49) 
+>  <id>
 EN300-06497
 
->  <IUPAC Name>  (49) 
+>  <IUPAC Name>
 N-[3-(4-tert-butylphenyl)-1-phenyl-1H-pyrazol-5-yl]-2-chloroacetamide
 
->  <CAS>  (49) 
+>  <CAS>
 882227-09-0
 
->  <purity>  (49) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (49) 
+>  <MDLNUMBER>
 MFCD04621518
 
->  <LogP>  (49) 
+>  <LogP>
 6.159
 
->  <URL>  (49) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-06497
 
->  <avail_US_100mg>  (49) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (49) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (49) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (49) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (49) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "ether-2": [0], "friedel-crafts-1": [0], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -3831,37 +3535,37 @@ $$$$
  27 28  2  0
  22 28  1  0
 M  END
->  <id>  (50) 
+>  <id>
 EN300-07005
 
->  <IUPAC Name>  (50) 
+>  <IUPAC Name>
 3-[benzyl(4-fluorophenyl)sulfamoyl]-4-chlorobenzoic acid
 
->  <CAS>  (50) 
+>  <CAS>
 727704-67-8
 
->  <purity>  (50) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (50) 
+>  <MDLNUMBER>
 MFCD04618145
 
->  <LogP>  (50) 
+>  <LogP>
 5.243
 
->  <URL>  (50) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-07005
 
->  <avail_US_100mg>  (50) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (50) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (50) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (50) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "124-triazole-3": [1], "amide_coupling-1": [0], "amide_coupling-5": [0], "amination-1": [0], "benzimidazole-1": [1], "benzoxazole-1": [1], "curtius-1": [0], "curtius-2": [0], "decarboxylative_coupling-1": [0, 1], "esterification-2": [0], "ether-1": [0], "friedel-crafts-1": [0], "goldberg-1": [0], "goldberg-2": [0], "heck": [0], "mitsunobu-5": [1], "negishi": [0, 1], "oxadiazole-1": [1], "oxadiazole-2": [1], "sonogashira": [0], "suzuki": [0], "suzuki-2": [0], "thioether-2": [0]}
 
 $$$$
@@ -3896,40 +3600,40 @@ $$$$
  12 13  1  0
   2 13  1  0
 M  END
->  <id>  (51) 
+>  <id>
 EN300-03587
 
->  <IUPAC Name>  (51) 
+>  <IUPAC Name>
 3-(4-methylpiperidin-1-yl)propanehydrazide
 
->  <CAS>  (51) 
+>  <CAS>
 328085-16-1
 
->  <purity>  (51) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (51) 
+>  <MDLNUMBER>
 MFCD01162540
 
->  <LogP>  (51) 
+>  <LogP>
 .532
 
->  <URL>  (51) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-03587
 
->  <avail_US_100mg>  (51) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (51) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (51) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (51) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (51) 
+>  <rxn_annotations>
 {"124-triazole-2": [1]}
 
 $$$$
@@ -3978,46 +3682,46 @@ $$$$
  17 18  1  0
  18 19  1  0
 M  END
->  <id>  (52) 
+>  <id>
 EN300-02517
 
->  <IUPAC Name>  (52) 
+>  <IUPAC Name>
 6,7-dimethoxy-1-(thiophen-2-yl)-1,2,3,4-tetrahydroisoquinoline
 
->  <CAS>  (52) 
+>  <CAS>
 511239-03-5
 
->  <purity>  (52) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (52) 
+>  <MDLNUMBER>
 MFCD03725190
 
->  <LogP>  (52) 
+>  <LogP>
 2.457
 
->  <URL>  (52) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-02517
 
->  <MP>  (52) 
+>  <MP>
 112-115
 
->  <avail_US_100mg>  (52) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (52) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (52) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (52) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (52) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (52) 
+>  <rxn_annotations>
 {"5-het-amination": [1], "5-het-arylation": [0], "alkylation-1": [1], "amide_coupling-1": [1], "amide_coupling-2": [1], "amide_coupling-5": [1], "amination-1": [1], "amination-2": [1], "carbamate-2": [0], "curtius-1": [1], "friedel-crafts-1": [0], "quinazoline-1": [1], "sulfonamide-1": [1], "thiourea-1": [1], "urea-1": [1], "urea-2": [0, 1]}
 
 $$$$
@@ -4049,49 +3753,49 @@ $$$$
   9 11  1  0
 M  CHG  2   9   1  11  -1
 M  END
->  <id>  (53) 
+>  <id>
 EN300-16708
 
->  <IUPAC Name>  (53) 
+>  <IUPAC Name>
 5-bromo-3-nitropyridin-2-amine
 
->  <CAS>  (53) 
+>  <CAS>
 6945-68-2
 
->  <purity>  (53) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (53) 
+>  <MDLNUMBER>
 MFCD00047441
 
->  <LogP>  (53) 
+>  <LogP>
 1.771
 
->  <URL>  (53) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-16708
 
->  <MP>  (53) 
+>  <MP>
 205-208
 
->  <avail_US_100mg>  (53) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (53) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (53) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (53) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (53) 
+>  <avail_US_5g>
 X
 
->  <avail_US_10g>  (53) 
+>  <avail_US_10g>
 X
 
->  <rxn_annotations>  (53) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "5-het-amination": [1], "5-het-arylation": [1], "alkylation-1": [1], "amide_coupling-1": [1], "amide_coupling-2": [1], "amide_coupling-5": [1], "amination-1": [0, 1], "amination-2": [1], "barton-zard-2": [1], "carbamate-2": [0], "castro-stephens-2": [0], "chan-lam-1": [0], "curtius-1": [1], "decarboxylative_coupling-1": [1], "ether-1": [0], "goldberg-1": [0, 1], "goldberg-2": [0], "heck": [0], "negishi": [0, 1], "pyrrole-2": [1], "quinazoline-1": [1], "sonogashira": [0], "sulfonamide-1": [1], "suzuki": [0], "suzuki-2": [0], "thioether-2": [0], "thiourea-1": [1], "urea-1": [1], "urea-2": [0, 1]}
 
 $$$$
@@ -4131,37 +3835,37 @@ $$$$
  13 15  1  0
 M  CHG  2  13   1  15  -1
 M  END
->  <id>  (54) 
+>  <id>
 EN300-08458
 
->  <IUPAC Name>  (54) 
+>  <IUPAC Name>
 2-chloro-N-(4-nitrophenyl)propanamide
 
->  <CAS>  (54) 
+>  <CAS>
 147372-40-5
 
->  <purity>  (54) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (54) 
+>  <MDLNUMBER>
 MFCD04621533
 
->  <LogP>  (54) 
+>  <LogP>
 2.598
 
->  <URL>  (54) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-08458
 
->  <avail_US_100mg>  (54) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (54) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (54) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (54) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "barton-zard-2": [1], "ether-2": [0], "goldberg-1": [1], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -4188,49 +3892,49 @@ $$$$
   2  8  1  0
   8  9  1  0
 M  END
->  <id>  (55) 
+>  <id>
 EN300-20801
 
->  <IUPAC Name>  (55) 
+>  <IUPAC Name>
 4-bromo-2-chloroaniline
 
->  <CAS>  (55) 
+>  <CAS>
 38762-41-3
 
->  <purity>  (55) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (55) 
+>  <MDLNUMBER>
 MFCD00007660
 
->  <LogP>  (55) 
+>  <LogP>
 2.869
 
->  <URL>  (55) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-20801
 
->  <MP>  (55) 
+>  <MP>
 70-72
 
->  <avail_US_100mg>  (55) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (55) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (55) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (55) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (55) 
+>  <avail_US_5g>
 X
 
->  <avail_US_10g>  (55) 
+>  <avail_US_10g>
 X
 
->  <rxn_annotations>  (55) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "5-het-amination": [1], "5-het-arylation": [1], "alkylation-1": [1], "amide_coupling-1": [1], "amide_coupling-2": [1], "amide_coupling-5": [1], "amination-1": [0, 1], "amination-2": [1], "carbamate-2": [0], "castro-stephens-2": [0], "chan-lam-1": [0], "conrad-limpach": [1], "curtius-1": [1], "decarboxylative_coupling-1": [1], "ether-1": [0], "goldberg-1": [0, 1], "goldberg-2": [0], "heck": [0], "indole-1": [1], "negishi": [0, 1], "pyrrole-2": [1], "quinazoline-1": [1], "sonogashira": [0], "sulfonamide-1": [1], "suzuki": [0], "suzuki-2": [0], "thioether-2": [0], "thiourea-1": [1], "urea-1": [1], "urea-2": [0, 1]}
 
 $$$$
@@ -4250,49 +3954,49 @@ $$$$
   4  5  1  0
   5  6  2  0
 M  END
->  <id>  (56) 
+>  <id>
 EN300-83252
 
->  <IUPAC Name>  (56) 
+>  <IUPAC Name>
 pent-4-en-1-ol
 
->  <CAS>  (56) 
+>  <CAS>
 821-09-0
 
->  <purity>  (56) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (56) 
+>  <MDLNUMBER>
 MFCD00002975
 
->  <LogP>  (56) 
+>  <LogP>
 .868
 
->  <URL>  (56) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-83252
 
->  <avail_US_100mg>  (56) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (56) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (56) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (56) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (56) 
+>  <avail_US_5g>
 X
 
->  <avail_US_10g>  (56) 
+>  <avail_US_10g>
 X
 
->  <avail_US_25g>  (56) 
+>  <avail_US_25g>
 X
 
->  <rxn_annotations>  (56) 
+>  <rxn_annotations>
 {"carbamate": [1], "carbamate-2": [1], "curtius-2": [1], "esterification-1": [1], "esterification-2": [1], "ether-2": [1], "mitsunobu-1": [0], "mitsunobu-2": [0], "mitsunobu-3": [0], "mitsunobu-4": [0], "mitsunobu-5": [0]}
 
 $$$$
@@ -4316,40 +4020,40 @@ $$$$
   3  7  1  0
   7  8  1  0
 M  END
->  <id>  (57) 
+>  <id>
 EN300-85565
 
->  <IUPAC Name>  (57) 
+>  <IUPAC Name>
 3-ethylpentan-3-ol
 
->  <CAS>  (57) 
+>  <CAS>
 597-49-9
 
->  <purity>  (57) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (57) 
+>  <MDLNUMBER>
 MFCD00004484
 
->  <LogP>  (57) 
+>  <LogP>
 2.06
 
->  <URL>  (57) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-85565
 
->  <avail_US_100mg>  (57) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (57) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (57) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (57) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (57) 
+>  <rxn_annotations>
 {"carbamate": [1], "carbamate-2": [1], "curtius-2": [1], "esterification-1": [1], "esterification-2": [1]}
 
 $$$$
@@ -4392,40 +4096,40 @@ $$$$
  15 16  2  0
  11 16  1  0
 M  END
->  <id>  (58) 
+>  <id>
 EN300-08258
 
->  <IUPAC Name>  (58) 
+>  <IUPAC Name>
 1-phenyl-1H-pyrazolo[3,4-d]pyrimidine-4-thiol
 
->  <CAS>  (58) 
+>  <CAS>
 6014-07-9
 
->  <purity>  (58) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (58) 
+>  <MDLNUMBER>
 MFCD00666878
 
->  <LogP>  (58) 
+>  <LogP>
 2.457
 
->  <URL>  (58) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-08258
 
->  <MP>  (58) 
+>  <MP>
 276-278
 
->  <avail_US_100mg>  (58) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (58) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (58) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (58) 
+>  <rxn_annotations>
 {"chan-lam-3": [0], "friedel-crafts-1": [0], "thioether-1": [1], "thioether-2": [1]}
 
 $$$$
@@ -4473,43 +4177,43 @@ $$$$
  18 19  2  0
  14 19  1  0
 M  END
->  <id>  (59) 
+>  <id>
 EN300-08261
 
->  <IUPAC Name>  (59) 
+>  <IUPAC Name>
 2-chloro-1-[2,5-dimethyl-1-(2-phenylethyl)-1H-pyrrol-3-yl]ethan-1-one
 
->  <CAS>  (59) 
+>  <CAS>
 315676-31-4
 
->  <purity>  (59) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (59) 
+>  <MDLNUMBER>
 MFCD02328845
 
->  <LogP>  (59) 
+>  <LogP>
 4.044
 
->  <URL>  (59) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-08261
 
->  <avail_US_100mg>  (59) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (59) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (59) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (59) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (59) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (59) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "amination-2": [0], "claisen-1": [0], "ether-2": [0], "friedel-crafts-1": [0], "indole-1": [0], "pyridine-2": [0], "tetrazole-1": [1], "tetrazole-2": [1], "thiazole-1": [1], "thioether-2": [0]}
 
 $$$$
@@ -4559,37 +4263,37 @@ $$$$
  19 20  2  0
  14 20  1  0
 M  END
->  <id>  (60) 
+>  <id>
 EN300-08263
 
->  <IUPAC Name>  (60) 
+>  <IUPAC Name>
 2-chloro-1-{1-[2-(4-chlorophenyl)ethyl]-2,5-dimethyl-1H-pyrrol-3-yl}ethan-1-one
 
->  <CAS>  (60) 
+>  <CAS>
 565198-74-5
 
->  <purity>  (60) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (60) 
+>  <MDLNUMBER>
 MFCD04606969
 
->  <LogP>  (60) 
+>  <LogP>
 4.757
 
->  <URL>  (60) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-08263
 
->  <avail_US_100mg>  (60) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (60) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (60) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (60) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "amination-1": [0], "amination-2": [0], "claisen-1": [0], "decarboxylative_coupling-1": [1], "ether-1": [0], "ether-2": [0], "goldberg-1": [0], "goldberg-2": [0], "heck": [0], "indole-1": [0], "negishi": [0, 1], "pyridine-2": [0], "sonogashira": [0], "suzuki": [0], "suzuki-2": [0], "tetrazole-1": [1], "tetrazole-2": [1], "thiazole-1": [1], "thioether-2": [0]}
 
 $$$$
@@ -4632,37 +4336,37 @@ $$$$
   6 16  1  0
  16 17  1  0
 M  END
->  <id>  (61) 
+>  <id>
 EN300-08472
 
->  <IUPAC Name>  (61) 
+>  <IUPAC Name>
 ethyl 5-(2-chloropropanoyl)-2,4-dimethyl-1H-pyrrole-3-carboxylate
 
->  <CAS>  (61) 
+>  <CAS>
 727704-69-0
 
->  <purity>  (61) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (61) 
+>  <MDLNUMBER>
 MFCD04618148
 
->  <LogP>  (61) 
+>  <LogP>
 2.917
 
->  <URL>  (61) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-08472
 
->  <avail_US_100mg>  (61) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (61) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (61) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (61) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "N-azole-arylation": [1], "alkylation-1": [0], "alkylation-2": [0, 1], "amination-2": [0], "claisen-1": [1], "claisen-2": [1], "ether-2": [0], "tetrazole-1": [1], "tetrazole-2": [1], "thiazole-1": [1], "thioether-2": [0]}
 
 $$$$
@@ -4697,43 +4401,43 @@ $$$$
  12 13  2  0
   7 13  1  0
 M  END
->  <id>  (62) 
+>  <id>
 EN300-08473
 
->  <IUPAC Name>  (62) 
+>  <IUPAC Name>
 2-chloro-N-(5-chloropyridin-2-yl)propanamide
 
->  <CAS>  (62) 
+>  <CAS>
 731012-08-1
 
->  <purity>  (62) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (62) 
+>  <MDLNUMBER>
 MFCD04626527
 
->  <LogP>  (62) 
+>  <LogP>
 2.462
 
->  <URL>  (62) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-08473
 
->  <avail_US_100mg>  (62) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (62) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (62) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (62) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (62) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (62) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "amination-1": [0], "decarboxylative_coupling-1": [1], "ether-1": [0], "ether-2": [0], "goldberg-1": [0, 1], "goldberg-2": [0], "heck": [0], "negishi": [0, 1], "sonogashira": [0], "suzuki": [0], "suzuki-2": [0], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -4776,46 +4480,46 @@ $$$$
  15 16  1  0
   8 16  1  0
 M  END
->  <id>  (63) 
+>  <id>
 EN300-02528
 
->  <IUPAC Name>  (63) 
+>  <IUPAC Name>
 3-(1,3-benzothiazol-2-yl)aniline
 
->  <CAS>  (63) 
+>  <CAS>
 41230-21-1
 
->  <purity>  (63) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (63) 
+>  <MDLNUMBER>
 MFCD00579111
 
->  <LogP>  (63) 
+>  <LogP>
 3.145
 
->  <URL>  (63) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-02528
 
->  <MP>  (63) 
+>  <MP>
 135-137
 
->  <avail_US_100mg>  (63) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (63) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (63) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (63) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (63) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (63) 
+>  <rxn_annotations>
 {"5-het-amination": [1], "alkylation-1": [1], "amide_coupling-1": [1], "amide_coupling-2": [1], "amide_coupling-5": [1], "amination-1": [1], "amination-2": [1], "carbamate-2": [0], "chan-lam-1": [0], "conrad-limpach": [1], "curtius-1": [1], "goldberg-1": [1], "indole-1": [1], "pyrrole-2": [1], "quinazoline-1": [1], "sulfonamide-1": [1], "thiourea-1": [1], "urea-1": [1], "urea-2": [0, 1]}
 
 $$$$
@@ -4856,40 +4560,40 @@ $$$$
  13 15  1  0
  13 16  1  0
 M  END
->  <id>  (64) 
+>  <id>
 EN300-08447
 
->  <IUPAC Name>  (64) 
+>  <IUPAC Name>
 2-chloro-N-[4-(trifluoromethyl)phenyl]propanamide
 
->  <CAS>  (64) 
+>  <CAS>
 572881-42-6
 
->  <purity>  (64) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (64) 
+>  <MDLNUMBER>
 MFCD04626491
 
->  <LogP>  (64) 
+>  <LogP>
 3.637
 
->  <URL>  (64) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-08447
 
->  <MP>  (64) 
+>  <MP>
 127-129
 
->  <avail_US_100mg>  (64) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (64) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (64) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (64) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "ether-2": [0], "goldberg-1": [1], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -4931,40 +4635,40 @@ $$$$
  14 16  1  0
 M  CHG  2  14   1  16  -1
 M  END
->  <id>  (65) 
+>  <id>
 EN300-08448
 
->  <IUPAC Name>  (65) 
+>  <IUPAC Name>
 2-chloro-N-(4-fluoro-3-nitrophenyl)propanamide
 
->  <CAS>  (65) 
+>  <CAS>
 731011-93-1
 
->  <purity>  (65) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (65) 
+>  <MDLNUMBER>
 MFCD04626505
 
->  <LogP>  (65) 
+>  <LogP>
 2.531
 
->  <URL>  (65) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-08448
 
->  <avail_US_100mg>  (65) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (65) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (65) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (65) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (65) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "barton-zard-2": [1], "ether-2": [0], "goldberg-1": [1], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -5005,40 +4709,40 @@ $$$$
  14 15  1  0
  14 16  1  0
 M  END
->  <id>  (66) 
+>  <id>
 EN300-08450
 
->  <IUPAC Name>  (66) 
+>  <IUPAC Name>
 N-[2-(butan-2-yl)phenyl]-2-chloropropanamide
 
->  <CAS>  (66) 
+>  <CAS>
 743441-87-4
 
->  <purity>  (66) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (66) 
+>  <MDLNUMBER>
 MFCD05262937
 
->  <LogP>  (66) 
+>  <LogP>
 3.359
 
->  <URL>  (66) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-08450
 
->  <avail_US_100mg>  (66) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (66) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (66) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (66) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (66) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "ether-2": [0], "goldberg-1": [1], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -5069,111 +4773,38 @@ $$$$
   8 11  2  0
   4 11  1  0
 M  END
->  <id>  (67) 
+>  <id>
 EN300-06971
 
->  <IUPAC Name>  (67) 
+>  <IUPAC Name>
 [(3-methoxyphenyl)methyl](methyl)amine
 
->  <CAS>  (67) 
+>  <CAS>
 41789-95-1
 
->  <purity>  (67) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (67) 
+>  <MDLNUMBER>
 MFCD04618244
 
->  <LogP>  (67) 
+>  <LogP>
 1.429
 
->  <URL>  (67) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-06971
 
->  <avail_US_100mg>  (67) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (67) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (67) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (67) 
+>  <rxn_annotations>
 {"5-het-amination": [1], "alkylation-1": [1], "amide_coupling-1": [1], "amide_coupling-2": [1], "amide_coupling-5": [1], "amination-1": [1], "amination-2": [1], "carbamate-2": [0], "curtius-1": [1], "quinazoline-1": [1], "sulfonamide-1": [1], "thiourea-1": [1], "urea-1": [1], "urea-2": [0, 1]}
-
-$$$$
-
-     RDKit          2D
-
-  9 10  0  0  0  0  0  0  0  0999 V2000
-    1.1387   -1.3654    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
-    0.6538   -0.6979    0.0000 Se  0  0  0  0  0  4  0  0  0  0  0  0
-    1.1387   -0.0305    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
-    1.9233   -0.2854    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    2.6378    0.1271    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    3.3523   -0.2854    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    3.3523   -1.1104    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    2.6378   -1.5229    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    1.9233   -1.1104    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-  1  2  2  0
-  2  3  2  0
-  3  4  1  0
-  4  5  2  0
-  5  6  1  0
-  6  7  2  0
-  7  8  1  0
-  8  9  2  0
-  1  9  1  0
-  4  9  1  0
-M  END
->  <id>  (68) 
-EN300-17451
-
->  <IUPAC Name>  (68) 
-2lambda4,1,3-benzoselenadiazole
-
->  <CAS>  (68) 
-22706-23-6
-
->  <purity>  (68) 
-95.00
-
->  <MDLNUMBER>  (68) 
-MFCD00612534
-
->  <LogP>  (68) 
-1.818
-
->  <URL>  (68) 
-https://www.enaminestore.com/catalog/EN300-17451
-
->  <MP>  (68) 
-74-75
-
->  <avail_US_100mg>  (68) 
-X
-
->  <avail_US_250mg>  (68) 
-X
-
->  <avail_US_1g>  (68) 
-X
-
->  <avail_US_2_5g>  (68) 
-X
-
->  <avail_US_5g>  (68) 
-X
-
->  <avail_US_10g>  (68) 
-X
-
->  <avail_US_25g>  (68) 
-X
-
->  <rxn_annotations>  (68) 
-{}
 
 $$$$
 
@@ -5207,46 +4838,46 @@ $$$$
  11 13  2  0
   6 13  1  0
 M  END
->  <id>  (69) 
+>  <id>
 EN300-34142
 
->  <IUPAC Name>  (69) 
+>  <IUPAC Name>
 2-(3,4-dichlorophenoxy)acetic acid
 
->  <CAS>  (69) 
+>  <CAS>
 588-22-7
 
->  <purity>  (69) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (69) 
+>  <MDLNUMBER>
 MFCD00004303
 
->  <LogP>  (69) 
+>  <LogP>
 2.845
 
->  <URL>  (69) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-34142
 
->  <MP>  (69) 
+>  <MP>
 138-142
 
->  <avail_US_100mg>  (69) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (69) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (69) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (69) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (69) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (69) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "124-triazole-3": [1], "amide_coupling-1": [0], "amide_coupling-5": [0], "amination-1": [0], "benzimidazole-1": [1], "benzoxazole-1": [1], "curtius-1": [0], "curtius-2": [0], "decarboxylative_coupling-1": [1], "esterification-2": [0], "ether-1": [0], "goldberg-1": [0], "goldberg-2": [0], "heck": [0], "mitsunobu-5": [1], "negishi": [0, 1], "oxadiazole-1": [1], "oxadiazole-2": [1], "sonogashira": [0], "suzuki": [0], "suzuki-2": [0], "thioether-2": [0]}
 
 $$$$
@@ -5275,43 +4906,43 @@ $$$$
   4  9  2  0
   9 10  1  0
 M  END
->  <id>  (70) 
+>  <id>
 EN300-20898
 
->  <IUPAC Name>  (70) 
+>  <IUPAC Name>
 1-(2,5-dimethylfuran-3-yl)ethan-1-one
 
->  <CAS>  (70) 
+>  <CAS>
 10599-70-9
 
->  <purity>  (70) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (70) 
+>  <MDLNUMBER>
 MFCD00010281
 
->  <LogP>  (70) 
+>  <LogP>
 1.755
 
->  <URL>  (70) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-20898
 
->  <avail_US_100mg>  (70) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (70) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (70) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (70) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (70) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (70) 
+>  <rxn_annotations>
 {"amination-2": [0], "claisen-1": [0], "quinoline-1": [1], "quinoline-2": [1]}
 
 $$$$
@@ -5342,46 +4973,46 @@ $$$$
   2 10  1  0
  10 11  1  0
 M  END
->  <id>  (71) 
+>  <id>
 EN300-06825
 
->  <IUPAC Name>  (71) 
+>  <IUPAC Name>
 [(4-amino-3-chlorophenyl)sulfanyl]formonitrile
 
->  <CAS>  (71) 
+>  <CAS>
 3226-47-9
 
->  <purity>  (71) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (71) 
+>  <MDLNUMBER>
 MFCD04614735
 
->  <LogP>  (71) 
+>  <LogP>
 2.321
 
->  <URL>  (71) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-06825
 
->  <MP>  (71) 
+>  <MP>
 58-62
 
->  <avail_US_100mg>  (71) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (71) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (71) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (71) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (71) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (71) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "5-het-amination": [1], "alkylation-1": [1], "amide_coupling-1": [1], "amide_coupling-2": [1], "amide_coupling-5": [1], "amination-1": [0, 1], "amination-2": [1], "carbamate-2": [0], "chan-lam-1": [0], "conrad-limpach": [1], "curtius-1": [1], "decarboxylative_coupling-1": [1], "ether-1": [0], "goldberg-1": [0, 1], "goldberg-2": [0], "heck": [0], "indole-1": [1], "negishi": [0, 1], "pyrrole-2": [1], "quinazoline-1": [1], "sonogashira": [0], "sulfonamide-1": [1], "suzuki": [0], "suzuki-2": [0], "thioether-2": [0], "thiourea-1": [1], "urea-1": [1], "urea-2": [0, 1]}
 
 $$$$
@@ -5424,34 +5055,34 @@ $$$$
  14 16  2  0
  14 17  1  0
 M  END
->  <id>  (72) 
+>  <id>
 EN300-07053
 
->  <IUPAC Name>  (72) 
+>  <IUPAC Name>
 5-acetamido-2-ethoxybenzene-1-sulfonyl chloride
 
->  <CAS>  (72) 
+>  <CAS>
 680618-19-3
 
->  <purity>  (72) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (72) 
+>  <MDLNUMBER>
 MFCD03424981
 
->  <LogP>  (72) 
+>  <LogP>
 -.207
 
->  <URL>  (72) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-07053
 
->  <avail_US_100mg>  (72) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (72) 
+>  <avail_US_250mg>
 X
 
->  <rxn_annotations>  (72) 
+>  <rxn_annotations>
 {"goldberg-1": [1], "sulfonamide-1": [0]}
 
 $$$$
@@ -5496,37 +5127,37 @@ $$$$
  16 17  1  0
  17 18  1  0
 M  END
->  <id>  (73) 
+>  <id>
 EN300-07833
 
->  <IUPAC Name>  (73) 
+>  <IUPAC Name>
 N-(3,4-diethoxyphenyl)-2-(methylamino)acetamide hydrochloride
 
->  <CAS>  (73) 
+>  <CAS>
 1049790-01-3
 
->  <purity>  (73) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (73) 
+>  <MDLNUMBER>
 MFCD07286594
 
->  <LogP>  (73) 
+>  <LogP>
 1.399
 
->  <URL>  (73) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-07833
 
->  <avail_US_100mg>  (73) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (73) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (73) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (73) 
+>  <rxn_annotations>
 {"5-het-amination": [1], "alkylation-1": [1], "amide_coupling-1": [1], "amide_coupling-2": [1], "amide_coupling-5": [1], "amination-1": [1], "amination-2": [1], "carbamate-2": [0], "curtius-1": [1], "goldberg-1": [1], "quinazoline-1": [1], "sulfonamide-1": [1], "thiourea-1": [1], "urea-1": [1], "urea-2": [0, 1]}
 
 $$$$
@@ -5595,40 +5226,40 @@ $$$$
  27 29  2  0
   9 29  1  0
 M  END
->  <id>  (74) 
+>  <id>
 EN300-07837
 
->  <IUPAC Name>  (74) 
+>  <IUPAC Name>
 3-amino-N,N-diethyl-4-[4-(2-methoxyphenyl)piperazin-1-yl]benzene-1-sulfonamide
 
->  <CAS>  (74) 
+>  <CAS>
 733030-86-9
 
->  <purity>  (74) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (74) 
+>  <MDLNUMBER>
 MFCD04635873
 
->  <LogP>  (74) 
+>  <LogP>
 3.23
 
->  <URL>  (74) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-07837
 
->  <avail_US_100mg>  (74) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (74) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (74) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (74) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (74) 
+>  <rxn_annotations>
 {"5-het-amination": [1], "alkylation-1": [1], "amide_coupling-1": [1], "amide_coupling-2": [1], "amide_coupling-5": [1], "amination-1": [1], "amination-2": [1], "carbamate-2": [0], "chan-lam-1": [0], "conrad-limpach": [1], "curtius-1": [1], "goldberg-1": [1], "indole-1": [1], "pyrrole-2": [1], "quinazoline-1": [1], "sulfonamide-1": [1], "thiourea-1": [1], "urea-1": [1], "urea-2": [0, 1]}
 
 $$$$
@@ -5671,46 +5302,46 @@ $$$$
  15 16  2  0
  15 17  1  0
 M  END
->  <id>  (75) 
+>  <id>
 EN300-06297
 
->  <IUPAC Name>  (75) 
+>  <IUPAC Name>
 4-butoxy-3-ethoxybenzoic acid
 
->  <CAS>  (75) 
+>  <CAS>
 101268-36-4
 
->  <purity>  (75) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (75) 
+>  <MDLNUMBER>
 MFCD03989636
 
->  <LogP>  (75) 
+>  <LogP>
 3.781
 
->  <URL>  (75) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-06297
 
->  <MP>  (75) 
+>  <MP>
 162-163
 
->  <avail_US_100mg>  (75) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (75) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (75) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (75) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (75) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (75) 
+>  <rxn_annotations>
 {"124-triazole-3": [1], "amide_coupling-1": [0], "amide_coupling-5": [0], "benzimidazole-1": [1], "benzoxazole-1": [1], "curtius-1": [0], "curtius-2": [0], "decarboxylative_coupling-1": [0], "esterification-2": [0], "mitsunobu-5": [1], "oxadiazole-1": [1], "oxadiazole-2": [1]}
 
 $$$$
@@ -5753,40 +5384,40 @@ $$$$
  15 16  1  0
  16 17  1  0
 M  END
->  <id>  (76) 
+>  <id>
 EN300-08569
 
->  <IUPAC Name>  (76) 
+>  <IUPAC Name>
 2-chloro-N-(3,4-diethoxyphenyl)acetamide
 
->  <CAS>  (76) 
+>  <CAS>
 727982-71-0
 
->  <purity>  (76) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (76) 
+>  <MDLNUMBER>
 MFCD04620322
 
->  <LogP>  (76) 
+>  <LogP>
 2.582
 
->  <URL>  (76) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-08569
 
->  <avail_US_100mg>  (76) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (76) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (76) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (76) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (76) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "ether-2": [0], "goldberg-1": [1], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -5809,43 +5440,43 @@ $$$$
   5  7  1  0
   2  7  1  0
 M  END
->  <id>  (77) 
+>  <id>
 EN300-07654
 
->  <IUPAC Name>  (77) 
+>  <IUPAC Name>
 5-methyl-1,3,4-oxadiazol-2-amine
 
->  <CAS>  (77) 
+>  <CAS>
 52838-39-8
 
->  <purity>  (77) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (77) 
+>  <MDLNUMBER>
 MFCD03703470
 
->  <LogP>  (77) 
+>  <LogP>
 -1.014
 
->  <URL>  (77) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-07654
 
->  <MP>  (77) 
+>  <MP>
 185-186
 
->  <avail_US_100mg>  (77) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (77) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (77) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (77) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (77) 
+>  <rxn_annotations>
 {"5-het-amination": [1], "alkylation-1": [1], "amide_coupling-1": [1], "amide_coupling-2": [1], "amide_coupling-5": [1], "amination-1": [1], "amination-2": [1], "carbamate-2": [0], "curtius-1": [1], "pyrrole-2": [1], "quinazoline-1": [1], "sulfonamide-1": [1], "thiourea-1": [1], "urea-1": [1], "urea-2": [0, 1]}
 
 $$$$
@@ -5883,43 +5514,43 @@ $$$$
  13 14  1  0
   9 14  1  0
 M  END
->  <id>  (78) 
+>  <id>
 EN300-07658
 
->  <IUPAC Name>  (78) 
+>  <IUPAC Name>
 4-(piperidin-1-yl)benzaldehyde
 
->  <CAS>  (78) 
+>  <CAS>
 10338-57-5
 
->  <purity>  (78) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (78) 
+>  <MDLNUMBER>
 MFCD00778395
 
->  <LogP>  (78) 
+>  <LogP>
 2.687
 
->  <URL>  (78) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-07658
 
->  <MP>  (78) 
+>  <MP>
 65-66
 
->  <avail_US_100mg>  (78) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (78) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (78) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (78) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (78) 
+>  <rxn_annotations>
 {"amination-2": [0], "benzimidazole-2": [1], "benzothiazole-1": [1], "benzoxazole-2": [1], "biginelli-2": [1], "biginelli-3": [1], "biginelli-4": [1], "erlenmeyer-plochl": [0], "imidazole-3": [1], "oxazole-1": [0], "pictet-spengler": [1], "pyrimidone-1": [1], "pyrimidone-2": [1]}
 
 $$$$
@@ -5964,43 +5595,43 @@ $$$$
  16 17  1  0
  16 18  1  0
 M  END
->  <id>  (79) 
+>  <id>
 EN300-07659
 
->  <IUPAC Name>  (79) 
+>  <IUPAC Name>
 2-(2-bromo-4-formyl-6-methoxyphenoxy)-N,N-dimethylacetamide
 
->  <CAS>  (79) 
+>  <CAS>
 732291-87-1
 
->  <purity>  (79) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (79) 
+>  <MDLNUMBER>
 MFCD04633430
 
->  <LogP>  (79) 
+>  <LogP>
 1.29
 
->  <URL>  (79) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-07659
 
->  <MP>  (79) 
+>  <MP>
 62-63
 
->  <avail_US_100mg>  (79) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (79) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (79) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (79) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (79) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "5-het-arylation": [1], "amination-1": [0], "amination-2": [0], "benzimidazole-2": [1], "benzothiazole-1": [1], "benzoxazole-2": [1], "biginelli-2": [1], "biginelli-3": [1], "biginelli-4": [1], "castro-stephens-2": [0], "decarboxylative_coupling-1": [1], "erlenmeyer-plochl": [0], "ether-1": [0], "goldberg-1": [0], "goldberg-2": [0], "heck": [0], "imidazole-3": [1], "negishi": [0, 1], "oxazole-1": [0], "pictet-spengler": [1], "pyrimidone-1": [1], "pyrimidone-2": [1], "sonogashira": [0], "suzuki": [0], "suzuki-2": [0], "thioether-2": [0]}
 
 $$$$
@@ -6021,37 +5652,37 @@ $$$$
   5  6  1  0
   2  6  2  0
 M  END
->  <id>  (80) 
+>  <id>
 EN300-36196
 
->  <IUPAC Name>  (80) 
+>  <IUPAC Name>
 3-bromothiophene
 
->  <CAS>  (80) 
+>  <CAS>
 872-31-1
 
->  <purity>  (80) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (80) 
+>  <MDLNUMBER>
 MFCD00005464
 
->  <LogP>  (80) 
+>  <LogP>
 2.693
 
->  <URL>  (80) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-36196
 
->  <avail_US_100mg>  (80) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (80) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (80) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (80) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "5-het-arylation": [1], "amination-1": [0], "castro-stephens-2": [0], "heck": [0], "negishi": [0, 1], "sonogashira": [0], "suzuki": [0], "suzuki-2": [0], "thioether-2": [0]}
 
 $$$$
@@ -6084,49 +5715,49 @@ $$$$
   5 11  1  0
  11 12  1  0
 M  END
->  <id>  (81) 
+>  <id>
 EN300-21422
 
->  <IUPAC Name>  (81) 
+>  <IUPAC Name>
 methyl 2-amino-5-bromobenzoate
 
->  <CAS>  (81) 
+>  <CAS>
 52727-57-8
 
->  <purity>  (81) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (81) 
+>  <MDLNUMBER>
 MFCD00144761
 
->  <LogP>  (81) 
+>  <LogP>
 3.085
 
->  <URL>  (81) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-21422
 
->  <MP>  (81) 
+>  <MP>
 72-74
 
->  <avail_US_100mg>  (81) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (81) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (81) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (81) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (81) 
+>  <avail_US_5g>
 X
 
->  <avail_US_10g>  (81) 
+>  <avail_US_10g>
 X
 
->  <rxn_annotations>  (81) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "5-het-amination": [1], "5-het-arylation": [1], "alkylation-1": [1], "amide_coupling-1": [1], "amide_coupling-2": [1], "amide_coupling-5": [1], "amination-1": [0, 1], "amination-2": [1], "carbamate-2": [0], "castro-stephens-2": [0], "chan-lam-1": [0], "claisen-1": [1], "claisen-2": [1], "conrad-limpach": [1], "curtius-1": [1], "decarboxylative_coupling-1": [1], "ether-1": [0], "goldberg-1": [0, 1], "goldberg-2": [0], "heck": [0], "indole-1": [1], "negishi": [0, 1], "pyrimidinedione-2": [0], "pyrrole-2": [1], "quinazoline-1": [1], "sonogashira": [0], "sulfonamide-1": [1], "suzuki": [0], "suzuki-2": [0], "thioether-2": [0], "thiourea-1": [1], "urea-1": [1], "urea-2": [0, 1]}
 
 $$$$
@@ -6168,46 +5799,46 @@ $$$$
  15 16  1  0
   7 16  1  0
 M  END
->  <id>  (82) 
+>  <id>
 EN300-11699
 
->  <IUPAC Name>  (82) 
+>  <IUPAC Name>
 N-propyl-3,4-dihydro-2H-1,4-benzoxazine-2-carboxamide
 
->  <CAS>  (82) 
+>  <CAS>
 22244-18-4
 
->  <purity>  (82) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (82) 
+>  <MDLNUMBER>
 MFCD06373520
 
->  <LogP>  (82) 
+>  <LogP>
 1.532
 
->  <URL>  (82) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-11699
 
->  <MP>  (82) 
+>  <MP>
 80-82
 
->  <avail_US_100mg>  (82) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (82) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (82) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (82) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (82) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (82) 
+>  <rxn_annotations>
 {"5-het-amination": [1], "alkylation-1": [1], "amide_coupling-1": [1], "amide_coupling-2": [1], "amide_coupling-5": [1], "amination-1": [1], "amination-2": [1], "carbamate-2": [0], "curtius-1": [1], "goldberg-1": [1], "quinazoline-1": [1], "sulfonamide-1": [1], "thiourea-1": [1], "urea-1": [1], "urea-2": [0, 1]}
 
 $$$$
@@ -6264,40 +5895,40 @@ $$$$
  22 23  2  0
  15 23  1  0
 M  END
->  <id>  (83) 
+>  <id>
 EN300-06421
 
->  <IUPAC Name>  (83) 
+>  <IUPAC Name>
 N-(1,3-dioxaindan-5-yl)-2-(2-chloroacetamido)benzamide
 
->  <CAS>  (83) 
+>  <CAS>
 730949-69-6
 
->  <purity>  (83) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (83) 
+>  <MDLNUMBER>
 MFCD04621459
 
->  <LogP>  (83) 
+>  <LogP>
 2.934
 
->  <URL>  (83) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-06421
 
->  <avail_US_100mg>  (83) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (83) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (83) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (83) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (83) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "ether-2": [0], "goldberg-1": [1], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -6337,46 +5968,46 @@ $$$$
   2 15  1  0
   7 15  2  0
 M  END
->  <id>  (84) 
+>  <id>
 EN300-10319
 
->  <IUPAC Name>  (84) 
+>  <IUPAC Name>
 4-(chloromethyl)-7-hydroxy-8-methyl-2H-chromen-2-one
 
->  <CAS>  (84) 
+>  <CAS>
 163684-50-2
 
->  <purity>  (84) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (84) 
+>  <MDLNUMBER>
 MFCD03937668
 
->  <LogP>  (84) 
+>  <LogP>
 2.634
 
->  <URL>  (84) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-10319
 
->  <MP>  (84) 
+>  <MP>
 254-256
 
->  <avail_US_100mg>  (84) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (84) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (84) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (84) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (84) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (84) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "carbamate": [1], "carbamate-2": [1], "chan-lam-2": [0], "coumarin": [1], "curtius-2": [1], "esterification-1": [1], "esterification-2": [1], "ether-1": [1], "ether-2": [0, 1], "mitsunobu-1": [1], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -6413,37 +6044,37 @@ $$$$
  12 13  1  0
  12 14  1  0
 M  END
->  <id>  (85) 
+>  <id>
 EN300-10090
 
->  <IUPAC Name>  (85) 
+>  <IUPAC Name>
 3-methoxy-4-(propan-2-yloxy)benzonitrile
 
->  <CAS>  (85) 
+>  <CAS>
 757192-64-6
 
->  <purity>  (85) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (85) 
+>  <MDLNUMBER>
 MFCD02256140
 
->  <LogP>  (85) 
+>  <LogP>
 2.383
 
->  <URL>  (85) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-10090
 
->  <avail_US_100mg>  (85) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (85) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (85) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (85) 
+>  <rxn_annotations>
 {"124-triazole-1": [0], "124-triazole-2": [0], "124-triazole-3": [0], "oxadiazole-1": [0], "tetrazole-1": [0], "tetrazole-2": [0]}
 
 $$$$
@@ -6487,46 +6118,46 @@ $$$$
  16 17  2  0
  12 17  1  0
 M  END
->  <id>  (86) 
+>  <id>
 EN300-10187
 
->  <IUPAC Name>  (86) 
+>  <IUPAC Name>
 N-[4-(chloromethyl)-1,3-thiazol-2-yl]-N-phenylacetamide
 
->  <CAS>  (86) 
+>  <CAS>
 58905-44-5
 
->  <purity>  (86) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (86) 
+>  <MDLNUMBER>
 MFCD01566842
 
->  <LogP>  (86) 
+>  <LogP>
 .952
 
->  <URL>  (86) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-10187
 
->  <MP>  (86) 
+>  <MP>
 116-117
 
->  <avail_US_100mg>  (86) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (86) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (86) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (86) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (86) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (86) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "ether-2": [0], "friedel-crafts-1": [0], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -6562,40 +6193,40 @@ $$$$
   8 12  1  0
  12 13  1  0
 M  END
->  <id>  (87) 
+>  <id>
 EN300-10188
 
->  <IUPAC Name>  (87) 
+>  <IUPAC Name>
 4-(2-methylphenyl)-4H-1,2,4-triazole-3-thiol
 
->  <CAS>  (87) 
+>  <CAS>
 36017-19-3
 
->  <purity>  (87) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (87) 
+>  <MDLNUMBER>
 MFCD03900748
 
->  <LogP>  (87) 
+>  <LogP>
 2.479
 
->  <URL>  (87) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-10188
 
->  <MP>  (87) 
+>  <MP>
 143-149
 
->  <avail_US_100mg>  (87) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (87) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (87) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (87) 
+>  <rxn_annotations>
 {"thioether-1": [1], "thioether-2": [1]}
 
 $$$$
@@ -6626,46 +6257,46 @@ $$$$
   6 10  1  0
  10 11  2  0
 M  END
->  <id>  (88) 
+>  <id>
 EN300-10025
 
->  <IUPAC Name>  (88) 
+>  <IUPAC Name>
 2-(2-oxopyrrolidin-1-yl)acetohydrazide
 
->  <CAS>  (88) 
+>  <CAS>
 59776-89-5
 
->  <purity>  (88) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (88) 
+>  <MDLNUMBER>
 MFCD06254111
 
->  <LogP>  (88) 
+>  <LogP>
 -1.529
 
->  <URL>  (88) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-10025
 
->  <MP>  (88) 
+>  <MP>
 88-89
 
->  <avail_US_100mg>  (88) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (88) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (88) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (88) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (88) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (88) 
+>  <rxn_annotations>
 {"124-triazole-2": [1]}
 
 $$$$
@@ -6700,46 +6331,46 @@ $$$$
   7 12  1  0
  12 13  2  0
 M  END
->  <id>  (89) 
+>  <id>
 EN300-10026
 
->  <IUPAC Name>  (89) 
+>  <IUPAC Name>
 ethyl 2-(2,5-dioxoimidazolidin-1-yl)acetate
 
->  <CAS>  (89) 
+>  <CAS>
 117043-46-6
 
->  <purity>  (89) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (89) 
+>  <MDLNUMBER>
 MFCD06357822
 
->  <LogP>  (89) 
+>  <LogP>
 -.342
 
->  <URL>  (89) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-10026
 
->  <MP>  (89) 
+>  <MP>
 118-119
 
->  <avail_US_100mg>  (89) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (89) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (89) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (89) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (89) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (89) 
+>  <rxn_annotations>
 {"claisen-2": [0]}
 
 $$$$
@@ -6790,37 +6421,37 @@ $$$$
  19 20  2  0
  15 20  1  0
 M  END
->  <id>  (90) 
+>  <id>
 EN300-10027
 
->  <IUPAC Name>  (90) 
+>  <IUPAC Name>
 3-(3-methylphenyl)-1-phenyl-1H-pyrazole-4-carbaldehyde
 
->  <CAS>  (90) 
+>  <CAS>
 819793-63-0
 
->  <purity>  (90) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (90) 
+>  <MDLNUMBER>
 MFCD06357447
 
->  <LogP>  (90) 
+>  <LogP>
 4.534
 
->  <URL>  (90) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-10027
 
->  <avail_US_100mg>  (90) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (90) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (90) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (90) 
+>  <rxn_annotations>
 {"amination-2": [0], "benzimidazole-2": [1], "benzothiazole-1": [1], "benzoxazole-2": [1], "erlenmeyer-plochl": [0], "friedel-crafts-1": [0], "imidazole-3": [1], "oxazole-1": [0], "pictet-spengler": [1], "pyrimidone-1": [1], "pyrimidone-2": [1]}
 
 $$$$
@@ -6858,43 +6489,43 @@ $$$$
  13 14  2  0
   2 14  1  0
 M  END
->  <id>  (91) 
+>  <id>
 EN300-49972
 
->  <IUPAC Name>  (91) 
+>  <IUPAC Name>
 4-(pyrimidin-2-yloxy)aniline
 
->  <CAS>  (91) 
+>  <CAS>
 105130-26-5
 
->  <purity>  (91) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (91) 
+>  <MDLNUMBER>
 MFCD01443685
 
->  <LogP>  (91) 
+>  <LogP>
 .559
 
->  <URL>  (91) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-49972
 
->  <avail_US_100mg>  (91) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (91) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (91) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (91) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (91) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (91) 
+>  <rxn_annotations>
 {"5-het-amination": [1], "alkylation-1": [1], "amide_coupling-1": [1], "amide_coupling-2": [1], "amide_coupling-5": [1], "amination-1": [1], "amination-2": [1], "carbamate-2": [0], "chan-lam-1": [0], "conrad-limpach": [1], "curtius-1": [1], "goldberg-1": [1], "indole-1": [1], "pyrrole-2": [1], "quinazoline-1": [1], "sulfonamide-1": [1], "thiourea-1": [1], "urea-1": [1], "urea-2": [0, 1]}
 
 $$$$
@@ -6931,43 +6562,43 @@ $$$$
  12 13  1  0
  12 14  1  0
 M  END
->  <id>  (92) 
+>  <id>
 EN300-10332
 
->  <IUPAC Name>  (92) 
+>  <IUPAC Name>
 2-chloro-N-[1-(propan-2-yl)-1H-pyrazol-5-yl]propanamide
 
->  <CAS>  (92) 
+>  <CAS>
 926206-87-3
 
->  <purity>  (92) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (92) 
+>  <MDLNUMBER>
 MFCD06357955
 
->  <LogP>  (92) 
+>  <LogP>
 1.663
 
->  <URL>  (92) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-10332
 
->  <avail_US_100mg>  (92) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (92) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (92) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (92) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (92) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (92) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "alkylation-1": [0], "alkylation-2": [0], "ether-2": [0], "tetrazole-1": [1], "tetrazole-2": [1], "thioether-2": [0]}
 
 $$$$
@@ -7025,37 +6656,37 @@ $$$$
   8 23  1  0
  15 23  1  0
 M  END
->  <id>  (93) 
+>  <id>
 EN300-17505
 
->  <IUPAC Name>  (93) 
+>  <IUPAC Name>
 11-methyl-13-(3-methylphenyl)-1,8-diazatricyclo[7.4.0.0,2,7]trideca-2(7),3,5,8,10,12-hexaene-10-carbonitrile
 
->  <CAS>  (93) 
+>  <CAS>
 730976-50-8
 
->  <purity>  (93) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (93) 
+>  <MDLNUMBER>
 MFCD04623503
 
->  <LogP>  (93) 
+>  <LogP>
 5.758
 
->  <URL>  (93) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-17505
 
->  <avail_US_100mg>  (93) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (93) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (93) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (93) 
+>  <rxn_annotations>
 {"124-triazole-1": [0], "124-triazole-2": [0], "124-triazole-3": [0], "oxadiazole-1": [0], "tetrazole-1": [0], "tetrazole-2": [0]}
 
 $$$$
@@ -7110,37 +6741,37 @@ $$$$
  21 22  2  0
  17 22  1  0
 M  END
->  <id>  (94) 
+>  <id>
 EN300-05067
 
->  <IUPAC Name>  (94) 
+>  <IUPAC Name>
 3-(1-ethyl-2-phenyl-1H-indol-3-yl)-3-oxopropanenitrile
 
->  <CAS>  (94) 
+>  <CAS>
 729561-84-6
 
->  <purity>  (94) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (94) 
+>  <MDLNUMBER>
 MFCD03968061
 
->  <LogP>  (94) 
+>  <LogP>
 3.985
 
->  <URL>  (94) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-05067
 
->  <avail_US_100mg>  (94) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (94) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (94) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (94) 
+>  <rxn_annotations>
 {"124-triazole-2": [0], "124-triazole-3": [0], "amination-2": [0], "aminothiophene-1": [0], "claisen-1": [0], "friedel-crafts-1": [0], "indole-2": [1], "oxadiazole-1": [0], "quinoline-1": [1], "quinoline-2": [1], "tetrazole-1": [0], "tetrazole-2": [0]}
 
 $$$$
@@ -7190,43 +6821,43 @@ $$$$
  17 19  1  0
  17 20  1  0
 M  END
->  <id>  (95) 
+>  <id>
 EN300-17357
 
->  <IUPAC Name>  (95) 
+>  <IUPAC Name>
 ethyl 4-hydroxy-7-(trifluoromethyl)quinoline-3-carboxylate
 
->  <CAS>  (95) 
+>  <CAS>
 391-02-6
 
->  <purity>  (95) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (95) 
+>  <MDLNUMBER>
 MFCD00006769
 
->  <LogP>  (95) 
+>  <LogP>
 4.341
 
->  <URL>  (95) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-17357
 
->  <MP>  (95) 
+>  <MP>
 295-300
 
->  <avail_US_100mg>  (95) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (95) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (95) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (95) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (95) 
+>  <rxn_annotations>
 {"carbamate": [1], "carbamate-2": [1], "chan-lam-2": [0], "claisen-1": [1], "claisen-2": [1], "curtius-2": [1], "esterification-1": [1], "esterification-2": [1], "ether-1": [1], "ether-2": [1], "mitsunobu-1": [1]}
 
 $$$$
@@ -7266,40 +6897,40 @@ $$$$
  14 15  2  0
   4 15  1  0
 M  END
->  <id>  (96) 
+>  <id>
 EN300-18554
 
->  <IUPAC Name>  (96) 
+>  <IUPAC Name>
 4-cyclopropaneamidobenzoic acid
 
->  <CAS>  (96) 
+>  <CAS>
 23745-26-8
 
->  <purity>  (96) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (96) 
+>  <MDLNUMBER>
 MFCD02602219
 
->  <LogP>  (96) 
+>  <LogP>
 1.782
 
->  <URL>  (96) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-18554
 
->  <MP>  (96) 
+>  <MP>
 273-279
 
->  <avail_US_100mg>  (96) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (96) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (96) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (96) 
+>  <rxn_annotations>
 {"124-triazole-3": [1], "amide_coupling-1": [0], "amide_coupling-5": [0], "benzimidazole-1": [1], "benzoxazole-1": [1], "curtius-1": [0], "curtius-2": [0], "decarboxylative_coupling-1": [0], "esterification-2": [0], "goldberg-1": [1], "mitsunobu-5": [1], "oxadiazole-1": [1], "oxadiazole-2": [1]}
 
 $$$$
@@ -7336,37 +6967,37 @@ $$$$
  11 13  2  0
  11 14  1  0
 M  END
->  <id>  (97) 
+>  <id>
 EN300-14988
 
->  <IUPAC Name>  (97) 
+>  <IUPAC Name>
 2-methyl-5-sulfamoylbenzoic acid
 
->  <CAS>  (97) 
+>  <CAS>
 20532-14-3
 
->  <purity>  (97) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (97) 
+>  <MDLNUMBER>
 MFCD07362354
 
->  <LogP>  (97) 
+>  <LogP>
 .651
 
->  <URL>  (97) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-14988
 
->  <avail_US_100mg>  (97) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (97) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (97) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (97) 
+>  <rxn_annotations>
 {"124-triazole-3": [1], "amide_coupling-1": [0], "amide_coupling-5": [0], "benzimidazole-1": [1], "benzoxazole-1": [1], "curtius-1": [0], "curtius-2": [0], "decarboxylative_coupling-1": [0], "esterification-2": [0], "mitsunobu-2": [1], "mitsunobu-5": [1], "oxadiazole-1": [1], "oxadiazole-2": [1]}
 
 $$$$
@@ -7406,46 +7037,46 @@ $$$$
  14 15  2  0
   9 15  1  0
 M  END
->  <id>  (98) 
+>  <id>
 EN300-13028
 
->  <IUPAC Name>  (98) 
+>  <IUPAC Name>
 3-(4-bromophenyl)-1H-pyrazole-5-carboxylic acid
 
->  <CAS>  (98) 
+>  <CAS>
 46413-66-5
 
->  <purity>  (98) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (98) 
+>  <MDLNUMBER>
 MFCD06200702
 
->  <LogP>  (98) 
+>  <LogP>
 3.516
 
->  <URL>  (98) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-13028
 
->  <MP>  (98) 
+>  <MP>
 265-266
 
->  <avail_US_100mg>  (98) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (98) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (98) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (98) 
+>  <avail_US_2_5g>
 X
 
->  <avail_US_5g>  (98) 
+>  <avail_US_5g>
 X
 
->  <rxn_annotations>  (98) 
+>  <rxn_annotations>
 {"123-triazole-1": [1], "123-triazole-3": [1], "124-triazole-3": [1], "5-het-arylation": [1], "N-azole-arylation": [1], "alkylation-2": [1], "amide_coupling-1": [0], "amide_coupling-5": [0], "amination-1": [0], "benzimidazole-1": [1], "benzoxazole-1": [1], "castro-stephens-2": [0], "curtius-1": [0], "curtius-2": [0], "decarboxylative_coupling-1": [1], "esterification-2": [0], "ether-1": [0], "goldberg-1": [0], "goldberg-2": [0], "heck": [0], "mitsunobu-5": [1], "negishi": [0, 1], "oxadiazole-1": [1], "oxadiazole-2": [1], "sonogashira": [0], "suzuki": [0], "suzuki-2": [0], "thioether-2": [0]}
 
 $$$$
@@ -7478,40 +7109,40 @@ $$$$
  10 11  2  0
  10 12  1  0
 M  END
->  <id>  (99) 
+>  <id>
 EN300-13453
 
->  <IUPAC Name>  (99) 
+>  <IUPAC Name>
 1-(2-methoxy-5-methylphenyl)ethan-1-one
 
->  <CAS>  (99) 
+>  <CAS>
 20628-07-3
 
->  <purity>  (99) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (99) 
+>  <MDLNUMBER>
 MFCD00156674
 
->  <LogP>  (99) 
+>  <LogP>
 2.3
 
->  <URL>  (99) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-13453
 
->  <MP>  (99) 
+>  <MP>
 85-87
 
->  <avail_US_100mg>  (99) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (99) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (99) 
+>  <avail_US_1g>
 X
 
->  <rxn_annotations>  (99) 
+>  <rxn_annotations>
 {"amination-2": [0], "claisen-1": [0], "quinoline-1": [1], "quinoline-2": [1]}
 
 $$$$
@@ -7540,43 +7171,43 @@ $$$$
   9 10  1  0
   4 10  1  0
 M  END
->  <id>  (100) 
+>  <id>
 EN300-13511
 
->  <IUPAC Name>  (100) 
+>  <IUPAC Name>
 1-(4-aminopiperidin-1-yl)ethan-1-one
 
->  <CAS>  (100) 
+>  <CAS>
 160357-94-8
 
->  <purity>  (100) 
+>  <purity>
 95.00
 
->  <MDLNUMBER>  (100) 
+>  <MDLNUMBER>
 MFCD03412449
 
->  <LogP>  (100) 
+>  <LogP>
 -2.006
 
->  <URL>  (100) 
+>  <URL>
 https://www.enaminestore.com/catalog/EN300-13511
 
->  <MP>  (100) 
+>  <MP>
 46-50
 
->  <avail_US_100mg>  (100) 
+>  <avail_US_100mg>
 X
 
->  <avail_US_250mg>  (100) 
+>  <avail_US_250mg>
 X
 
->  <avail_US_1g>  (100) 
+>  <avail_US_1g>
 X
 
->  <avail_US_2_5g>  (100) 
+>  <avail_US_2_5g>
 X
 
->  <rxn_annotations>  (100) 
+>  <rxn_annotations>
 {"5-het-amination": [1], "alkylation-1": [1], "amide_coupling-1": [1], "amide_coupling-2": [1], "amide_coupling-5": [1], "amination-1": [1], "amination-2": [1], "carbamate-2": [0], "curtius-1": [1], "pyrrole-2": [1], "quinazoline-1": [1], "sulfonamide-1": [1], "thiourea-1": [1], "urea-1": [1], "urea-2": [0, 1]}
 
 $$$$

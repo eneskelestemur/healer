@@ -14,6 +14,7 @@ from healer.application.healer import (
     SiteHEALER,
 )
 from healer.domain.bb_repository import BBRepository
+from healer.domain.building_block import BuildingBlock
 from tests.conftest import ASPIRIN_SMILES, FRAGMENT_SMILES, PENICILLIN_SMILES
 
 
@@ -220,6 +221,27 @@ class TestResults:
         assert "BB2" in df.columns and "BB3" not in df.columns
         assert "Reaction1_name" in df.columns and "Reaction2_name" not in df.columns
 
+    def test_building_block_identifiers_are_reported(self, test_bb_repository):
+        healer = molecule_healer(test_bb_repository)
+        healer.set_query_mol(PENICILLIN_SMILES, n_compositions=1)
+        healer.enumerate(max_total_products=3)
+        df = healer.get_results(calc_similarity=False, calc_properties=False)
+
+        assert "BBID1" in df.columns and "BBID2" in df.columns
+        analogs = df[df["BB1"] != ""]
+        assert (analogs["BBID1"] != "").all()
+
+    def test_identifiers_are_empty_for_sources_without_them(
+        self, test_bb_repository, monkeypatch
+    ):
+        monkeypatch.setattr(BuildingBlock, "get_id", lambda self: "")
+        healer = molecule_healer(test_bb_repository)
+        healer.set_query_mol(PENICILLIN_SMILES, n_compositions=1)
+        healer.enumerate(max_total_products=3)
+        df = healer.get_results(calc_similarity=False, calc_properties=False)
+
+        assert (df["BBID1"] == "").all()
+
     def test_ids_are_unique_and_formatted(self, test_bb_repository):
         healer = molecule_healer(test_bb_repository)
         healer.set_query_mol(PENICILLIN_SMILES, n_compositions=2)
@@ -229,13 +251,19 @@ class TestResults:
         assert df["ID"].is_unique
         assert all(i.startswith("HEAL_") for i in df["ID"])
 
-    def test_duplicate_products_are_collapsed(self, test_bb_repository):
+    def test_duplicate_routes_are_collapsed(self, test_bb_repository):
         healer = molecule_healer(test_bb_repository, max_bbs_per_frag=10)
         healer.set_query_mol(PENICILLIN_SMILES, n_compositions=3)
         healer.enumerate(max_total_products=50)
         df = healer.get_results(calc_similarity=False, calc_properties=False)
 
-        assert df["Product"].is_unique
+        route_cols = [
+            col
+            for col in df.columns
+            if (col.startswith("BB") and not col.startswith("BBID"))
+            or col.startswith("Reaction")
+        ]
+        assert not df.duplicated(subset=route_cols).any()
 
     def test_similarity_sorts_descending(self, test_bb_repository):
         healer = molecule_healer(test_bb_repository, max_bbs_per_frag=10)

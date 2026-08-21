@@ -753,6 +753,7 @@ class _BaseHEALER(abc.ABC):
         for r in self.enumerated_molecules:
             row = {
                 "Product": Chem.MolToSmiles(r.product),
+                "ROMol": r.product,
             }
             for i in range(max_bb):
                 row[f"BB{i + 1}"] = r.bbs[i].get_smiles() if i < len(r.bbs) else ""
@@ -760,6 +761,8 @@ class _BaseHEALER(abc.ABC):
                 row[f"Reaction{i + 1}_name"] = (
                     r.reaction_names[i] if i < len(r.reaction_names) else ""
                 )
+            for i in range(max_bb):
+                row[f"BBID{i + 1}"] = r.bbs[i].get_id() if i < len(r.bbs) else ""
             for i in range(max_bb):
                 row[f"URL{i + 1}"] = (
                     r.bbs[i].get_parsed_prop("URL") if i < len(r.bbs) else ""
@@ -769,16 +772,17 @@ class _BaseHEALER(abc.ABC):
 
         df = pd.DataFrame(rows)
         cols_to_consider = [
-            col for col in df.columns if not col.startswith(("URL", "Reaction"))
+            col
+            for col in df.columns
+            if (col.startswith("BB") and not col.startswith("BBID"))
+            or col.startswith("Reaction")
         ]
         df = df.drop_duplicates(
             subset=cols_to_consider, keep="first", ignore_index=True
         )
 
         if calc_similarity:
-            enum_fps = self._get_fingerprints(
-                df["Product"].apply(Chem.MolFromSmiles).tolist()
-            )
+            enum_fps = self._get_fingerprints(df["ROMol"].tolist())
             query_fp = enum_fps.pop(0)
             tani_sims = utils.get_batch_tani_sims([query_fp], enum_fps)[0]
             tani_sims = np.concat((np.array([1.001]), tani_sims))
@@ -789,15 +793,20 @@ class _BaseHEALER(abc.ABC):
             df = df.round({"Similarity_to_query": 2})
 
         if calc_properties:
+            dedup = df.drop_duplicates(
+                subset=["Product"], keep="first", ignore_index=True
+            )
             profile_df = profile_molecules(
-                molecules=df["Product"].tolist(),
+                molecules=dedup["ROMol"].tolist(),
                 skip_cns_mpo=skip_cns_mpo,
+                skip_curation=True,
                 device="cuda" if _CUDA_AVAILABLE else "cpu",
                 verbose=bool(self.verbose >= 1),
             )
             profile_df.rename(columns={"smiles": "Product"}, inplace=True)
             df = df.merge(profile_df, how="left", on="Product", validate="m:1")
 
+        df.drop(columns=["ROMol"], inplace=True)
         df.insert(0, "ID", [f"HEAL_{i:06d}" for i in df.index])
         if as_dict:
             return df.to_dict(orient="records")

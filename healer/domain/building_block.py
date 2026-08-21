@@ -8,6 +8,12 @@ from typing import Any, Dict, Optional
 from rdkit import Chem
 from rdkit.DataStructs.cDataStructs import ExplicitBitVect
 
+ID_PROP_NAMES = (
+    "id",
+    "catalog_id",
+    "molport id",
+)
+
 
 class BuildingBlock:
     def __init__(self, molecule: Chem.Mol) -> None:
@@ -51,6 +57,17 @@ class BuildingBlock:
         Fetch the parsed Python object for this property.
         """
         return self.props.get(name, "")
+
+    def get_id(self) -> Any:
+        """
+        Fetch the identifier of the building block, matching the property name
+        case-insensitively. Returns an empty string when there is none.
+        """
+        lowered = {name.lower(): name for name in self.props}
+        for candidate in ID_PROP_NAMES:
+            if candidate in lowered:
+                return self.props[lowered[candidate]]
+        return ""
 
     @property
     def mol(self) -> Chem.Mol:

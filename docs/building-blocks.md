@@ -64,6 +64,12 @@ h = MoleculeHEALER(bb_source='/path/to/my_library_processed.sdf')
 Relative paths resolve against `$HEALER_DATA_DIR/buildingblocks/`, and glob
 patterns are accepted.
 
+SDF properties carried on a building block are picked up by name. An `id` field
+(matched case-insensitively) is reported in the `BBID` result columns, and a
+`URL` field in the `URL` columns; both are left empty when absent. Adding an
+`id` to an internal library is enough to trace every analog back to a catalog
+entry.
+
 ## Sharing a library across instances
 
 Loading a large SDF takes time and memory, so repositories are cached per

@@ -147,7 +147,7 @@ export function MoleculeForm({ onSubmit, isLoading, isMultiFragment }: MoleculeF
                     <Group justify="space-between" mb="xs">
                          <LabelWithTooltip 
                             label={`Similarity Threshold: ${form.values.sim_threshold}`} 
-                            tooltip={`Minimum Tanimoto similarity required between a fragment and a building block.${isServerMode && serverLimits ? ` Server limit: ${serverLimits.sim_threshold_min}-${serverLimits.sim_threshold_max}` : ''}`} 
+                            tooltip={`Minimum Tversky similarity required between a fragment and a building block. Alternatively, use "Max BBs per fragment" if enumeration is not successful.${isServerMode && serverLimits ? ` Server limit: ${serverLimits.sim_threshold_min}-${serverLimits.sim_threshold_max}` : ''}`} 
                          />
                     </Group>
                     <Slider 

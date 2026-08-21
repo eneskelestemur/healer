@@ -9,6 +9,7 @@ from healer.domain.bb_repository import (
     BBRepository,
     _build_bb_paths,
     clear_repository_cache,
+    count_records,
     get_repository,
     resolve_bb_path,
 )
@@ -173,3 +174,36 @@ class TestPickling:
         assert len(restored) == len(repo)
         assert restored.is_loaded
         assert restored._supplier is not None
+
+
+class TestRecordCount:
+    def test_the_count_matches_the_supplier(self, test_bb_path):
+        from rdkit.Chem import SDMolSupplier
+
+        assert count_records(test_bb_path) == len(SDMolSupplier(test_bb_path))
+
+    def test_records_spanning_a_chunk_boundary_are_counted(
+        self, test_bb_path, monkeypatch
+    ):
+        expected = count_records(test_bb_path)
+        monkeypatch.setattr("healer.domain.bb_repository._COUNT_CHUNK_SIZE", 7)
+        monkeypatch.setattr("healer.domain.bb_repository._RECORD_COUNT_CACHE", {})
+
+        assert count_records(test_bb_path) == expected
+
+    def test_a_file_without_a_trailing_newline_still_counts(self, tmp_path):
+        sdf = tmp_path / "one.sdf"
+        sdf.write_text("\n  Mol\n\n$$$$")
+
+        assert count_records(str(sdf)) == 1
+
+    def test_a_missing_file_counts_as_zero(self, tmp_path):
+        assert count_records(str(tmp_path / "absent.sdf")) == 0
+
+    def test_a_rewritten_file_is_recounted(self, tmp_path):
+        sdf = tmp_path / "grow.sdf"
+        sdf.write_text("\n  Mol\n\n$$$$\n")
+        assert count_records(str(sdf)) == 1
+
+        sdf.write_text("\n  Mol\n\n$$$$\n\n  Mol\n\n$$$$\n")
+        assert count_records(str(sdf)) == 2

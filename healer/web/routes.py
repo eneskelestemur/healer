@@ -212,7 +212,7 @@ async def get_server_limits_endpoint():
 
 
 @router.get("/info/building-blocks")
-async def get_available_building_blocks():
+def get_available_building_blocks():
     """Return list of available building block libraries."""
     return {"building_blocks": discover_building_blocks()}
 

@@ -120,11 +120,15 @@ export const getServerLimits = async () => {
 export interface BuildingBlockOption {
     value: string;
     label: string;
+    count?: number;
 }
 
 export const getBuildingBlocks = async () => {
     const res = await api.get<{ building_blocks: BuildingBlockOption[] }>('/info/building-blocks');
-    return res.data.building_blocks;
+    return res.data.building_blocks.map(bb => ({
+        ...bb,
+        label: bb.count ? `${bb.label} (${bb.count.toLocaleString()} BBs)` : bb.label,
+    }));
 };
 
 export const convertSmilesToMol = async (smiles: string) => {

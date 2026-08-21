@@ -9,9 +9,12 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     envDir: '../',
     build: {
-      // Output compiled assets directly to the python package directory
+      // Output compiled assets directly to the python package directory.
+      // The directory also holds the checked-in ketcher bundle, so it is
+      // neither emptied nor overwritten from public/ (which only symlinks it).
       outDir: '../healer/web/static',
-      emptyOutDir: true,
+      emptyOutDir: false,
+      copyPublicDir: false,
     },
     server: {
       host: true, // Needed for Docker

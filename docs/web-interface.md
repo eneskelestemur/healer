@@ -55,6 +55,7 @@ limits.
 ## HTTP API
 
 Enumeration is asynchronous: submit a job, poll it, then download the results.
+Every path below is served under the `/api` prefix.
 
 | Method | Path | Purpose |
 |--------|------|---------|
@@ -63,6 +64,7 @@ Enumeration is asynchronous: submit a job, poll it, then download the results.
 | `GET` | `/jobs/{job_id}` | Poll status and results |
 | `POST` | `/jobs/{job_id}/cancel` | Cancel a job |
 | `GET` | `/jobs/{job_id}/download` | Download results as CSV |
+| `GET` | `/health` | Liveness check |
 | `GET` | `/info/mode` | `local` or `celery` |
 | `GET` | `/info/limits` | Active server limits |
 | `GET` | `/info/building-blocks` | Available building block sources |
@@ -74,9 +76,9 @@ Enumeration is asynchronous: submit a job, poll it, then download the results.
 Interactive API documentation is served at `/docs`.
 
 ```bash
-JOB=$(curl -s -X POST localhost:8000/enumerate/molecule \
+JOB=$(curl -s -X POST localhost:8000/api/enumerate/molecule \
   -H 'Content-Type: application/json' \
   -d '{"molecule": "CC(=O)Nc1ccccc1", "bb_source": "test"}' | jq -r .job_id)
 
-curl -s localhost:8000/jobs/$JOB | jq .status
+curl -s localhost:8000/api/jobs/$JOB | jq .status
 ```

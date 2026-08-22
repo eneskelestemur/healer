@@ -53,7 +53,8 @@ def resolve_bb_path(bb_source: str, base_dir: Optional[Path] = None) -> str:
     Resolve a building block source name or pattern to an actual file path.
 
     Args:
-        bb_source: One of "US_stock", "EU_stock", "Global_stock", "test",
+        bb_source: One of "US_stock", "EU_stock", "Global_stock",
+                "Molport_Fast_Delivery", "test",
                 or a direct file path (optionally with glob patterns).
         base_dir: Optional directory to resolve relative paths against when
                 they are not found as given.
@@ -171,7 +172,8 @@ class BBRepository:
         Factory method to create a BBRepository from a source name or path.
 
         Args:
-            bb_source: One of "US_stock", "EU_stock", "Global_stock", "test",
+            bb_source: One of "US_stock", "EU_stock", "Global_stock",
+                "Molport_Fast_Delivery", "test",
                     or a direct file path.
 
         Returns:
@@ -361,7 +363,8 @@ def get_repository(bb_source: str) -> BBRepository:
     multiple HEALER instances using the same BB source.
 
     Args:
-        bb_source: One of "US_stock", "EU_stock", "Global_stock", "test",
+        bb_source: One of "US_stock", "EU_stock", "Global_stock",
+                "Molport_Fast_Delivery", "test",
                 or a direct file path.
 
     Returns:

@@ -308,7 +308,10 @@ def add_common_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--bb-source",
         default="US_stock",
-        help="Building block source: US_stock, EU_stock, Global_stock, or path",
+        help=(
+            "Building block source: US_stock, EU_stock, Global_stock, "
+            "Molport_Fast_Delivery, test, or path"
+        ),
     )
     parser.add_argument(
         "--reactions",

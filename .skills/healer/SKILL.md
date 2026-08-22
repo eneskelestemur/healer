@@ -51,7 +51,8 @@ preprocess-bb ~/Downloads/Enamine_BBs.zip -o ~/.healer/buildingblocks/
 export HEALER_DATA_DIR=~/.healer
 ```
 
-Then use `bb_source="US_stock"`, `"EU_stock"`, `"Global_stock"`, or a path.
+Then use `bb_source="US_stock"`, `"EU_stock"`, `"Global_stock"`,
+`"Molport_Fast_Delivery"`, or a path.
 Preprocessing annotates each block with the reactions it can serve, so it must be
 rerun if reaction templates change.
 
@@ -104,8 +105,12 @@ budget sizing.
 Row one is the query itself, as a baseline. Drop it with `df[df["BB1"] != ""]`.
 
 Columns: `ID`, `Product`, `BB1..N` (the blocks used), `Reaction1..N-1_name`,
-`URL1..N` (supplier links), plus `Similarity_to_query` and a property profile
-when requested. `optimization_score` appears when an optimizer was used.
+`BBID1..N` (catalog identifiers), `URL1..N` (supplier links), plus
+`Similarity_to_query` and a property profile when requested.
+`optimization_score` appears when an optimizer was used.
+
+Rows are one per distinct route, so the same product can appear more than once
+with different blocks or reactions.
 
 `healer.enumerated_molecules` holds the underlying records if you want RDKit
 `Mol` objects rather than a table.

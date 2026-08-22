@@ -125,7 +125,8 @@ class _BaseHEALER(abc.ABC):
         Initialize BaseHEALER.
 
         Args:
-            bb_source: one of "US_stock", "EU_stock" or "Global_stock"; or path to an SDF file.
+            bb_source: a named source ("US_stock", "EU_stock", "Global_stock",
+                "Molport_Fast_Delivery", "test"); or path to an SDF file.
             reaction_tags: list of tags or 'all'.
             bb_repository: optional pre-loaded BBRepository for sharing across instances.
             shuffle_bb_order: whether to shuffle the order of BBs after loading.
@@ -851,7 +852,8 @@ class SiteHEALER(_BaseHEALER):
         Initialize SiteHEALER.
 
         Args:
-            bb_source: one of "US_stock", "EU_stock" or "Global_stock"; or path to an SDF file.
+            bb_source: a named source ("US_stock", "EU_stock", "Global_stock",
+                "Molport_Fast_Delivery", "test"); or path to an SDF file.
             reaction_tags: list of tags or 'all'. If None, defaults to
                 ['amide coupling', 'amide', 'C-N bond formation', 'C-N',
                  'alkylation', 'N-arylation', 'azole', 'amination'].
@@ -1054,7 +1056,8 @@ class MoleculeHEALER(_BaseHEALER):
         Initialize MoleculeHEALER.
 
         Args:
-            bb_source: one of "US_stock", "EU_stock" or "Global_stock"; or path to an SDF file.
+            bb_source: a named source ("US_stock", "EU_stock", "Global_stock",
+                "Molport_Fast_Delivery", "test"); or path to an SDF file.
             reaction_tags: list of tags or 'all'. If None, defaults to
                 ['amide coupling', 'amide', 'C-N bond formation', 'C-N',
                  'alkylation', 'N-arylation', 'azole', 'amination'].
@@ -1323,7 +1326,8 @@ class FragmentHEALER(MoleculeHEALER):
         Initialize FragmentHEALER.
 
         Args:
-            bb_source: one of "US_stock", "EU_stock" or "Global_stock"; or path to an SDF file.
+            bb_source: a named source ("US_stock", "EU_stock", "Global_stock",
+                "Molport_Fast_Delivery", "test"); or path to an SDF file.
             reaction_tags: list of tags or 'all'. If None, defaults to
                 ['amide coupling', 'amide', 'C-N bond formation', 'C-N',
                  'alkylation', 'N-arylation', 'azole', 'amination'].

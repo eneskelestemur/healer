@@ -31,7 +31,7 @@ export function SiteForm({ onSubmit, isLoading }: SiteFormProps) {
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [reactionTags, setReactionTags] = useState<string[]>(DEFAULT_REACTION_TAGS);
     const [bbSources, setBbSources] = useState<BuildingBlockOption[]>([
-        { value: 'test_100_bb_processed.sdf', label: 'Test Set (100 BBs)' }
+        { value: 'test_100_bb_processed.sdf', label: 'Test Set' }
     ]);
     const [serverLimits, setServerLimits] = useState<ServerLimits | null>(null);
     const [isServerMode, setIsServerMode] = useState(false);
@@ -192,7 +192,7 @@ export function SiteForm({ onSubmit, isLoading }: SiteFormProps) {
                 <Collapse in={showAdvanced}>
                     <Stack gap="md">
                          <TextInput
-                            label={<LabelWithTooltip label="Structure Rules (SMARTS)" tooltip="Comma-separated SMARTS patterns that building blocks must contain." />}
+                            label={<LabelWithTooltip label="Structure Rules (SMARTS)" tooltip="Comma-separated SMARTS patterns. A building block is kept only if it matches every pattern." />}
                             placeholder="e.g., c1ccccc1, [CX3](=O)[OX2H1]"
                             {...form.getInputProps('struct_rules_str')}
                         />

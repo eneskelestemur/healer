@@ -195,7 +195,8 @@ def resolve_bb_path(bb_source: str) -> str:
     Resolve a bb_source to an absolute SDF file path.
 
     Accepts:
-      - A named short-key ("US_stock", "EU_stock", "Global_stock", "test")
+      - A named short-key ("US_stock", "EU_stock", "Global_stock",
+        "Molport_Fast_Delivery", "test")
       - An absolute path (returned as-is after existence check)
       - A path relative to BB_BASE_PATH
     """

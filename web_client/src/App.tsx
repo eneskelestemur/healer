@@ -235,15 +235,16 @@ function App() {
           <Text size="sm">
             Generated molecules are designed to be synthetically accessible through established 
             reaction transforms, bridging the gap between computational design and laboratory synthesis. 
-            This server uses <Anchor href="https://enamine.net/building-blocks/building-blocks-catalog" target="_blank">Enamine's publicly available building blocks</Anchor> for 
-            enumeration. However, HEALER is not limited to Enamine's libraries and can be used with any 
-            custom building block collection when set up locally.
+            This server uses <Anchor href="https://enamine.net/building-blocks/building-blocks-catalog" target="_blank">Enamine's</Anchor> or 
+            <Anchor href="https://www.molport.com/shop/fast-delivery-bb" target="_blank"> Molport's</Anchor> publicly available building blocks 
+            for enumeration. However, HEALER is not limited to these libraries and can be used with any custom building block collection
+            when set up locally.
           </Text>
 
           <Text size="sm">
             The reaction library is available <Anchor href="https://github.com/eneskelestemur/healer/blob/main/healer/data/reactions/reactions.json" target="_blank">here</Anchor>. 
             Please reach out to us if you wish to add custom reaction SMARTS. You can learn more about the reaction library format 
-            at <Anchor href="https://github.com/eneskelestemur/healer?tab=readme-ov-file#contributing-reactions" target="_blank">Contributing Reactions</Anchor>.
+            at <Anchor href="https://github.com/eneskelestemur/healer?tab=readme-ov-file#contributing" target="_blank">Contributing Reactions</Anchor>.
           </Text>
 
           <Text size="sm">

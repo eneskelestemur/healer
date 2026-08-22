@@ -18,12 +18,18 @@ from healer.domain.bb_repository import (
 class TestNamedPaths:
     def test_the_expected_sources_are_defined(self):
         paths = _build_bb_paths()
-        for key in ("US_stock", "EU_stock", "Global_stock", "test"):
+        for key in (
+            "US_stock",
+            "EU_stock",
+            "Global_stock",
+            "Molport_Fast_Delivery",
+            "test",
+        ):
             assert key in paths
 
     def test_stock_sources_are_globs(self):
         paths = _build_bb_paths()
-        for key in ("US_stock", "EU_stock", "Global_stock"):
+        for key in ("US_stock", "EU_stock", "Global_stock", "Molport_Fast_Delivery"):
             assert "*" in paths[key]
 
     def test_the_test_source_is_a_concrete_file(self):

@@ -31,7 +31,7 @@ export function MoleculeForm({ onSubmit, isLoading, isMultiFragment }: MoleculeF
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [reactionTags, setReactionTags] = useState<string[]>(DEFAULT_REACTION_TAGS);
     const [bbSources, setBbSources] = useState<BuildingBlockOption[]>([
-        { value: 'test_100_bb_processed.sdf', label: 'Test Set (100 BBs)' }
+        { value: 'test_100_bb_processed.sdf', label: 'Test Set' }
     ]);
     const [serverLimits, setServerLimits] = useState<ServerLimits | null>(null);
     const [isServerMode, setIsServerMode] = useState(false);

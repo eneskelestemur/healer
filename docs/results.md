@@ -25,7 +25,7 @@ Both calculations cost time on large result sets; turn them off for a quick look
 | `Product` | Canonical SMILES of the analog |
 | `BB1`, `BB2`, … | Building blocks used |
 | `Reaction1_name`, … | Reaction template applied at each step |
-| `BBID1`, `BBID2`, … | Catalog identifier per building block, from the `id` field of the SDF |
+| `BBID1`, `BBID2`, … | Catalog identifier per building block, when present in the SDF |
 | `URL1`, `URL2`, … | Supplier URL per building block, when present in the SDF |
 | `Similarity_to_query` | Tanimoto similarity, with `calc_similarity=True` |
 | `optimization_score` | Objective value, when an optimizer was used |

@@ -43,13 +43,15 @@ HEALER then resolves the named sources below against
 | `US_stock` | `Enamine_Rush-Delivery_Building_Blocks-US/` |
 | `EU_stock` | `Enamine_Rush-Delivery_Building_Blocks-EU/` |
 | `Global_stock` | `Enamine_Building_Blocks_Stock/` |
+| `Molport_Fast_Delivery` | `Molport_Full_BB_PRO_US_EU_UK_0726_Fast_Delivery/` |
 | `test` | The bundled 100-compound set |
 
 Each directory is globbed for `*_processed.sdf`, and the most recently modified
 match wins — so a dated Enamine download can be dropped in without renaming.
 
 Catalogs are available from
-[Enamine](https://enamine.net/building-blocks/building-blocks-catalog).
+[Enamine](https://enamine.net/building-blocks/building-blocks-catalog) and
+[Molport](https://www.molport.com/shop/fast-delivery-bb).
 
 ## Custom libraries
 
@@ -64,11 +66,11 @@ h = MoleculeHEALER(bb_source='/path/to/my_library_processed.sdf')
 Relative paths resolve against `$HEALER_DATA_DIR/buildingblocks/`, and glob
 patterns are accepted.
 
-SDF properties carried on a building block are picked up by name. An `id` field
-(matched case-insensitively) is reported in the `BBID` result columns, and a
-`URL` field in the `URL` columns; both are left empty when absent. Adding an
-`id` to an internal library is enough to trace every analog back to a catalog
-entry.
+SDF properties carried on a building block are picked up by name. The first of
+`id`, `catalog_id` or `molport id` present — matched case-insensitively — is
+reported in the `BBID` result columns, and a `URL` field in the `URL` columns;
+both are left empty when absent. Adding an `id` to an internal library is enough
+to trace every analog back to a catalog entry.
 
 ## Sharing a library across instances
 

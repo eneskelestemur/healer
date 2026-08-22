@@ -42,6 +42,10 @@ _BB_NAMED_SOURCES: Dict[str, Dict[str, str]] = {
         "subdir": "Enamine_Building_Blocks_Stock",
         "label": "Enamine Global Stock",
     },
+    "Molport_Fast_Delivery": {
+        "subdir": "Molport_Full_BB_PRO_US_EU_UK_0726_Fast_Delivery",
+        "label": "Molport Fast Delivery",
+    },
     "test": {"subdir": None, "label": "Test Set"},
 }
 

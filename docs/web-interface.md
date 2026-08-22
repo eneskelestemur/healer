@@ -28,10 +28,10 @@ shared deployment cannot be overwhelmed by one request.
 
 | Variable | Caps | Default |
 |----------|------|---------|
-| `HEALER_LIMIT_MAX_EVALS` | Reaction attempts per composition | 10000 |
-| `HEALER_LIMIT_MAX_PRODUCTS` | Products per composition | 500 |
-| `HEALER_LIMIT_MAX_TOTAL` | Products in total | 5000 |
-| `HEALER_LIMIT_SIM_MIN` / `_MAX` | Similarity threshold range | 0.5 / 1.0 |
+| `HEALER_LIMIT_MAX_EVALS` | Reaction attempts per composition | 1000000 |
+| `HEALER_LIMIT_MAX_PRODUCTS` | Products per composition | 1000 |
+| `HEALER_LIMIT_MAX_TOTAL` | Products in total | 50000 |
+| `HEALER_LIMIT_SIM_MIN` / `_MAX` | Similarity threshold range | 0.65 / 1.0 |
 | `HEALER_LIMIT_MAX_BBS` | Building blocks per fragment | 10 |
 | `HEALER_LIMIT_N_COMP` | Compositions | 50 |
 | `HEALER_LIMIT_RETRO_DEPTH` | Retrosynthesis depth | 2 |

@@ -77,6 +77,18 @@ export function MoleculeForm({ onSubmit, isLoading, isMultiFragment }: MoleculeF
         }
     }, [bbSources]);
 
+    // Pull the threshold into range once the server limits arrive
+    useEffect(() => {
+        if (!isServerMode || !serverLimits) return;
+        const clamped = Math.min(
+            Math.max(form.values.sim_threshold, serverLimits.sim_threshold_min),
+            serverLimits.sim_threshold_max
+        );
+        if (clamped !== form.values.sim_threshold) {
+            form.setFieldValue('sim_threshold', clamped);
+        }
+    }, [isServerMode, serverLimits]);
+
     const handleSubmit = (values: typeof form.values) => {
         // Parse custom sites string "1-2, 3-4" -> [[1,2], [3,4]]
         let custom_sites: [number, number][] | undefined = undefined;

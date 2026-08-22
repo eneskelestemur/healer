@@ -47,6 +47,7 @@ notebooks/*.csv
 /*.html
 /*.xlsx
 /*.out
+/*.zip
 
 # Benchmark Results (Large)
 benchmark/results/*/*.csv

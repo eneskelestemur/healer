@@ -40,7 +40,9 @@ def _build_bb_paths() -> Dict[str, str]:
             _BB_DIR / "Enamine_Building_Blocks_Stock" / "*_processed.sdf"
         ),
         "Molport_Fast_Delivery": str(
-            _BB_DIR / "Molport_Full_BB_PRO_US_EU_UK_0726_Fast_Delivery" / "*_processed.sdf"
+            _BB_DIR
+            / "Molport_Full_BB_PRO_US_EU_UK_0726_Fast_Delivery"
+            / "*_processed.sdf"
         ),
         "test": str(_BB_DIR / "test_100_bb_processed.sdf"),
     }

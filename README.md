@@ -82,7 +82,8 @@ Full documentation is in [`docs/`](docs/README.md).
 | [Architecture](docs/architecture.md) | How the pieces fit together |
 
 [`notebooks/healer_demo.ipynb`](notebooks/healer_demo.ipynb) walks through the
-Python API with visualizations.
+Python API with visualizations. Release notes are in
+[`CHANGELOG.md`](CHANGELOG.md).
 
 ## Contributing
 

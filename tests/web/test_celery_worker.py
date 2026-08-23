@@ -51,3 +51,28 @@ class TestTaskRegistration:
             "healer.web.celery_worker.task_enumerate_molecule"
         ]
         assert list(inspect.signature(task.run).parameters) == ["params"]
+
+
+class TestStageReporting:
+    def test_each_stage_is_published_as_task_state(self):
+        class FakeTask:
+            def __init__(self):
+                self.states = []
+
+            def update_state(self, state, meta):
+                self.states.append((state, meta))
+
+        task = FakeTask()
+        report = celery_worker._stage_reporter(task)
+        report("enumerating")
+
+        assert task.states == [("PROGRESS", {"stage": "enumerating"})]
+
+    def test_the_payload_stays_json_serializable(self):
+        import json
+
+        class FakeTask:
+            def update_state(self, state, meta):
+                json.dumps(meta)
+
+        celery_worker._stage_reporter(FakeTask())("loading")

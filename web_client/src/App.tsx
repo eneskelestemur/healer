@@ -2,18 +2,19 @@ import { useState, useRef, useEffect } from 'react';
 import { 
   Container, Title, Text, Tabs, Grid, Paper, Group, ActionIcon, 
   useMantineColorScheme, Stack, Image, Collapse, Button, Table, 
-  Tooltip, Box, List, Anchor, Divider 
+  Box, List, Anchor, Divider 
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { IconSun, IconMoon, IconFlask, IconAtom, IconEye, IconEyeOff, IconX, IconDownload } from '@tabler/icons-react';
+import { IconSun, IconMoon, IconFlask, IconAtom, IconEye, IconEyeOff, IconDownload } from '@tabler/icons-react';
 
 import { useDebouncedCallback } from '@mantine/hooks';
 import { Ketcher, KetcherRef } from './components/Ketcher';
 import { MoleculeForm } from './components/MoleculeForm';
 import { SiteForm } from './components/SiteForm';
 import { ResultsTable } from './components/ResultsTable';
-import { submitMoleculeJob, submitSiteJob, getJobStatus, EnumerationResult, getMolWithIndices, cancelJob, getServerMode, getDownloadUrl, convertSmilesToMol } from './api';
+import { StatusCard } from './components/StatusCard';
+import { submitMoleculeJob, submitSiteJob, getJobStatus, EnumerationResult, getMolWithIndices, cancelJob, getServerMode, getDownloadUrl, convertSmilesToMol, JobStatusResponse } from './api';
 
 interface MolReferenceData {
     svg: string;
@@ -36,6 +37,8 @@ function App() {
   const [results, setResults] = useState<EnumerationResult[]>([]);
   const [isMultiFragment, setIsMultiFragment] = useState(false);
   const [serverMode, setServerMode] = useState<'celery' | 'local'>('local');
+  const [wasCancelled, setWasCancelled] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   
   const [molRefData, setMolRefData] = useState<MolReferenceData | null>(null);
   const [showIndices, setShowIndices] = useState(true);
@@ -54,35 +57,34 @@ function App() {
   const cancelMutation = useMutation({
     mutationFn: cancelJob,
     onSuccess: () => {
-      notifications.show({ title: 'Cancelled', message: 'Job has been cancelled', color: 'orange' });
+      setWasCancelled(true);
       setCurrentJobId(null);
     },
     onError: (err: any) => {
-      notifications.show({ title: 'Error', message: err.message || 'Failed to cancel job', color: 'red' });
+      setSubmitError(err.message || 'Failed to cancel job');
     }
   });
 
+  const onJobSubmitted = (jobId: string) => {
+    setCurrentJobId(jobId);
+    setResults([]);
+    setWasCancelled(false);
+    setSubmitError(null);
+  };
+
   const moleculeMutation = useMutation({
     mutationFn: submitMoleculeJob,
-    onSuccess: (data) => {
-      setCurrentJobId(data.job_id);
-      notifications.show({ title: 'Molecule Job Submitted', message: 'Enumeration started...', color: 'blue' });
-      setResults([]);
-    },
+    onSuccess: (data) => onJobSubmitted(data.job_id),
     onError: (err: any) => {
-      notifications.show({ title: 'Error', message: err.message || 'Failed to submit job', color: 'red' });
+      setSubmitError(err.message || 'Failed to submit job');
     }
   });
 
   const siteMutation = useMutation({
     mutationFn: submitSiteJob,
-    onSuccess: (data) => {
-      setCurrentJobId(data.job_id);
-      notifications.show({ title: 'Site Job Submitted', message: 'Enumeration started...', color: 'violet' });
-      setResults([]);
-    },
+    onSuccess: (data) => onJobSubmitted(data.job_id),
     onError: (err: any) => {
-      notifications.show({ title: 'Error', message: err.message || 'Failed to submit job', color: 'red' });
+      setSubmitError(err.message || 'Failed to submit job');
     }
   });
 
@@ -94,37 +96,15 @@ function App() {
      enabled: !!currentJobId,
      refetchInterval: (data) => {
         if (data?.state.data?.status === 'SUCCESS' || data?.state.data?.status === 'FAILURE') return false;
-        return 2000;
+        return 1000;
      }
   });
 
   useEffect(() => {
     if (jobQuery.data?.status === 'SUCCESS' && results.length === 0 && jobQuery.data.result) {
-        const displayResults = jobQuery.data.result.display || [];
-        setResults(displayResults);
-        
-        if (displayResults.length <= 1) {
-            notifications.show({
-              title: 'No New Molecules Found',
-              message: 'Only the input molecule was returned. Try adjusting the parameters.',
-              color: 'orange',
-            });
-        } else {
-            notifications.show({
-              title: 'Success',
-              message: `Enumeration completed! Generated ${displayResults.length} molecules.`,
-              color: 'green',
-            });
-        }
-    } else if (jobQuery.data?.status === 'FAILURE' && currentJobId) {
-        notifications.show({
-            title: 'Job Failed',
-            message: jobQuery.data.error || 'Unknown error occurred',
-            color: 'red',
-        });
-        setCurrentJobId(null);
+        setResults(jobQuery.data.result.display || []);
     }
-  }, [jobQuery.data, results.length, currentJobId]);
+  }, [jobQuery.data, results.length]);
 
   // --- Handlers ---
 
@@ -178,7 +158,15 @@ function App() {
       }
   };
 
-  const isLoading = moleculeMutation.isPending || siteMutation.isPending || (!!currentJobId && jobQuery.data?.status !== 'SUCCESS' && jobQuery.data?.status !== 'FAILURE');
+  const isSubmitting = moleculeMutation.isPending || siteMutation.isPending;
+  const isLoading = isSubmitting || (!!currentJobId && jobQuery.data?.status !== 'SUCCESS' && jobQuery.data?.status !== 'FAILURE');
+
+  // The card reports the newest thing that happened, newest cause first.
+  const cardStatus: JobStatusResponse['status'] | undefined =
+    submitError ? 'FAILURE'
+    : wasCancelled ? 'CANCELLED'
+    : isSubmitting ? 'PENDING'
+    : jobQuery.data?.status;
 
   return (
     <Container fluid p="md" style={{ minHeight: '100vh', backgroundColor: colorScheme === 'dark' ? '#1A1B1E' : '#f8f9fa' }}>
@@ -287,24 +275,36 @@ function App() {
         <Grid mt="md">
              {/* Left Column: Form & Settings */}
              <Grid.Col span={{ base: 12, md: 5, lg: 4 }}>
-                 <Paper p="md" withBorder shadow="sm">
-                    <Title order={4} mb="md">Parameters</Title>
-                    
-                    <Tabs.Panel value="molecule">
-                        <MoleculeForm 
-                            onSubmit={handleMoleculeSubmit} 
-                            isLoading={isLoading} 
-                            isMultiFragment={isMultiFragment}
-                        />
-                    </Tabs.Panel>
+                 <Stack gap="md">
+                     <Paper p="md" withBorder shadow="sm">
+                        <Title order={4} mb="md">Parameters</Title>
 
-                    <Tabs.Panel value="site">
-                        <SiteForm 
-                            onSubmit={handleSiteSubmit}
-                            isLoading={isLoading}
-                        />
-                    </Tabs.Panel>
-                 </Paper>
+                        <Tabs.Panel value="molecule">
+                            <MoleculeForm
+                                onSubmit={handleMoleculeSubmit}
+                                isLoading={isLoading}
+                                isMultiFragment={isMultiFragment}
+                            />
+                        </Tabs.Panel>
+
+                        <Tabs.Panel value="site">
+                            <SiteForm
+                                onSubmit={handleSiteSubmit}
+                                isLoading={isLoading}
+                            />
+                        </Tabs.Panel>
+                     </Paper>
+
+                     <StatusCard
+                        status={cardStatus}
+                        stage={jobQuery.data?.progress?.stage}
+                        stats={jobQuery.data?.result?.stats}
+                        error={submitError ?? jobQuery.data?.error}
+                        canCancel={serverMode !== 'local' && !!currentJobId}
+                        isCancelling={cancelMutation.isPending}
+                        onCancel={() => currentJobId && cancelMutation.mutate(currentJobId)}
+                     />
+                 </Stack>
              </Grid.Col>
 
              {/* Right Column: Editor & Results */}
@@ -373,27 +373,6 @@ function App() {
                               </Group>
                           )}
                         </Group>
-                        {isLoading && (
-                          <Group gap="sm" mb="sm">
-                            <Text>Processing...</Text>
-                            <Tooltip 
-                              label={serverMode === 'local' ? 'Cancel not available in local mode' : 'Cancel job'}
-                              withArrow
-                            >
-                              <Button
-                                size="xs"
-                                color="red"
-                                variant="light"
-                                leftSection={<IconX size={14} />}
-                                disabled={serverMode === 'local' || !currentJobId}
-                                loading={cancelMutation.isPending}
-                                onClick={() => currentJobId && cancelMutation.mutate(currentJobId)}
-                              >
-                                Cancel
-                              </Button>
-                            </Tooltip>
-                          </Group>
-                        )}
                         <ResultsTable results={results} />
                      </Paper>
                  </Stack>

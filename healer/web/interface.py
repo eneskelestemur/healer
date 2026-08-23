@@ -5,8 +5,9 @@ Adapted for the internal web package.
 
 import logging
 import os
+import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from rdkit import Chem
 
@@ -52,6 +53,9 @@ _BB_NAMED_SOURCES: Dict[str, Dict[str, str]] = {
 # Fallback pretty-name lookup for any extra SDF files found by rglob
 # (keyed on the stem without "_processed")
 _EXTRA_PRETTY_NAMES: Dict[str, str] = {}
+
+# Stage keys reported while a job runs, in the order they occur.
+STAGES = ("loading", "fragmenting", "enumerating", "profiling")
 
 SERVER_MODE = os.environ.get("HEALER_SERVER_MODE", "false").lower() == "true"
 
@@ -319,13 +323,17 @@ def run_molecule_enumeration(
     max_products_per_comp: Optional[int] = None,
     max_total_products: Optional[int] = None,
     use_fragment_healer: bool = False,
+    on_stage: Optional[Callable[[str], None]] = None,
 ) -> List[Dict[str, Any]]:
+
+    notify = on_stage if on_stage is not None else lambda stage: None
 
     try:
         num_fragments = count_molecular_fragments(molecule)
         auto_use_fragment_healer = num_fragments > 1
         final_use_fragment_healer = use_fragment_healer or auto_use_fragment_healer
 
+        notify("loading")
         healer = create_molecule_healer(
             bb_source=bb_source,
             reaction_tags=reaction_tags,
@@ -336,6 +344,7 @@ def run_molecule_enumeration(
             use_fragment_healer=final_use_fragment_healer,
         )
 
+        notify("fragmenting")
         if final_use_fragment_healer:
             healer.set_query_mol(query_mol=molecule)
         else:
@@ -349,11 +358,13 @@ def run_molecule_enumeration(
                 min_frag_size=min_frag_size,
             )
 
+        notify("enumerating")
         healer.enumerate(
             max_evals_per_comp=max_evals_per_comp,
             max_products_per_comp=max_products_per_comp,
             max_total_products=max_total_products,
         )
+        notify("profiling")
         return healer.get_results(
             as_dict=True, calc_similarity=True, calc_properties=True
         )
@@ -374,9 +385,13 @@ def run_site_enumeration(
     max_evals_per_comp: Optional[int] = None,
     max_products_per_comp: Optional[int] = None,
     max_total_products: Optional[int] = None,
+    on_stage: Optional[Callable[[str], None]] = None,
 ) -> List[Dict[str, Any]]:
 
+    notify = on_stage if on_stage is not None else lambda stage: None
+
     try:
+        notify("loading")
         healer = create_site_healer(
             bb_source=bb_source,
             reaction_tags=reaction_tags,
@@ -386,13 +401,16 @@ def run_site_enumeration(
             verbose=1,
         )
 
+        notify("fragmenting")
         healer.set_query_mol(query_mol=molecule, reactive_sites=reactive_sites)
 
+        notify("enumerating")
         healer.enumerate(
             max_evals_per_comp=max_evals_per_comp,
             max_products_per_comp=max_products_per_comp,
             max_total_products=max_total_products,
         )
+        notify("profiling")
         return healer.get_results(
             as_dict=True, calc_similarity=True, calc_properties=True
         )
@@ -452,3 +470,43 @@ def format_enumeration_results(
         display_results.append(display_result)
 
     return display_results, complete_results
+
+
+def run_enumeration_job(
+    job_type: str,
+    params: Dict[str, Any],
+    on_stage: Optional[Callable[[str], None]] = None,
+) -> Dict[str, Any]:
+    """
+    Run one enumeration job and build the payload served to the frontend.
+
+    Args:
+        job_type: "molecule" or "site".
+        params: request fields for the matching enumeration function.
+        on_stage: called with each stage key from STAGES as it begins.
+
+    Returns:
+        Dict with 'display' rows, 'complete' rows, and 'stats'.
+    """
+    stage_times: Dict[str, float] = {}
+
+    def track(stage: str) -> None:
+        stage_times[stage] = time.perf_counter()
+        if on_stage is not None:
+            on_stage(stage)
+
+    if job_type == "molecule":
+        raw_results = run_molecule_enumeration(**params, on_stage=track)
+    else:
+        raw_results = run_site_enumeration(**params, on_stage=track)
+
+    display_res, complete_res = format_enumeration_results(raw_results, job_type)
+
+    # Timed from the first stage after the library load, which happens once per
+    # worker and would otherwise dominate the figure shown to the user.
+    clock = stage_times.get("fragmenting")
+    stats = {
+        "n_molecules": max(len(display_res) - 1, 0),  # row one is the query
+        "seconds": round(time.perf_counter() - clock, 1) if clock else None,
+    }
+    return {"display": display_res, "complete": complete_res, "stats": stats}

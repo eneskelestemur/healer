@@ -51,15 +51,24 @@ export interface EnumerationResult {
     [key: string]: any; // For BB1, BB2, etc.
 }
 
+export interface JobStats {
+    n_molecules: number;
+    seconds: number | null;
+}
+
 export interface JobResult {
     display: EnumerationResult[];
     complete: any[];
+    stats?: JobStats;
 }
+
+export type JobStage = 'loading' | 'fragmenting' | 'enumerating' | 'profiling';
 
 export interface JobStatusResponse {
     job_id: string;
-    status: 'PENDING' | 'STARTED' | 'SUCCESS' | 'FAILURE' | 'RETRY';
+    status: 'PENDING' | 'STARTED' | 'PROGRESS' | 'SUCCESS' | 'FAILURE' | 'RETRY' | 'CANCELLED';
     result?: JobResult;
+    progress?: { stage?: JobStage };
     error?: string;
 }
 

@@ -212,3 +212,54 @@ class TestResultFormatting:
         assert display[0]["BB"] == "CO"
         assert display[0]["BBID"] == "EN300-2"
         assert display[0]["URL"] == "https://example.com/2"
+
+
+class TestEnumerationJob:
+    """The wrapper both the Celery tasks and local mode run jobs through."""
+
+    PARAMS = {
+        "molecule": "CC1(C)SC2C(NC(=O)Cc3ccccc3)C(=O)N2C1C(=O)O",
+        "bb_source": "test",
+        "reaction_tags": ["all"],
+        "sim_threshold": 0.0,
+        "max_bbs_per_frag": 10,
+        "retro_tree_depth": 1,
+        "min_frag_size": 3,
+        "n_compositions": 2,
+        "max_total_products": 5,
+    }
+
+    @pytest.fixture(scope="class")
+    def job(self):
+        from healer.web.interface import run_enumeration_job
+
+        seen = []
+        payload = run_enumeration_job(
+            "molecule", dict(self.PARAMS), on_stage=seen.append
+        )
+        return payload, seen
+
+    def test_stages_are_reported_in_order(self, job):
+        from healer.web.interface import STAGES
+
+        _, seen = job
+        assert seen == list(STAGES)
+
+    def test_the_payload_carries_rows_and_stats(self, job):
+        payload, _ = job
+        assert payload["display"] and payload["complete"]
+        assert set(payload["stats"]) == {"n_molecules", "seconds"}
+
+    def test_the_query_row_is_not_counted(self, job):
+        payload, _ = job
+        assert payload["stats"]["n_molecules"] == len(payload["display"]) - 1
+
+    def test_the_timing_excludes_the_library_load(self, job):
+        payload, _ = job
+        assert 0 <= payload["stats"]["seconds"] < 60
+
+    def test_stages_are_optional(self):
+        from healer.web.interface import run_enumeration_job
+
+        payload = run_enumeration_job("molecule", dict(self.PARAMS))
+        assert payload["stats"]["n_molecules"] >= 0

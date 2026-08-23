@@ -82,3 +82,19 @@ JOB=$(curl -s -X POST localhost:8000/api/enumerate/molecule \
 
 curl -s localhost:8000/api/jobs/$JOB | jq .status
 ```
+
+### Job status
+
+`GET /api/jobs/{job_id}` returns `status`, plus whichever of these applies:
+
+| Field | When | Contents |
+|-------|------|----------|
+| `progress` | `status` is `PROGRESS` | `{"stage": ...}` — one of `loading`, `fragmenting`, `enumerating`, `profiling` |
+| `result` | `status` is `SUCCESS` | `display` rows, `complete` rows, and `stats` |
+| `error` | `status` is `FAILURE` | Error message |
+
+`stats` holds `n_molecules` (products, excluding the query row) and `seconds`,
+timed from fragmentation onward so a cold worker's library load is not counted.
+
+Stages are reported in server mode only. Local mode runs the job inside the
+request, so the first poll already returns `SUCCESS`.

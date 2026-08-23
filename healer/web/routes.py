@@ -25,10 +25,8 @@ from healer.utils import utils
 from healer.web.interface import (
     SERVER_MODE,
     discover_building_blocks,
-    format_enumeration_results,
     get_server_limits,
-    run_molecule_enumeration,
-    run_site_enumeration,
+    run_enumeration_job,
 )
 from healer.web.models import (
     JobResult,
@@ -88,22 +86,18 @@ _local_jobs: Dict[str, Dict[str, Any]] = {}
 
 
 def _run_job_sync(job_id: str, job_type: str, params: dict) -> None:
-    """Run a job synchronously and store results."""
+    """Run a job synchronously and store results.
+
+    No stages are reported: the request blocks until the job finishes, so the
+    frontend only ever sees the final state. Local runs have a terminal for
+    detail.
+    """
     _local_jobs[job_id] = {"status": "STARTED", "result": None, "error": None}
 
     try:
-        if job_type == "molecule":
-            raw_results = run_molecule_enumeration(**params)
-            display_res, complete_res = format_enumeration_results(
-                raw_results, "molecule"
-            )
-        else:  # site
-            raw_results = run_site_enumeration(**params)
-            display_res, complete_res = format_enumeration_results(raw_results, "site")
-
         _local_jobs[job_id] = {
             "status": "SUCCESS",
-            "result": {"display": display_res, "complete": complete_res},
+            "result": run_enumeration_job(job_type, params),
             "error": None,
         }
     except Exception as e:
@@ -157,6 +151,8 @@ async def get_job_status(job_id: str):
             response.result = JobResult(**task_result.result)
         elif task_result.status == "FAILURE":
             response.error = str(task_result.result)
+        elif task_result.status == "PROGRESS" and isinstance(task_result.info, dict):
+            response.progress = task_result.info
 
         return response
     else:

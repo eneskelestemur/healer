@@ -99,6 +99,12 @@ def test_molecule_enumeration_submit_and_poll(client: TestClient):
     # At minimum the query molecule itself is always returned
     assert len(poll_body["result"]["complete"]) >= 1
 
+    stats = poll_body["result"]["stats"]
+    assert stats["n_molecules"] == len(poll_body["result"]["display"]) - 1
+    assert stats["seconds"] >= 0
+    # Local mode runs inside the request, so no stage is ever reported
+    assert poll_body["progress"] is None
+
 
 def test_molecule_enumeration_invalid_smiles(client: TestClient):
     """

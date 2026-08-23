@@ -113,10 +113,12 @@ class JobSubmitResponse(BaseModel):
 class JobResult(BaseModel):
     display: List[Dict[str, Any]]
     complete: List[Dict[str, Any]]
+    stats: Optional[Dict[str, Any]] = None
 
 
 class JobStatusResponse(BaseModel):
     job_id: str
     status: str
     result: Optional[JobResult] = None
+    progress: Optional[Dict[str, Any]] = None
     error: Optional[str] = None

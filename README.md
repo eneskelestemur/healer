@@ -6,6 +6,7 @@
 <h3 align="center">Hit Expansion to Advanced Leads Using Enumerated Reactions</h3>
 
 <p align="center">
+  <a href="https://healer.mml.unc.edu">Web Server</a> •
   <a href="docs/installation.md">Installation</a> •
   <a href="docs/quickstart.md">Quick Start</a> •
   <a href="docs/README.md">Documentation</a> •
@@ -105,11 +106,10 @@ pytest
 If you use HEALER in your research, please cite:
 
 ```bibtex
-@article{healer2025,
-  title={HEALER: Hit Expansion to Advanced Leads Using Enumerated Reactions},
-  author={Kelestemur, Enes and ...},
-  journal={...},
-  year={2025}
+@article{kelestemur2026healer,
+  title={HEALER (Hit Expansion to Advanced Leads using Enumerated Reactions): A new Method and Computational Tool for Hit to Lead Optimization},
+  author={Kelestemur, Enes and Muratov, Eugene N and Zakharov, Alexey V and Tropsha, Alexander},
+  year={2026}
 }
 ```
 
